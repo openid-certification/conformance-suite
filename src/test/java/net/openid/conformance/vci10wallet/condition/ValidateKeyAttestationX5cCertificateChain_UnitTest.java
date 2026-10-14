@@ -145,6 +145,24 @@ public class ValidateKeyAttestationX5cCertificateChain_UnitTest {
 	}
 
 	@Test
+	public void pkixMode_passesWhenLeafIsSignedByAWalletProviderListedInTheLote() throws Exception {
+		KeyPair leafKeyPair = generateEcKeyPair();
+		KeyPair rootKeyPair = generateEcKeyPair();
+		X509Certificate rootCert = signCert("CN=Listed Root", rootKeyPair, "CN=Listed Root", rootKeyPair);
+		X509Certificate leafCert = signCert("CN=Leaf", leafKeyPair, "CN=Listed Root", rootKeyPair);
+		String jwt = signJwtWithEcPrivateKey(leafKeyPair);
+
+		JsonArray x5c = new JsonArray();
+		x5c.add(toBase64(leafCert));
+		putKeyAttestationJwt(jwt, x5c);
+		net.openid.conformance.condition.client.lote.LoteTestFixtures.INSTANCE.putAnchors(env,
+			net.openid.conformance.condition.client.lote.LoteSlot.WALLET,
+			net.openid.conformance.condition.client.lote.LoteTestFixtures.WALLET_ISSUANCE, "Wallet entity", rootCert);
+
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
 	public void pkixMode_failsWhenChainDoesNotTraceToConfiguredTrustAnchor() throws Exception {
 		KeyPair leafKeyPair = generateEcKeyPair();
 		KeyPair signingRootKeyPair = generateEcKeyPair();
