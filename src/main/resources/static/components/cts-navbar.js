@@ -52,18 +52,11 @@ const USER_CACHE_KEY = "cts-navbar:user";
 // rules only apply post-upgrade.
 const STYLE_ID = "cts-navbar-styles";
 
+/* The chrome bar itself and the brand block (.cts-nav, .cts-brand,
+ * .cts-brand img, .cts-brand-name) and their responsive tiers live in
+ * css/oidf-app.css, shared with the plain callback pages the suite
+ * serves to the test browser; only the interactive parts are here. */
 const STYLE_TEXT = css`
-  .cts-nav {
-    position: relative;
-    display: flex;
-    align-items: center;
-    height: 60px;
-    padding: 0 var(--space-5);
-    background: var(--ink-900);
-    color: var(--ink-0);
-    gap: var(--space-6);
-    font-family: var(--font-sans);
-  }
   /* Hamburger button — hidden at wide widths, revealed inside the
  * narrow-viewport media query below. The 44px box is the touch target;
  * the negative side margins keep the 20px glyph and the brand exactly
@@ -119,31 +112,6 @@ const STYLE_TEXT = css`
   }
   .cts-nav[data-mobile-open="true"] .cts-menu-toggle .cts-menu-toggle-bar--bot {
     transform: translateY(-4px) rotate(-45deg);
-  }
-  .cts-nav .cts-brand {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    text-decoration-line: none;
-    color: var(--ink-0);
-    flex-shrink: 0;
-  }
-  .cts-nav .cts-brand img {
-    height: 28px;
-    width: auto;
-    /* Optical lift — the OpenID mark's baseline sits a touch low against
-   * the wordmark; -4px aligns the visual center of the logo with the
-   * wordmark's cap-height row. Reset to 0 on mobile where the wordmark
-   * is hidden and the lift would just look like a misalignment. */
-    position: relative;
-    top: -4px;
-  }
-  .cts-nav .cts-brand-name {
-    font-family: var(--font-display);
-    font-weight: var(--fw-bold);
-    font-size: var(--fs-13);
-    letter-spacing: 0.04em;
-    color: var(--ink-0);
   }
   .cts-nav .cts-brand-tag {
     font-family: var(--font-mono);
@@ -445,15 +413,6 @@ const STYLE_TEXT = css`
     }
   }
 
-  /* Tablet landscape and below — tighten the brand block. The user zone
- * is now a single avatar so there's nothing on the right to compress. */
-  @media (max-width: 1023px) {
-    .cts-nav {
-      gap: var(--space-4);
-      padding: 0 var(--space-4);
-    }
-  }
-
   /* Below tablet portrait — collapse brand to logo only and migrate the
  * link row into a vertical panel that drops below the chrome when the
  * hamburger is toggled. The same <ul> serves both layouts; only its
@@ -465,26 +424,6 @@ const STYLE_TEXT = css`
     .cts-nav .cts-account-trigger {
       padding: 7px;
       margin: -7px;
-    }
-    .cts-nav {
-      gap: var(--space-3);
-    }
-    /* Nudge the brand up a few pixels on small screens to optically align
-   * with the hamburger and avatar icons in the collapsed row. */
-    .cts-nav .cts-brand {
-      position: relative;
-      top: -3px;
-    }
-    .cts-nav .cts-brand-name {
-      display: none;
-    }
-    /* Shrink the logo a notch on phones — the wordmark is gone so the
-   * mark itself can come down without losing legibility, leaving more
-   * room for the hamburger and avatar at the row edges. The desktop
-   * optical lift is reset since there's no wordmark to align against. */
-    .cts-nav .cts-brand img {
-      height: 22px;
-      top: 0;
     }
     .cts-nav .cts-menu-toggle {
       display: inline-flex;
@@ -561,10 +500,6 @@ const STYLE_TEXT = css`
   /* Phones — tighten edge padding; the menu pins to the right edge of
  * the trigger so it stays inside the viewport. */
   @media (max-width: 640px) {
-    .cts-nav {
-      padding: 0 var(--space-3);
-      gap: var(--space-2);
-    }
     .cts-nav .cts-account-menu {
       /* Anchor a few px in from the right edge so the popover never
      * brushes the viewport border on small phones. */
