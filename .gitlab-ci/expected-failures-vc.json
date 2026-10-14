@@ -270,7 +270,7 @@
         "current-block": "Authorization endpoint",
         "condition": "CheckNoTransactionDataInVpAuthorizationRequest",
         "expected-result": "failure",
-        "comment": "Paired wallet negative test deliberately sends transaction_data with an unknown type; verifier-side (acting as wallet) correctly rejects per OID4VP \u00a75"
+        "comment": "Paired wallet negative test deliberately sends transaction_data with an unknown type; verifier-side (acting as wallet) correctly rejects per OID4VP section 5"
     },
     {
         "test-name": "oid4vp-1final-verifier-happy-flow",
