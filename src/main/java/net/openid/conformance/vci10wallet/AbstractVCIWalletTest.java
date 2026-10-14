@@ -80,6 +80,8 @@ import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.EnsureKeyAttestationTrustAnchorConfigured;
 import net.openid.conformance.condition.client.EnsureClientAttestationTrustAnchorConfigured;
 import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.ValidateOwnMdocSigningCertificateAgainstLote;
+import net.openid.conformance.condition.client.lote.ValidateOwnSdJwtSigningCertificateAgainstLote;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithBCP195SecureCipherOrTls13;
@@ -204,6 +206,8 @@ import java.util.Map;
 	"client_attestation.key_attestation_jwks",
 	"client_attestation.key_attestation_trust_anchor_pem",
 	"client_attestation.wallet_lote_url",
+	"credential.pid_lote_url",
+	"credential.mdl_lote_url",
 	"lote.signing_certificate_pem",
 	"vci.credential_configuration_id",
 })
@@ -444,6 +448,13 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		callAndStopOnFailure(VCIRegisterKeyAttestationTrustAnchor.class);
 		// the wallet providers LoTE anchors the wallet's client attestation and key attestation signers
 		call(new SetupLoteFromConfiguration(LoteSlot.WALLET, ConditionResult.FAILURE));
+		// the PID and mDL providers lists only drive a pre-flight check that the suite's own credential
+		// signing chains are covered, which reports on the suite's listing, not on the wallet under test
+		call(new SetupLoteFromConfiguration(LoteSlot.PID, ConditionResult.WARNING));
+		call(new SetupLoteFromConfiguration(LoteSlot.MDL, ConditionResult.WARNING));
+		callAndContinueOnFailure(vciCredentialFormat == VCI1FinalCredentialFormat.MDOC
+			? ValidateOwnMdocSigningCertificateAgainstLote.class : ValidateOwnSdJwtSigningCertificateAgainstLote.class,
+			ConditionResult.WARNING, "ETSI119602-6.6.3");
 		if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
 			callAndContinueOnFailure(EnsureKeyAttestationTrustAnchorConfigured.class, ConditionResult.FAILURE, "HAIP-4.5.1");
 		}
