@@ -32,6 +32,24 @@ class ServerUnhealthyError(Exception):
     """Deliberate whole-run abort from the consecutive-failure circuit breaker."""
 
 
+_suite_lote_signer_pem = None
+
+
+async def suite_lote_signer_pem():
+    """The certificate the server seals its own lists of trusted entities with, PEM encoded.
+
+    Fetched from the server because it is ephemeral unless the deployment holds the published key,
+    over the same client (and TLS verification setting) as every other call to the server.
+    """
+    global _suite_lote_signer_pem
+    if _suite_lote_signer_pem is None:
+        url = os.environ['CONFORMANCE_SERVER'] + 'trust-anchors/lote-signer.pem'
+        response = await conformance.httpclient.get(url)
+        response.raise_for_status()
+        _suite_lote_signer_pem = response.text.strip()
+    return _suite_lote_signer_pem
+
+
 def record_module_did_not_complete(module_with_variants):
     # Raising here propagates into queue_worker, which exits the process
     consecutive_module_failures.append(module_with_variants)
@@ -163,6 +181,10 @@ async def run_test_plan(test_plan_obj, config_file, output_dir, client_certs):
 
     for k,v in client_certs.items():
         json_config = json_config.replace('{'+ k + '}', v)
+    # the placeholder is a whole JSON string, so the PEM replaces it as one, newlines escaped
+    if '"{SUITE_LOTE_SIGNER_PEM}"' in json_config:
+        pem = await suite_lote_signer_pem()
+        json_config = json_config.replace('"{SUITE_LOTE_SIGNER_PEM}"', json.dumps(pem))
 
     test_plan_name = test_plan
     variant = test_plan_obj["test"]["variants"] if "variants" in test_plan_obj["test"] else {}
