@@ -1,7 +1,7 @@
 {
   "documents": {
     "authorization-api-1_0": {
-      "link_url": "https://openid.net/specs/authorization-api-1_0.html",
+      "link_url": "https://openid.net/specs/authorization-api-1_0-final.html",
       "prefixes": [
         "AUTHZEN-"
       ],
@@ -15,7 +15,7 @@
           "sha256": "212d1860179131a3212b9d10ab1c3d939f978f27475d336a1ff4de06ce3c9f31",
           "source_format": "zip-xml",
           "source_sha256": "e94ba7b0f6865e7767b28d14d99f84c8bd02f82a5693c577ce404a97dd0d3e9d",
-          "source_url": "https://openid.net/specs/authorization-api-1_0.zip"
+          "source_url": "https://openid.net/specs/authorization-api-1_0-final.zip"
         }
       ]
     },

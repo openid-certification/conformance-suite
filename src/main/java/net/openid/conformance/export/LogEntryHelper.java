@@ -139,7 +139,7 @@ public class LogEntryHelper {
 		specLinks.put("CID-CIBA-", "https://cdn.connectid.com.au/specifications/connectid-fapi-ciba-profile-02.html#section-");
 		specLinks.put("OIDFED-", "https://openid.net/specs/openid-federation-1_0-final.html#section-");
 		specLinks.put("CBUAE", "https://openfinanceuae.atlassian.net/wiki/spaces/standardsv1final/pages/151846988/Security+Profile+-+FAPI");
-		specLinks.put("AUTHZEN-", "https://openid.net/specs/authorization-api-1_0.html#section-");
+		specLinks.put("AUTHZEN-", "https://openid.net/specs/authorization-api-1_0-final.html#section-");
 		specLinks.put("FAPI-ISSUES-", "https://bitbucket.org/openid/fapi/issues/");
 
 		// Confluence heading fragments include the heading text, not only its section number. Keep
