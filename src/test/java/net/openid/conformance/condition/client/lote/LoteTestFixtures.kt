@@ -2,6 +2,7 @@ package net.openid.conformance.condition.client.lote
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.nimbusds.jose.JOSEObjectType
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
@@ -12,6 +13,7 @@ import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.util.Base64
 import com.nimbusds.jose.util.X509CertUtils
+import net.openid.conformance.testmodule.Environment
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.asn1.x509.BasicConstraints
 import org.bouncycastle.asn1.x509.Extension
@@ -28,6 +30,7 @@ import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import java.security.spec.ECGenParameterSpec
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.Date
 
 /**
@@ -43,6 +46,7 @@ object LoteTestFixtures {
 	const val WRPAC_LIST_TYPE = "http://uri.etsi.org/19602/LoTEType/EUWRPACProvidersList"
 	const val PID_ISSUANCE = "http://uri.etsi.org/19602/SvcType/PID/Issuance"
 	const val PID_REVOCATION = "http://uri.etsi.org/19602/SvcType/PID/Revocation"
+	const val MDL_ISSUANCE = "http://trust.ec.europa.eu/lists/mDL/SvcType/Issuance"
 	const val WALLET_ISSUANCE = "http://uri.etsi.org/19602/SvcType/WalletSolution/Issuance"
 	const val WRPAC_ISSUANCE = "http://uri.etsi.org/19602/SvcType/WRPAC/Issuance"
 
@@ -190,9 +194,10 @@ object LoteTestFixtures {
 		info.addProperty("LoTEVersionIdentifier", version)
 		info.addProperty("LoTESequenceNumber", 7)
 		info.add("SchemeOperatorName", multilingual(operator))
-		info.addProperty("ListIssueDateTime", issued.toString())
+		// clause 6.1.3: second precision, as the real lists are issued
+		info.addProperty("ListIssueDateTime", issued.truncatedTo(ChronoUnit.SECONDS).toString())
 		if (nextUpdate != null) {
-			info.addProperty("NextUpdate", nextUpdate.toString())
+			info.addProperty("NextUpdate", nextUpdate.truncatedTo(ChronoUnit.SECONDS).toString())
 		}
 		info.addProperty("LoTEType", loteType)
 		info.add("SchemeName", multilingual("EU Test List"))
@@ -239,6 +244,26 @@ object LoteTestFixtures {
 
 	fun eudiwDevList(name: String): String =
 		LoteTestFixtures::class.java.getResourceAsStream("/lote/eudiw-dev-$name.jwt")!!.use { String(it.readAllBytes()).trim() }
+
+	fun ecDevelopmentList(name: String): String =
+		LoteTestFixtures::class.java.getResourceAsStream("/lote/ec-development-$name.jwt")!!.use { String(it.readAllBytes()).trim() }
+
+	/** Puts a fetched list into the environment as RegisterLote and CallLoteEndpoint would. */
+	fun putLote(env: Environment, slot: LoteSlot, jws: String) {
+		val lote = JsonObject()
+		lote.addProperty("slot", slot.name)
+		lote.addProperty("url", "https://lote.example.com/${slot.name.lowercase()}.jwt")
+		lote.addProperty("value", jws)
+		env.putObject(AbstractLoteCondition.LOTE, lote)
+	}
+
+	/** Puts a fetched and parsed list into the environment, as ParseLote leaves it. */
+	fun putParsedLote(env: Environment, slot: LoteSlot, jws: String) {
+		putLote(env, slot, jws)
+		val parsed = JWSObject.parse(jws)
+		env.putObject(AbstractLoteCondition.LOTE, "header", JsonParser.parseString(parsed.header.toString()).asJsonObject)
+		env.putObject(AbstractLoteCondition.LOTE, "payload", JsonParser.parseString(parsed.payload.toString()).asJsonObject)
+	}
 
 	private fun multilingual(value: String): JsonArray {
 		val arr = JsonArray()

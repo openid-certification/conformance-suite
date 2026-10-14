@@ -1,6 +1,10 @@
 package net.openid.conformance.util;
 
 import com.nimbusds.jose.util.X509CertUtils;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.x500.RDN;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.IETFUtils;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
@@ -146,6 +150,12 @@ public class X509CertificateUtil {
 		}
 	}
 
+	/** The value of the first {@code attribute} of {@code cert}'s subject name, or null when it has none. */
+	public static String subjectRdnValue(X509Certificate cert, ASN1ObjectIdentifier attribute) {
+		RDN[] rdns = X500Name.getInstance(cert.getSubjectX500Principal().getEncoded()).getRDNs(attribute);
+		return rdns.length == 0 ? null : IETFUtils.valueToString(rdns[0].getFirst().getValue());
+	}
+
 	/**
 	 * Checks if the given certificate is self-signed.
 	 *
@@ -203,6 +213,18 @@ public class X509CertificateUtil {
 			certs.add(cert);
 		}
 		return certs;
+	}
+
+	/**
+	 * A certificate in base64 (not base64url) DER, as x5c entries and the X509Certificates of a list of
+	 * trusted entities carry it; null when the value is not one.
+	 */
+	public static X509Certificate parseBase64Der(String base64Der) {
+		try {
+			return X509CertUtils.parse(java.util.Base64.getDecoder().decode(base64Der));
+		} catch (IllegalArgumentException e) {
+			return null;
+		}
 	}
 
 	/**
