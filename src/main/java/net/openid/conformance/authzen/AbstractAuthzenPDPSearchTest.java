@@ -25,8 +25,7 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	// own implementation citing the family-specific AUTHZEN-8.{4,5,6} tag.
 
 	/**
-	 * Paginated search loop shared by every per-axis paginated base
-	 * ({@code AbstractAuthzenPDPPaginated{Subject,Resource,Action}SearchTest}).
+	 * Paginated search loop used by {@link AbstractAuthzenPDPPaginatedSubjectSearchTest}.
 	 * Follows the {@code page.next_token} chain, failing on a page that repeats an earlier
 	 * page's token and results, and capped at {@code MAX_PAGES},
 	 * aggregating results across pages, and matches the accumulated results
