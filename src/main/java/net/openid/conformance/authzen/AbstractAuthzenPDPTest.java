@@ -24,6 +24,7 @@ import net.openid.conformance.authzen.condition.GetPDPStaticServerConfiguration;
 import net.openid.conformance.authzen.condition.ValidatePDPIdentifier;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
@@ -401,6 +402,14 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 				return;
 			}
 			call(new CallAuthzenApiEndpointAndVerifyExpectedStatus(getUnexpectedHttpStatusSeverity(), expectedStatusRequirements(acceptable)));
+			if (acceptable.contains(200) && responseStatusIs200()) {
+				// A module that accepts success or an error checks a success like the success-only
+				// path does: "A successful response is an HTTPS response with a status code of 200
+				// and a Content-Type of application/json" (Section 10.1).
+				env.mapKey("endpoint_response", "authzen_api_endpoint_response");
+				callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.FAILURE, "AUTHZEN-10.1");
+				env.unmapKey("endpoint_response");
+			}
 		}
 	}
 
