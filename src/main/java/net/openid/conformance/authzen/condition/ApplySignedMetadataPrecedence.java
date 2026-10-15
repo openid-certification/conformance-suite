@@ -25,7 +25,8 @@ import net.openid.conformance.testmodule.Environment;
  */
 public class ApplySignedMetadataPrecedence extends AbstractCondition {
 
-	private static final Set<String> JWT_IGNORED_CLAIMS = Set.of("iss", "iat", "exp", "nbf", "aud", "jti", "sub", "signed_metadata");
+	/** Claims of the signed_metadata JWT itself rather than metadata values. */
+	public static final Set<String> JWT_CLAIMS = Set.of("iss", "iat", "exp", "nbf", "aud", "jti", "sub", "signed_metadata");
 
 	@Override
 	@PreEnvironment(required = {"pdp", "pdp_signed_metadata"})
@@ -40,7 +41,7 @@ public class ApplySignedMetadataPrecedence extends AbstractCondition {
 
 		JsonObject applied = new JsonObject();
 		for (Map.Entry<String, JsonElement> claim : claims.entrySet()) {
-			if (JWT_IGNORED_CLAIMS.contains(claim.getKey())) {
+			if (JWT_CLAIMS.contains(claim.getKey())) {
 				continue;
 			}
 			pdp.add(claim.getKey(), claim.getValue());

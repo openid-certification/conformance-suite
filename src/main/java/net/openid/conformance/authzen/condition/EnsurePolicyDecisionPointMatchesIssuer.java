@@ -17,6 +17,24 @@ import net.openid.conformance.testmodule.Environment;
  */
 public class EnsurePolicyDecisionPointMatchesIssuer extends AbstractCondition {
 
+	public static final String PUBLISHED_DOCUMENT = "the PDP's discovery document";
+
+	public static final String SIGNED_METADATA = "the PDP's signed_metadata";
+
+	private final String document;
+
+	public EnsurePolicyDecisionPointMatchesIssuer() {
+		this(PUBLISHED_DOCUMENT);
+	}
+
+	/**
+	 * @param document names the metadata in {@code server} in the messages, such as
+	 *                 {@link #PUBLISHED_DOCUMENT} or {@link #SIGNED_METADATA}
+	 */
+	public EnsurePolicyDecisionPointMatchesIssuer(String document) {
+		this.document = document;
+	}
+
 	@Override
 	@PreEnvironment(required = {"config", "server"})
 	public Environment evaluate(Environment env) {
@@ -26,14 +44,14 @@ public class EnsurePolicyDecisionPointMatchesIssuer extends AbstractCondition {
 		}
 		String returned = env.getString("server", "policy_decision_point");
 		if (returned == null) {
-			throw error("The PDP's discovery document contains no `policy_decision_point`, so it cannot be checked "
+			throw error(capitalize(document) + " contains no `policy_decision_point`, so it cannot be checked "
 				+ "against the 'PDP Identifier' the metadata was fetched from. AuthZEN 9.2.3 requires the two to be "
 				+ "identical and says the data in the response MUST NOT be used otherwise, so the test stops here.");
 		}
 		if (!configured.equals(returned)) {
 			// The difference goes in the message, not only in args: this failure ends the run, so the
 			// one line the tester reads first has to say what to change.
-			throw error("The `policy_decision_point` in the PDP's discovery document is not identical to the "
+			throw error("The `policy_decision_point` in " + document + " is not identical to the "
 					+ "'PDP Identifier' the metadata was fetched from - " + describeDifference(configured, returned)
 					+ ". AuthZEN 9.2.3: \"The policy_decision_point value returned MUST be identical to the Policy "
 					+ "Decision Point identifier value into which the well-known URI string was inserted to create "
@@ -43,9 +61,13 @@ public class EnsurePolicyDecisionPointMatchesIssuer extends AbstractCondition {
 					+ "metadata, or correct the 'PDP Identifier' in the test configuration.",
 				args("configured_pdp_identifier", configured, "returned_policy_decision_point", returned));
 		}
-		logSuccess("Discovery document policy_decision_point matches the discovery URL",
+		logSuccess("The policy_decision_point in " + document + " matches the 'PDP Identifier' the metadata was fetched from",
 			args("policy_decision_point", returned));
 		return env;
+	}
+
+	private static String capitalize(String text) {
+		return Character.toUpperCase(text.charAt(0)) + text.substring(1);
 	}
 
 	/**
