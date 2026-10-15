@@ -42,4 +42,10 @@ public class AuthzenPDPEvaluationsMissingSubjectTest extends AbstractAuthzenPDPE
 			}
 			""";
 	}
+
+	@Override
+	protected String[] additionalStatusRequirements() {
+		// Section 7.1.1: a key omitted from an evaluation "MUST be provided as a top-level key".
+		return new String[] {"AUTHZEN-7.1.1"};
+	}
 }

@@ -34,4 +34,10 @@ public class AuthzenPDPEvaluationContextIsStringTest extends AbstractAuthzenPDPE
 	protected boolean sendRawRequest() {
 		return true;
 	}
+
+	@Override
+	protected String[] additionalStatusRequirements() {
+		// Section 5.4: "Context is an object".
+		return new String[] {"AUTHZEN-5.4"};
+	}
 }

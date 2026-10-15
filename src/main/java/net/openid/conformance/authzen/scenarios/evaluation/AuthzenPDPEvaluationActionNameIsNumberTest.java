@@ -33,4 +33,10 @@ public class AuthzenPDPEvaluationActionNameIsNumberTest extends AbstractAuthzenP
 	protected boolean sendRawRequest() {
 		return true;
 	}
+
+	@Override
+	protected String[] additionalStatusRequirements() {
+		// Section 5.3: an Action's `name` has "a string value".
+		return new String[] {"AUTHZEN-5.3"};
+	}
 }
