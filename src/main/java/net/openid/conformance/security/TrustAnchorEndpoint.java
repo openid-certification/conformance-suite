@@ -55,7 +55,11 @@ public class TrustAnchorEndpoint {
 		TestKeysAndCerts.SuiteCa.ACCESS, new Role(
 			"Issues the suite's wallet-relying-party access certificate, which signs OpenID4VP authorization"
 				+ " requests and issuer metadata and authenticates the suite as an mdoc reader",
-			List.of("WRPAC providers"))
+			List.of("WRPAC providers")),
+		TestKeysAndCerts.SuiteCa.WRPRC_PROVIDER, new Role(
+			"Issues the certificate the suite signs its wallet-relying-party registration certificate and that"
+				+ " certificate's status list with",
+			List.of("WRPRC providers"))
 	);
 
 	/** The name the sealing certificate of the suite's lists of trusted entities is served under. */

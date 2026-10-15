@@ -1797,10 +1797,10 @@ def run_tests():
     resp = unauthenticated_get(base_url, "trust-anchors", verify_ssl)
     anchors = resp.json().get("trust_anchors") if resp.status_code == 200 else None
     runner.check("Metadata: /trust-anchors index is publicly reachable and lists the suite CAs",
-                 isinstance(anchors, list) and len(anchors) >= 4
+                 isinstance(anchors, list) and len(anchors) >= 5
                  and all("name" in a and "url" in a and "crl_url" in a for a in anchors),
                  f"HTTP {resp.status_code}")
-    for slug in ("mdoc-iaca-root", "pid-provider-ca", "wallet-provider-ca", "access-ca"):
+    for slug in ("mdoc-iaca-root", "pid-provider-ca", "wallet-provider-ca", "access-ca", "wrprc-provider-ca"):
         resp = unauthenticated_get(base_url, f"trust-anchors/{slug}.pem", verify_ssl)
         runner.check(f"Metadata: /trust-anchors/{slug}.pem is publicly reachable as PEM",
                      resp.status_code == 200 and "BEGIN CERTIFICATE" in resp.text,
@@ -1836,11 +1836,28 @@ def run_tests():
                     signer_der = _b64.b64decode("".join(l for l in lote_signer_pem.splitlines() if not l.startswith("-----")))
                     ok = (len(parts) == 3 and header.get("alg") == "ES256"
                           and _b64.b64decode(header["x5c"][0]) == signer_der
-                          and "LoTE" in payload and ("TrustedEntitiesList" in payload["LoTE"]) == (not empty and slug != "wrprc-providers"))
+                          and "LoTE" in payload and ("TrustedEntitiesList" in payload["LoTE"]) == (not empty))
                     detail = f"alg={header.get('alg')} lists={list(payload.get('LoTE', {}).keys())}"
                 except Exception as e:  # noqa: BLE001 - any decoding problem fails the check
                     ok, detail = False, f"undecodable: {e}"
             runner.check(f"Metadata: /{prefix}{slug}.jwt is a publicly reachable JWS sealed by the LoTE signer", ok, detail)
+    # the status list the suite's registration certificate points to is public: wallets fetch it to
+    # check the certificate is not revoked, and its signing certificate is issued by the WRPRC provider CA
+    resp = unauthenticated_get(base_url, "status-lists/wrprc.jwt", verify_ssl)
+    ok = resp.status_code == 200 and resp.headers.get("content-type", "").startswith("application/statuslist+jwt")
+    detail = f"HTTP {resp.status_code} {resp.headers.get('content-type')}"
+    if ok:
+        parts = resp.text.strip().split(".")
+        try:
+            header = json.loads(_b64.urlsafe_b64decode(parts[0] + "=" * (-len(parts[0]) % 4)))
+            payload = json.loads(_b64.urlsafe_b64decode(parts[1] + "=" * (-len(parts[1]) % 4)))
+            ok = (len(parts) == 3 and header.get("typ") == "statuslist+jwt" and len(header.get("x5c", [])) == 1
+                  and payload.get("sub", "").endswith("/status-lists/wrprc.jwt") and "status_list" in payload)
+            detail = f"typ={header.get('typ')} sub={payload.get('sub')}"
+        except Exception as e:  # noqa: BLE001 - any decoding problem fails the check
+            ok, detail = False, f"undecodable: {e}"
+    runner.check("Metadata: /status-lists/wrprc.jwt is a publicly reachable status list JWS", ok, detail)
+
     resp = unauthenticated_get(base_url, "lote/no-such-list.jwt", verify_ssl)
     runner.check_status("Metadata: unknown LoTE name returns 404", resp, 404)
     resp = unauthenticated_get(base_url, "crl/no-such-ca.crl", verify_ssl)
