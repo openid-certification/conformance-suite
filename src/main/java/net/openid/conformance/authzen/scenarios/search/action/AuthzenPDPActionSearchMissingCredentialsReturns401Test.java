@@ -29,11 +29,6 @@ public class AuthzenPDPActionSearchMissingCredentialsReturns401Test extends Abst
 	}
 
 	@Override
-	protected String getExpectedSearchResponseJson() {
-		return "{ \"results\": [] }";
-	}
-
-	@Override
 	protected boolean skipAuthentication() {
 		return true;
 	}

@@ -25,11 +25,6 @@ public class AuthzenPDPSubjectSearchActionMissingNameTest extends AbstractAuthze
 	}
 
 	@Override
-	protected String getExpectedSearchResponseJson() {
-		return "{ \"results\": [] }";
-	}
-
-	@Override
 	protected int getExpectedHttpStatusCode() {
 		return 400;
 	}
