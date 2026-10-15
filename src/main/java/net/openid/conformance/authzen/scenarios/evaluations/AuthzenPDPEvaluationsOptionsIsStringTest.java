@@ -41,4 +41,10 @@ public class AuthzenPDPEvaluationsOptionsIsStringTest extends AbstractAuthzenPDP
 	protected boolean sendRawRequest() {
 		return true;
 	}
+
+	@Override
+	protected String[] additionalStatusRequirements() {
+		// Section 7.1.2: the `options` key has "a value that is an object".
+		return new String[] {"AUTHZEN-7.1.2"};
+	}
 }

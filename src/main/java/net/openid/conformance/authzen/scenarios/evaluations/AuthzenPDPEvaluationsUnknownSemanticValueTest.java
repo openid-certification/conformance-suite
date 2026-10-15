@@ -36,4 +36,10 @@ public class AuthzenPDPEvaluationsUnknownSemanticValueTest extends AbstractAuthz
 	protected int getExpectedHttpStatusCode() {
 		return 400;
 	}
+
+	@Override
+	protected String[] additionalStatusRequirements() {
+		// Section 7.1.2.1 lists the values evaluations_semantic may take.
+		return new String[] {"AUTHZEN-7.1.2.1"};
+	}
 }
