@@ -356,7 +356,7 @@
           "key": "client.verifier_info",
           "label": "verifier_info",
           "type": "array",
-          "tooltip": "verifier_info (an array of attestation objects, as per OpenID4VP) to include in the authorization request. Can be left empty if not needed."
+          "tooltip": "verifier_info (an array of attestation objects, as per OpenID4VP) to include in the authorization request. Can be left empty if not needed. When left empty and the requests are signed with the built-in access certificate, the suite sends its own registration certificate (WRPRC), issued under the CA listed at /trust-anchors."
         },
         {
           "key": "client.request_object_trust_anchor_pem",

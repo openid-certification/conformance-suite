@@ -965,6 +965,25 @@
         "security": []
       }
     },
+    "/status-lists/wrprc.jwt": {
+      "get": {
+        "tags": ["Server"],
+        "summary": "Returns the status list of the suite's registration certificate",
+        "description": "Returns the Token Status List (a compact JWS) that the suite's wallet-relying-party registration certificate points to. It is signed by a certificate issued by the CA at /trust-anchors/wrprc-provider-ca.pem.",
+        "operationId": "wrprcStatusList",
+        "responses": {
+          "200": {
+            "description": "The signed status list",
+            "content": {
+              "application/statuslist+jwt": {
+                "schema": { "type": "string", "description": "A compact JWS" }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
     "/mdoc-iaca.crl": {
       "get": {
         "tags": ["Server"],

@@ -56,6 +56,8 @@ public class SuiteCaCrl_UnitTest {
 			TestKeysAndCerts.getWalletAttestationSigner().getCert());
 		assertLeafValidatesWithRevocation(TestKeysAndCerts.SuiteCa.ACCESS,
 			TestKeysAndCerts.getWrpac().getCert());
+		assertLeafValidatesWithRevocation(TestKeysAndCerts.SuiteCa.WRPRC_PROVIDER,
+			TestKeysAndCerts.getWrprcSigner().getCert());
 	}
 
 	private static void assertLeafValidatesWithRevocation(TestKeysAndCerts.SuiteCa ca, org.multipaz.crypto.X509Cert leaf) throws Exception {

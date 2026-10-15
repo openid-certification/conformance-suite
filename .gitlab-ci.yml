@@ -803,6 +803,7 @@ security_test:
       --from-literal=pid-provider-ca="$SUITE_CA_KEY_PID_PROVIDER_CA" \
       --from-literal=wallet-provider-ca="$SUITE_CA_KEY_WALLET_PROVIDER_CA" \
       --from-literal=access-ca="$SUITE_CA_KEY_ACCESS_CA" \
+      --from-literal=wrprc-provider-ca="$SUITE_CA_KEY_WRPRC_PROVIDER_CA" \
       --from-literal=lote-signer="$SUITE_CA_KEY_LOTE_SIGNER"
 
     helm upgrade --install \

@@ -70,6 +70,7 @@ public class SuitePki_UnitTest {
 	private static X509Certificate sdJwtPidSignerCert;
 	private static X509Certificate walletAttestationSignerCert;
 	private static X509Certificate wrpacCert;
+	private static X509Certificate wrprcSignerCert;
 
 	@BeforeAll
 	public static void setUp() throws Exception {
@@ -82,6 +83,7 @@ public class SuitePki_UnitTest {
 		sdJwtPidSignerCert = javaCert(TestKeysAndCerts.getSdJwtPidSigner().getCert());
 		walletAttestationSignerCert = javaCert(TestKeysAndCerts.getWalletAttestationSigner().getCert());
 		wrpacCert = javaCert(TestKeysAndCerts.getWrpac().getCert());
+		wrprcSignerCert = javaCert(TestKeysAndCerts.getWrprcSigner().getCert());
 	}
 
 	@AfterAll
@@ -117,7 +119,7 @@ public class SuitePki_UnitTest {
 	}
 
 	@ParameterizedTest
-	@EnumSource(value = TestKeysAndCerts.SuiteCa.class, names = {"PID_PROVIDER", "WALLET_PROVIDER", "ACCESS"})
+	@EnumSource(value = TestKeysAndCerts.SuiteCa.class, names = {"PID_PROVIDER", "WALLET_PROVIDER", "ACCESS", "WRPRC_PROVIDER"})
 	public void etsiCaSubjectCarriesTheOrganizationIdentifier(TestKeysAndCerts.SuiteCa ca) throws Exception {
 		// EN 319 412-2 GEN-4.2.3.1-3: an issuer with a known registration number carries it
 		assertThat(rdnValue(subject(javaCert(ca.getCert())), new ASN1ObjectIdentifier(ORGANIZATION_IDENTIFIER_OID)))
@@ -134,7 +136,7 @@ public class SuitePki_UnitTest {
 	}
 
 	@ParameterizedTest
-	@EnumSource(value = TestKeysAndCerts.SuiteCa.class, names = {"PID_PROVIDER", "WALLET_PROVIDER", "ACCESS"})
+	@EnumSource(value = TestKeysAndCerts.SuiteCa.class, names = {"PID_PROVIDER", "WALLET_PROVIDER", "ACCESS", "WRPRC_PROVIDER"})
 	public void withoutAKeyDirectoryAnEphemeralCaStandsInForThePublishedOne(TestKeysAndCerts.SuiteCa ca) throws Exception {
 		TestKeysAndCerts.SigningIdentity identity = TestKeysAndCerts.resolveIdentity(ca.getSlug(), ca.getPublishedCertPem(), null, true, null);
 		assertThat(identity.getEphemeral()).isTrue();
@@ -245,12 +247,13 @@ public class SuitePki_UnitTest {
 		assertIssuedBy(sdJwtPidSignerCert, TestKeysAndCerts.SuiteCa.PID_PROVIDER);
 		assertIssuedBy(walletAttestationSignerCert, TestKeysAndCerts.SuiteCa.WALLET_PROVIDER);
 		assertIssuedBy(wrpacCert, TestKeysAndCerts.SuiteCa.ACCESS);
+		assertIssuedBy(wrprcSignerCert, TestKeysAndCerts.SuiteCa.WRPRC_PROVIDER);
 	}
 
 	@Test
 	public void everyLeafHasTheLegalPersonSubjectOfEn319412_3() {
 		// LEG-4.2.1-2: countryName, organizationName, organizationIdentifier and commonName, once each
-		for (X509Certificate cert : List.of(dsCert, sdJwtPidSignerCert, walletAttestationSignerCert, wrpacCert)) {
+		for (X509Certificate cert : List.of(dsCert, sdJwtPidSignerCert, walletAttestationSignerCert, wrpacCert, wrprcSignerCert)) {
 			X500Name subject = subject(cert);
 			assertThat(rdnValue(subject, BCStyle.C)).isEqualTo("US");
 			assertThat(rdnValue(subject, BCStyle.O)).isEqualTo(TestKeysAndCerts.ORGANIZATION_NAME);
@@ -266,7 +269,7 @@ public class SuitePki_UnitTest {
 	@Test
 	public void everyLeafHasDigitalSignatureOnlyKeyUsageAndNoBasicConstraints() {
 		// EN 319 412-2 Table 1 type C, which TS 119 412-6 PID-4.4.1-02 allows; ISO/IEC 18013-5 Annex B
-		for (X509Certificate cert : List.of(dsCert, sdJwtPidSignerCert, walletAttestationSignerCert, wrpacCert)) {
+		for (X509Certificate cert : List.of(dsCert, sdJwtPidSignerCert, walletAttestationSignerCert, wrpacCert, wrprcSignerCert)) {
 			assertThat(cert.getCriticalExtensionOIDs()).contains("2.5.29.15");
 			boolean[] keyUsage = cert.getKeyUsage();
 			assertThat(keyUsage[0]).isTrue();
@@ -284,6 +287,7 @@ public class SuitePki_UnitTest {
 		assertCaIssuersUrl(sdJwtPidSignerCert, TestKeysAndCerts.SuiteCa.PID_PROVIDER);
 		assertCaIssuersUrl(walletAttestationSignerCert, TestKeysAndCerts.SuiteCa.WALLET_PROVIDER);
 		assertCaIssuersUrl(wrpacCert, TestKeysAndCerts.SuiteCa.ACCESS);
+		assertCaIssuersUrl(wrprcSignerCert, TestKeysAndCerts.SuiteCa.WRPRC_PROVIDER);
 	}
 
 	@Test
@@ -292,6 +296,7 @@ public class SuitePki_UnitTest {
 		assertThat(crlDistributionPointUri(sdJwtPidSignerCert)).isEqualTo(PLAIN_HTTP_BASE_URL + "/crl/pid-provider-ca.crl");
 		assertThat(crlDistributionPointUri(walletAttestationSignerCert)).isEqualTo(PLAIN_HTTP_BASE_URL + "/crl/wallet-provider-ca.crl");
 		assertThat(crlDistributionPointUri(wrpacCert)).isEqualTo(PLAIN_HTTP_BASE_URL + "/crl/access-ca.crl");
+		assertThat(crlDistributionPointUri(wrprcSignerCert)).isEqualTo(PLAIN_HTTP_BASE_URL + "/crl/wrprc-provider-ca.crl");
 	}
 
 	@Test
@@ -300,12 +305,13 @@ public class SuitePki_UnitTest {
 		assertAkiMatchesCa(sdJwtPidSignerCert, TestKeysAndCerts.SuiteCa.PID_PROVIDER);
 		assertAkiMatchesCa(walletAttestationSignerCert, TestKeysAndCerts.SuiteCa.WALLET_PROVIDER);
 		assertAkiMatchesCa(wrpacCert, TestKeysAndCerts.SuiteCa.ACCESS);
+		assertAkiMatchesCa(wrprcSignerCert, TestKeysAndCerts.SuiteCa.WRPRC_PROVIDER);
 	}
 
 	@Test
 	public void everyLeafIsCurrentlyValidForAtMost457Days() {
 		Date now = new Date();
-		for (X509Certificate cert : List.of(dsCert, sdJwtPidSignerCert, walletAttestationSignerCert, wrpacCert)) {
+		for (X509Certificate cert : List.of(dsCert, sdJwtPidSignerCert, walletAttestationSignerCert, wrpacCert, wrprcSignerCert)) {
 			assertThat(cert.getNotBefore()).isBefore(now);
 			assertThat(cert.getNotAfter()).isAfter(now);
 			assertThat(cert.getNotAfter().getTime() - cert.getNotBefore().getTime())

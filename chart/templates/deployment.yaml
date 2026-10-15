@@ -93,6 +93,12 @@ spec:
               name: suite-ca-keys
               key: access-ca
               optional: true
+        - name: SUITE_CA_KEY_WRPRC_PROVIDER_CA
+          valueFrom:
+            secretKeyRef:
+              name: suite-ca-keys
+              key: wrprc-provider-ca
+              optional: true
         - name: SUITE_CA_KEY_LOTE_SIGNER
           valueFrom:
             secretKeyRef:
