@@ -29,7 +29,7 @@ import java.util.Map;
 		// implemented) would fail conformant PDPs that omit the feature; they are covered by
 		// AuthzenPDPEvaluationsComprehensiveTestPlan instead.
 		AuthzenPDPEvaluationsExecuteAllExplicitTest.class,
-		// Per-eval overrides top-level defaults (Section 7.1.1.1)
+		// Per-eval overrides top-level defaults (Section 7.1.1)
 		AuthzenPDPEvaluationsPerEvalOverridesDefaultTest.class,
 		// Missing subject everywhere returns decision-false evaluation (Cert Profile 3.4.1)
 		AuthzenPDPEvaluationsMissingSubjectReturnsDecisionFalseTest.class,

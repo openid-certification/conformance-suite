@@ -39,7 +39,7 @@ import java.util.Map;
 		AuthzenPDPEvaluationActionNameIsNumberTest.class,
 		// X-Request-ID handling (Section 10.1.3)
 		AuthzenPDPEvaluationXRequestIdEchoedTest.class,
-		// Idempotency (Section 10.1.3)
+		// Idempotency (certification scenario 5.6)
 		AuthzenPDPEvaluationIdempotencyTest.class,
 		// Forward-compat: unknown fields ignored (Section 10.1.1)
 		AuthzenPDPEvaluationUnknownTopLevelFieldsTest.class,

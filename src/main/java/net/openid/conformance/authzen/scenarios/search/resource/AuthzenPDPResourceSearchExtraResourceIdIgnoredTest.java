@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-resource-search-extra-resource-id-ignored",
 	displayName = "AuthZEN Resource Search API - Section 8.5.1: Extra resource.id ignored",
-	summary = "Section 8.5.1 says resource.id SHOULD be omitted from Resource Search and SHOULD be ignored if sent. This test sends a stray `resource.id` alongside the required `resource.type`; PDP MUST still return the expected results.\n" + AuthzenPDPResourceSearchExtraResourceIdIgnoredTest.payload,
+	summary = "Section 8.5.1 says resource.id SHOULD be omitted from Resource Search and, if present, MUST be ignored. This test sends a stray `resource.id` alongside the required `resource.type`; PDP MUST still return the expected results.\n" + AuthzenPDPResourceSearchExtraResourceIdIgnoredTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPResourceSearchExtraResourceIdIgnoredTest extends AbstractAuthzenPDPResourceSearchTest {
