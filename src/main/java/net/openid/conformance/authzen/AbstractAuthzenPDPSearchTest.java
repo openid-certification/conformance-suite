@@ -48,11 +48,28 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	/**
 	 * A response with a non-empty {@code page.next_token} leaves the token in the environment,
 	 * and the request builder adds it to the next request as {@code page.token}. Each idempotency
-	 * iteration must ask for the first page again.
+	 * iteration must ask for the first page again, and gathers its own results and tokens.
 	 */
 	@Override
 	protected void resetStateBetweenIdenticalRequests() {
 		env.removeNativeValue("authzen_search_endpoint_request_page_token");
+		env.removeObject("authzen_search_endpoint_aggregated_results");
+		env.removeObject("authzen_search_seen_page_tokens");
+	}
+
+	/**
+	 * Each identical search follows every page, as {@link #runPaginatedSearchLoop} does, and
+	 * leaves the results of all pages in {@code authzen_search_endpoint_aggregated_results} for
+	 * the idempotency comparison.
+	 */
+	@Override
+	protected void performIdempotencyIteration() {
+		callAndContinueOnFailure(new ExtractAuthzenSearchExpectedResponse(getExpectedSearchResponseJson()), ConditionResult.FAILURE);
+		if (fetchAllSearchPages()) {
+			throw new TestFailureException(getId(),
+				"The PDP did not answer the search with HTTP 200, so its results cannot be compared across identical requests");
+		}
+		matchAggregatedSearchResults();
 	}
 
 	/**
@@ -129,43 +146,54 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 			// Extract the expected response once up front so per-page conditions can use it.
 			callAndContinueOnFailure(new ExtractAuthzenSearchExpectedResponse(getExpectedSearchResponseJson()), ConditionResult.FAILURE);
 
-			int pageNum = 0;
-			boolean rejected = false;
-			do {
-				pageNum++;
-				if (pageNum > MAX_PAGES) {
-					throw new TestFailureException(getId(),
-						"Pagination cap of " + MAX_PAGES + " pages exceeded — server may be returning unbounded pages");
-				}
-				eventLog.startBlock("Page " + pageNum);
-				try {
-					createAuthzenApiRequest();
-					if (pageNum > 1 && sendRawRequest()) {
-						callAndStopOnFailure(AddAuthzenSearchPageTokenToRequest.class, "AUTHZEN-8.2");
-					}
-					performSingleApiRequest();
-					if (pageNum == 1 && !responseStatusIs200()) {
-						rejected = true;
-						break;
-					}
-					processAuthApiEndpointResponse();
-					callAndStopOnFailure(EnsureSearchPageTokenNotRepeated.class, "AUTHZEN-8.2");
-					callAndStopOnFailure(AggregateAuthzenSearchResults.class);
-				} finally {
-					eventLog.endBlock();
-				}
-			} while (!Strings.isNullOrEmpty(env.getString("authzen_search_endpoint_request_page_token")));
-
-			if (!rejected) {
-				// Use accumulated results for matching
-				env.mapKey("authzen_search_endpoint_response", "authzen_search_endpoint_aggregated_results");
-				callAndContinueOnFailure(EnsureAuthzenSearchResponseValsMatchExpectedVals.class, ConditionResult.FAILURE, "AUTHZEN-8.3");
-				env.unmapKey("authzen_search_endpoint_response");
+			if (!fetchAllSearchPages()) {
+				matchAggregatedSearchResults();
 			}
 
 			performPostApiFlow();
 		} finally {
 			eventLog.endBlock();
 		}
+	}
+
+	/**
+	 * Sends the search request and then one request per {@code page.next_token}, each in its own
+	 * log block, adding each page's results to {@code authzen_search_endpoint_aggregated_results}.
+	 *
+	 * @return true when the first response is not a 200, so there are no results to match
+	 */
+	private boolean fetchAllSearchPages() {
+		int pageNum = 0;
+		do {
+			pageNum++;
+			if (pageNum > MAX_PAGES) {
+				throw new TestFailureException(getId(),
+					"Pagination cap of " + MAX_PAGES + " pages exceeded — server may be returning unbounded pages");
+			}
+			eventLog.startBlock("Page " + pageNum);
+			try {
+				createAuthzenApiRequest();
+				if (pageNum > 1 && sendRawRequest()) {
+					callAndStopOnFailure(AddAuthzenSearchPageTokenToRequest.class, "AUTHZEN-8.2");
+				}
+				performSingleApiRequest();
+				if (pageNum == 1 && !responseStatusIs200()) {
+					return true;
+				}
+				processAuthApiEndpointResponse();
+				callAndStopOnFailure(EnsureSearchPageTokenNotRepeated.class, "AUTHZEN-8.2");
+				callAndStopOnFailure(AggregateAuthzenSearchResults.class);
+			} finally {
+				eventLog.endBlock();
+			}
+		} while (!Strings.isNullOrEmpty(env.getString("authzen_search_endpoint_request_page_token")));
+
+		return false;
+	}
+
+	private void matchAggregatedSearchResults() {
+		env.mapKey("authzen_search_endpoint_response", "authzen_search_endpoint_aggregated_results");
+		callAndContinueOnFailure(EnsureAuthzenSearchResponseValsMatchExpectedVals.class, ConditionResult.FAILURE, "AUTHZEN-8.3");
+		env.unmapKey("authzen_search_endpoint_response");
 	}
 }
