@@ -2,6 +2,8 @@ package net.openid.conformance.condition.as.clientattestation;
 
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -24,19 +26,22 @@ public class ValidateClientAttestationX5cClaimInProofJwt extends AbstractValidat
 
 		List<String> x5c = OIDFJSON.convertJsonArrayToList(x5cEl.getAsJsonArray());
 
-		String trustAnchorPem = env.getString("vci", "client_attestation_trust_anchor_pem");
-		if (trustAnchorPem == null) {
-			throw error("Client attestation trust anchor is not configured");
+		// the configured 'Client Attestation Trust Anchor' plus the wallet providers listed in the configured LoTE
+		LoteTrustAnchors.TrustAnchorSet anchors = resolveTrustAnchors(env, env.getString("vci", "client_attestation_trust_anchor_pem"),
+			"Client Attestation Trust Anchor", LoteSlot.ISSUANCE_SUFFIX, LoteSlot.WALLET);
+		if (anchors.isEmpty()) {
+			throw error("No trust anchor for the client attestation: neither the 'Client Attestation Trust Anchor' field nor the '"
+				+ LoteSlot.WALLET.fieldLabel + "' field in the 'Client Attestation' section of the test configuration yielded one");
 		}
-		X509Certificate trustAnchorCert = parseTrustAnchorPem(trustAnchorPem);
 
 		List<X509Certificate> certs = parseX5cCertificatesFromStrings(x5c);
-		validateX5cCertificateChain(certs, trustAnchorCert);
+		X509Certificate matched = validateX5cCertificateChainAgainst(certs, anchors);
 
-		logSuccess("Validation of certificate chain in x5c claim successful against trust anchor certificate",
+		logSuccess("Validation of certificate chain in x5c claim successful against a trust anchor certificate",
 			args("x5c", x5cEl,
 				"leaf_cert_subject", certs.get(0).getSubjectX500Principal().getName(),
-				"trust_anchor_subject", trustAnchorCert.getSubjectX500Principal().getName(),
+				"trust_anchor_subject", matched.getSubjectX500Principal().getName(),
+				"matched_trust_anchor", anchors.sourceOf(matched),
 				"chain_length", certs.size()));
 
 		return env;

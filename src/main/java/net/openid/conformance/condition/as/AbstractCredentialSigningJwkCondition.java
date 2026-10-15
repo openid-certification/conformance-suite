@@ -6,12 +6,13 @@ import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.TestKeysAndCerts;
 
 import java.text.ParseException;
 
 /**
  * Base for the conditions that sign with the 'Signing JWK' of the 'Credential Issuer' section of
- * the test configuration: the key that signs the SD-JWT VCs the suite presents, and the Token
+ * the test configuration, or the suite's built-in PID provider certificate when none is configured: the key that signs the SD-JWT VCs the suite presents, and the Token
  * Status List that goes with them, so that both verify against the same issuer.
  */
 public abstract class AbstractCredentialSigningJwkCondition extends AbstractCondition {
@@ -19,7 +20,13 @@ public abstract class AbstractCredentialSigningJwkCondition extends AbstractCond
 	protected JWK credentialSigningJwk(Environment env) {
 		JsonElement signingJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
 		if (signingJwkEl == null) {
-			throw error("'Signing JWK' field is missing from the 'Credential Issuer' section in the test configuration");
+			// the built-in PID provider certificate; its CA is published at /trust-anchors
+			TestKeysAndCerts.MintedLeaf signer = TestKeysAndCerts.getSdJwtPidSigner();
+			log("No 'Signing JWK' in the 'Credential Issuer' section of the test configuration; signing with the"
+					+ " suite's built-in PID provider certificate",
+				args("signing_certificate_subject", signer.getCert().getSubject().getName(),
+					"pid_provider_ca_url", TestKeysAndCerts.SuiteCa.PID_PROVIDER.getTrustAnchorUrl()));
+			return signer.getJwk();
 		}
 		try {
 			return JWK.parse(signingJwkEl.toString());

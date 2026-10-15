@@ -7,6 +7,7 @@ import com.nimbusds.jose.util.X509CertUtils;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.TestKeysAndCerts;
 import net.openid.conformance.util.X509CertificateUtil;
 
 import java.security.cert.X509Certificate;
@@ -21,7 +22,12 @@ public class VCIEnsureCredentialSigningCertificateIsNotSelfSigned extends Abstra
 
 		JsonElement credentialSigningJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
 		if (credentialSigningJwkEl == null) {
-			throw error("'Signing JWK' field is missing from the 'Credential Issuer' section in the test configuration");
+			// the built-in PID provider certificate is issued by the PID provider CA, never self-signed
+			logSuccess("No 'Signing JWK' in the 'Credential Issuer' section of the test configuration; the suite's built-in"
+					+ " PID provider certificate signs the credentials and is issued by the PID provider CA",
+				args("signing_certificate_subject", TestKeysAndCerts.getSdJwtPidSigner().getCert().getSubject().getName(),
+					"signing_certificate_issuer", TestKeysAndCerts.getSdJwtPidSigner().getCert().getIssuer().getName()));
+			return env;
 		}
 		String credentialSigningJwkString = credentialSigningJwkEl.toString();
 

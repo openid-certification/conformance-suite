@@ -569,7 +569,7 @@ security_test:
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml exec -T mongodb mongosh mongodb://localhost/test_suite --quiet --eval "db.API_TOKEN.updateOne({_id:'ci_security_token'}, {\$set:{_id:'ci_security_token', owner:{sub:'ci',iss:'https://nginx:8443'}, info:{}, token:'$SECURITY_TOKEN', expires:null}}, {upsert:true})"
     # second user for the cross-user delete checks
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml exec -T mongodb mongosh mongodb://localhost/test_suite --quiet --eval "db.API_TOKEN.updateOne({_id:'ci_security_token_2'}, {\$set:{_id:'ci_security_token_2', owner:{sub:'ci-2',iss:'https://nginx:8443'}, info:{}, token:'$SECURITY_TOKEN_2', expires:null}}, {upsert:true})"
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml run --entrypoint "../conformance-suite/.gitlab-ci/run-tests.sh" -e CONFORMANCE_SERVER=https://nginx:8443/ -e CONFORMANCE_TOKEN=$SECURITY_TOKEN -e CONFORMANCE_TOKEN_2=$SECURITY_TOKEN_2 test --security-tests
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml run --entrypoint "../conformance-suite/.gitlab-ci/run-tests.sh" -e CONFORMANCE_SERVER=https://nginx:8443/ -e CONFORMANCE_SERVER_HTTP=http://server:8080/ -e CONFORMANCE_TOKEN=$SECURITY_TOKEN -e CONFORMANCE_TOKEN_2=$SECURITY_TOKEN_2 test --security-tests
   after_script:
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" server > $CI_PROJECT_DIR/server-log.txt
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml down
@@ -793,6 +793,18 @@ security_test:
     kubectl create secret generic fintechlabs-private-link-signing-key \
       --namespace="$KUBE_NAMESPACE" \
       --from-literal=jwk="$PRIVATE_LINK_SIGNING_KEY"
+
+    # private keys of the suite's published CAs, base64-encoded; unset variables leave the suite on ephemeral CAs
+    kubectl delete secret suite-ca-keys \
+      --namespace="$KUBE_NAMESPACE" \
+      --ignore-not-found=true
+    kubectl create secret generic suite-ca-keys \
+      --namespace="$KUBE_NAMESPACE" \
+      --from-literal=pid-provider-ca="$SUITE_CA_KEY_PID_PROVIDER_CA" \
+      --from-literal=wallet-provider-ca="$SUITE_CA_KEY_WALLET_PROVIDER_CA" \
+      --from-literal=access-ca="$SUITE_CA_KEY_ACCESS_CA" \
+      --from-literal=wrprc-provider-ca="$SUITE_CA_KEY_WRPRC_PROVIDER_CA" \
+      --from-literal=lote-signer="$SUITE_CA_KEY_LOTE_SIGNER"
 
     helm upgrade --install \
       --wait \

@@ -2,6 +2,8 @@ package net.openid.conformance.condition.client;
 
 import com.nimbusds.jose.util.X509CertUtils;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.MdocUtil;
 import net.openid.conformance.util.X509CertificateUtil;
@@ -86,8 +88,7 @@ public class ValidateMdocRevocationListCertificateChain extends AbstractRevocati
 		}
 
 		// then cryptographically: the chain must validate against the IACA itself
-		X509Certificate trustAnchor;
-		String trustAnchorSource;
+		LoteTrustAnchors.TrustAnchorSet anchors;
 		if (env.containsObject("vical")) {
 			String vicalIacaB64 = env.getString(ValidateMdocIssuerChainAgainstVical.ENV_TRUST_POINT);
 			if (vicalIacaB64 == null) {
@@ -95,34 +96,38 @@ public class ValidateMdocRevocationListCertificateChain extends AbstractRevocati
 					+ " configured VICAL, so the MSO revocation list's certification path cannot be"
 					+ " validated against the IACA");
 			}
-			trustAnchor = X509CertUtils.parse(Base64.getDecoder().decode(vicalIacaB64));
-			if (trustAnchor == null) {
+			X509Certificate vicalIaca = X509CertUtils.parse(Base64.getDecoder().decode(vicalIacaB64));
+			if (vicalIaca == null) {
 				throw error("Failed to parse the IACA certificate recorded from the configured VICAL");
 			}
-			trustAnchorSource = "the IACA certificate the configured VICAL lists for the MSO's issuer";
+			anchors = new LoteTrustAnchors.TrustAnchorSet(List.of(vicalIaca),
+				List.of("the IACA certificate the configured VICAL lists for the MSO's issuer"));
 		} else {
+			// the configured 'Credential Trust Anchor' plus the PID and mDL providers listed in the configured
+			// LoTEs: the IACA that signed the MSO's signer also signs the revocation list signer (12.3.6.2)
 			try {
-				trustAnchor = X509CertificateUtil.parseTrustAnchorPem(env.getString("credential_trust_anchor_pem"));
+				anchors = LoteTrustAnchors.resolve(env, env.getString("credential_trust_anchor_pem"),
+					"Credential Trust Anchor", LoteSlot.ISSUANCE_SUFFIX, LoteSlot.PID, LoteSlot.MDL);
 			} catch (X509CertificateUtil.X5cCertificateChainException e) {
 				throw error("Failed to parse the 'Credential Trust Anchor' field in the 'Credential"
 					+ " Issuer' section of the test configuration as a PEM encoded X.509 certificate", e);
 			}
-			trustAnchorSource = "the 'Credential Trust Anchor' from the test configuration";
 		}
+		X509Certificate matched;
 		try {
-			// with a trust anchor this is full PKIX path validation; without one (no anchor
-			// configured outside HAIP) only the chain-internal checks run
-			X509CertificateUtil.validateX5cCertificateChain(statusJavaChain, trustAnchor);
+			// with trust anchors this is full PKIX path validation; without any (none configured
+			// outside HAIP) only the chain-internal checks run
+			matched = X509CertificateUtil.validateX5cCertificateChain(statusJavaChain, anchors.anchors());
 		} catch (X509CertificateUtil.X5cCertificateChainException e) {
 			throw error("The MSO revocation list's x5chain does not validate"
-					+ (trustAnchor == null ? "" : " against " + trustAnchorSource),
-				args("error", e.getMessage()));
+					+ (anchors.isEmpty() ? "" : " against " + String.join(" or ", anchors.sources())),
+				args("error", e.getMessage(), "trust_anchors_tried", anchors.sourcesJson()));
 		}
 
 		logSuccess("The MSO revocation list's x5chain is signed by the same CA as the MSO's signer certificate"
-				+ (trustAnchor != null ? " and validates against " + trustAnchorSource
+				+ (matched != null ? " and validates against " + anchors.sourceOf(matched)
 					: "; no trust anchor is configured, so only chain-internal checks were performed"),
-			args("issuer", statusIssuer, "chain_length", statusJavaChain.size()));
+			args("issuer", statusIssuer, "chain_length", statusJavaChain.size(), "trust_anchors", anchors.sourcesJson()));
 
 		return env;
 	}

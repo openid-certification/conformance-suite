@@ -38,6 +38,10 @@ Usage:
 
 Environment variables:
     CONFORMANCE_SERVER  Base URL of the server (default: https://localhost.emobix.co.uk:8443/)
+    CONFORMANCE_SERVER_HTTP  Plain-http origin of the server, the one the mdoc document signer
+                        certificate's CRL distribution point names (optional; when set, the
+                        plain-http route to the CRL and the rejection of every other plain-http
+                        path are checked)
     CONFORMANCE_TOKEN   API token of the user owning the test data (required; API tokens are never admin)
     CONFORMANCE_TOKEN_2 API token for a second, unrelated user (cross-user checks)
 """
@@ -300,6 +304,13 @@ def dump_failing_conditions(client, base_url, test_id):
     for entry in (resp.json() if resp.status_code == 200 else []):
         if entry.get("result") in ("FAILURE", "WARNING"):
             print(f"    {entry.get('result')}: {entry.get('src')}: {entry.get('msg')}")
+
+
+def is_der_crl(resp):
+    """A 200 carrying a DER encoded CRL under its RFC 2585 media type."""
+    return (resp.status_code == 200
+            and resp.headers.get("content-type", "").startswith("application/pkix-crl")
+            and len(resp.content) > 0 and resp.content[0] == 0x30)
 
 
 def unauthenticated_get(base_url, path, verify_ssl, params=None):
@@ -1756,6 +1767,101 @@ def run_tests():
     runner.check("Metadata: mdoc IACA root cert is publicly reachable as PEM",
                  resp.status_code == 200 and "BEGIN CERTIFICATE" in resp.text,
                  f"HTTP {resp.status_code}")
+
+    # the IACA's CRL is public too: the suite's document signer certs name it as their
+    # distribution point, so verifiers/wallets under test fetch it unauthenticated
+    resp = unauthenticated_get(base_url, "mdoc-iaca.crl", verify_ssl)
+    runner.check("Metadata: mdoc IACA CRL is publicly reachable as a DER CRL", is_der_crl(resp),
+                 f"HTTP {resp.status_code} {resp.headers.get('content-type')}")
+
+    # CRL distribution points are plain-http URLs by PKI convention, so the CRL is the one
+    # resource RejectPlainHttpTrafficFilter lets through; everything else stays rejected
+    http_base_url = os.environ.get("CONFORMANCE_SERVER_HTTP")
+    if http_base_url:
+        if not http_base_url.endswith("/"):
+            http_base_url += "/"
+        resp = unauthenticated_get(http_base_url, "mdoc-iaca.crl", verify_ssl)
+        runner.check("Metadata: mdoc IACA CRL is reachable over plain http as a DER CRL", is_der_crl(resp),
+                     f"HTTP {resp.status_code} {resp.headers.get('content-type')}")
+        resp = unauthenticated_get(http_base_url, "crl/access-ca.crl", verify_ssl)
+        runner.check("Metadata: the suite CAs' CRLs are reachable over plain http as DER CRLs", is_der_crl(resp),
+                     f"HTTP {resp.status_code} {resp.headers.get('content-type')}")
+        resp = unauthenticated_get(http_base_url, "mdoc-iaca-root.pem", verify_ssl)
+        runner.check("Metadata: other paths are still rejected over plain http",
+                     resp.status_code != 200, f"HTTP {resp.status_code}")
+    else:
+        print("  SKIP: CONFORMANCE_SERVER_HTTP not set; plain-http CRL route not checked")
+
+    # the suite's CA certificates are public too: implementations under test pin them, and
+    # trusted-list operators fetch them to list the suite
+    resp = unauthenticated_get(base_url, "trust-anchors", verify_ssl)
+    anchors = resp.json().get("trust_anchors") if resp.status_code == 200 else None
+    runner.check("Metadata: /trust-anchors index is publicly reachable and lists the suite CAs",
+                 isinstance(anchors, list) and len(anchors) >= 5
+                 and all("name" in a and "url" in a and "crl_url" in a for a in anchors),
+                 f"HTTP {resp.status_code}")
+    for slug in ("mdoc-iaca-root", "pid-provider-ca", "wallet-provider-ca", "access-ca", "wrprc-provider-ca"):
+        resp = unauthenticated_get(base_url, f"trust-anchors/{slug}.pem", verify_ssl)
+        runner.check(f"Metadata: /trust-anchors/{slug}.pem is publicly reachable as PEM",
+                     resp.status_code == 200 and "BEGIN CERTIFICATE" in resp.text,
+                     f"HTTP {resp.status_code}")
+        # each CA's CRL is named by the leaf certificates minted under it
+        resp = unauthenticated_get(base_url, f"crl/{slug}.crl", verify_ssl)
+        runner.check(f"Metadata: /crl/{slug}.crl is publicly reachable as a DER CRL",
+                     resp.status_code == 200
+                     and resp.headers.get("content-type", "").startswith("application/pkix-crl")
+                     and len(resp.content) > 0 and resp.content[0] == 0x30,
+                     f"HTTP {resp.status_code} {resp.headers.get('content-type')}")
+    resp = unauthenticated_get(base_url, "trust-anchors/no-such-ca.pem", verify_ssl)
+    runner.check_status("Metadata: unknown trust anchor name returns 404", resp, 404)
+    resp = unauthenticated_get(base_url, "trust-anchors/lote-signer.pem", verify_ssl)
+    runner.check("Metadata: the LoTE sealing certificate is publicly reachable as PEM",
+                 resp.status_code == 200 and "BEGIN CERTIFICATE" in resp.text,
+                 f"HTTP {resp.status_code}")
+    lote_signer_pem = resp.text if resp.status_code == 200 else ""
+
+    # the suite's lists of trusted entities are public too: implementations under test fetch them
+    # as they would a scheme operator's, and the sealing certificate in each header is the one above
+    import base64 as _b64
+    for slug in ("pid-providers", "wallet-providers", "wrpac-providers", "wrprc-providers"):
+        for prefix, empty in (("lote/", False), ("lote/empty/", True)):
+            resp = unauthenticated_get(base_url, f"{prefix}{slug}.jwt", verify_ssl)
+            ok = resp.status_code == 200 and resp.headers.get("content-type", "").startswith("application/jwt")
+            detail = f"HTTP {resp.status_code} {resp.headers.get('content-type')}"
+            if ok:
+                parts = resp.text.strip().split(".")
+                try:
+                    header = json.loads(_b64.urlsafe_b64decode(parts[0] + "=" * (-len(parts[0]) % 4)))
+                    payload = json.loads(_b64.urlsafe_b64decode(parts[1] + "=" * (-len(parts[1]) % 4)))
+                    signer_der = _b64.b64decode("".join(l for l in lote_signer_pem.splitlines() if not l.startswith("-----")))
+                    ok = (len(parts) == 3 and header.get("alg") == "ES256"
+                          and _b64.b64decode(header["x5c"][0]) == signer_der
+                          and "LoTE" in payload and ("TrustedEntitiesList" in payload["LoTE"]) == (not empty))
+                    detail = f"alg={header.get('alg')} lists={list(payload.get('LoTE', {}).keys())}"
+                except Exception as e:  # noqa: BLE001 - any decoding problem fails the check
+                    ok, detail = False, f"undecodable: {e}"
+            runner.check(f"Metadata: /{prefix}{slug}.jwt is a publicly reachable JWS sealed by the LoTE signer", ok, detail)
+    # the status list the suite's registration certificate points to is public: wallets fetch it to
+    # check the certificate is not revoked, and its signing certificate is issued by the WRPRC provider CA
+    resp = unauthenticated_get(base_url, "status-lists/wrprc.jwt", verify_ssl)
+    ok = resp.status_code == 200 and resp.headers.get("content-type", "").startswith("application/statuslist+jwt")
+    detail = f"HTTP {resp.status_code} {resp.headers.get('content-type')}"
+    if ok:
+        parts = resp.text.strip().split(".")
+        try:
+            header = json.loads(_b64.urlsafe_b64decode(parts[0] + "=" * (-len(parts[0]) % 4)))
+            payload = json.loads(_b64.urlsafe_b64decode(parts[1] + "=" * (-len(parts[1]) % 4)))
+            ok = (len(parts) == 3 and header.get("typ") == "statuslist+jwt" and len(header.get("x5c", [])) == 1
+                  and payload.get("sub", "").endswith("/status-lists/wrprc.jwt") and "status_list" in payload)
+            detail = f"typ={header.get('typ')} sub={payload.get('sub')}"
+        except Exception as e:  # noqa: BLE001 - any decoding problem fails the check
+            ok, detail = False, f"undecodable: {e}"
+    runner.check("Metadata: /status-lists/wrprc.jwt is a publicly reachable status list JWS", ok, detail)
+
+    resp = unauthenticated_get(base_url, "lote/no-such-list.jwt", verify_ssl)
+    runner.check_status("Metadata: unknown LoTE name returns 404", resp, 404)
+    resp = unauthenticated_get(base_url, "crl/no-such-ca.crl", verify_ssl)
+    runner.check_status("Metadata: unknown CRL name returns 404", resp, 404)
 
     # ===================================================================
     # 4h. BULK PLAN DELETE (ADMIN ONLY)

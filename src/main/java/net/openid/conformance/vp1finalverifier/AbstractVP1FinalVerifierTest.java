@@ -71,6 +71,8 @@ import net.openid.conformance.condition.as.ValidateRequestObjectIssIfPresent;
 import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignatureAgainstX5cHeader;
 import net.openid.conformance.condition.as.ValidateRequestObjectX5cChainAgainstRical;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.ValidateOwnCredentialSigningCertificatesAgainstLotes;
 import net.openid.conformance.condition.as.ValidateRequestObjectTypIsOAuthQauthReqJwt;
 import net.openid.conformance.condition.as.ValidateResponseMode;
 import net.openid.conformance.condition.as.ValidateVpClientMetadataEncryptionForHaip;
@@ -95,6 +97,7 @@ import net.openid.conformance.condition.common.ExpectVerifierSuccessfulVerificat
 import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.sequence.as.ValidateStatusListRequest;
 import net.openid.conformance.sequence.client.SetupRicalFromConfiguration;
+import net.openid.conformance.sequence.client.SetupLoteFromConfiguration;
 import net.openid.conformance.sequence.client.SetupVicalFromConfiguration;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -125,18 +128,29 @@ import java.util.Base64;
 @VariantConfigurationFields(parameter = VP1FinalVerifierClientIdPrefix.class, value = "x509_san_dns", configurationFields = {
 	"client.client_id",
 	"client.rical",
-	"client.rical_url"
+	"client.rical_url",
+	"client.wrpac_lote_url",
+	"lote.signing_certificate_pem"
 })
 @VariantConfigurationFields(parameter = VP1FinalVerifierClientIdPrefix.class, value = "x509_hash", configurationFields = {
 	"client.rical",
-	"client.rical_url"
+	"client.rical_url",
+	"client.wrpac_lote_url",
+	"lote.signing_certificate_pem"
 })
 @VariantConfigurationFields(parameter = VPProfile.class, value = "haip", configurationFields = {
-	"client.request_object_trust_anchor_pem"
+	"client.request_object_trust_anchor_pem",
+	"client.wrpac_lote_url",
+	"credential.pid_lote_url",
+	"credential.mdl_lote_url",
+	"lote.signing_certificate_pem"
 })
 @VariantConfigurationFields(parameter = VP1FinalVerifierCredentialFormat.class, value = "iso_mdl", configurationFields = {
 	"credential.vical",
-	"credential.vical_url"
+	"credential.vical_url",
+	"credential.pid_lote_url",
+	"credential.mdl_lote_url",
+	"lote.signing_certificate_pem"
 })
 @VariantNotApplicableWhen(
 	parameter = VP1FinalVerifierResponseMode.class,
@@ -283,6 +297,9 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			// Only these prefixes reference a certificate in the request object's x5c header, so
 			// only they have a chain for the RICAL to govern.
 			call(sequence(SetupRicalFromConfiguration.class));
+			// likewise the optionally configured WRPAC providers LoTE, whose access certificate
+			// providers may anchor the verifier's request object signing chain
+			call(new SetupLoteFromConfiguration(LoteSlot.WRPAC, ConditionResult.FAILURE));
 		}
 		if (getVariant(VP1FinalVerifierCredentialFormat.class) == VP1FinalVerifierCredentialFormat.ISO_MDL) {
 			// register and validate the optionally configured VICAL, then pre-flight check
@@ -298,6 +315,13 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				.dontStopOnFailure()
 				.requirements("ISO18013-5-C.1.7.1"));
 		}
+		// the optionally configured PID and mDL providers lists of trusted entities, then pre-flight
+		// check that the suite's own credential signing chains are covered by them - a verifier
+		// trusting the lists is expected to reject the presented credentials otherwise. A WARNING
+		// as this reports on the suite's listing, not on the verifier under test.
+		call(new SetupLoteFromConfiguration(LoteSlot.PID, ConditionResult.WARNING));
+		call(new SetupLoteFromConfiguration(LoteSlot.MDL, ConditionResult.WARNING));
+		callAndContinueOnFailure(ValidateOwnCredentialSigningCertificatesAgainstLotes.class, ConditionResult.WARNING, "ETSI119602-6.6.3");
 		if (getVariant(VPProfile.class) == VPProfile.HAIP) {
 			callAndContinueOnFailure(EnsureClientRequestObjectTrustAnchorConfigured.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.9.3");
 		}

@@ -1,16 +1,20 @@
 package net.openid.conformance.condition.as;
 
+import com.authlete.sd.SDJWT;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.TestKeysAndCerts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -33,12 +37,17 @@ public class CreateVPID2SdJwtVpToken_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_missingSigningJwkErrorReferencesConfigField() {
+	public void testEvaluate_missingSigningJwkSignsWithTheBuiltInPidProviderCertificate() throws Exception {
 		env.putObject("config", new JsonObject());
+		env.putObject("client", JsonParser.parseString("{\"client_id\":\"https://verifier.example\"}").getAsJsonObject());
+		env.putString("nonce", "n");
 
-		ConditionError err = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(err.getMessage().contains("'Signing JWK' field is missing from the 'Credential Issuer' section in the test configuration"),
-			"expected message to reference the missing 'Signing JWK' config field but was: " + err.getMessage());
+		cond.execute(env);
+
+		SDJWT sdJwt = SDJWT.parse(env.getString("credential"));
+		com.nimbusds.jwt.SignedJWT issuerJwt = com.nimbusds.jwt.SignedJWT.parse(sdJwt.getCredentialJwt());
+		assertEquals(TestKeysAndCerts.getSdJwtPidSigner().getJwk().getX509CertChain(), issuerJwt.getHeader().getX509CertChain());
+		assertTrue(issuerJwt.verify(new com.nimbusds.jose.crypto.ECDSAVerifier(TestKeysAndCerts.getSdJwtPidSigner().getJwk().toECPublicKey())));
 	}
 
 	@Test

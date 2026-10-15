@@ -14,6 +14,11 @@ public class VCIRegisterClientAttestationTrustAnchor extends AbstractCondition {
 		if (clientAttestationTrustAnchorPem == null) {
 			clientAttestationTrustAnchorPem = env.getString("config", "vci.client_attestation_trust_anchor");
 		}
+		if (clientAttestationTrustAnchorPem == null) {
+			// the wallet providers list of trusted entities then supplies the anchors
+			log("No 'Client Attestation Trust Anchor' configured; the client attestation chain is validated against the wallet providers list of trusted entities only");
+			return env;
+		}
 		env.putString("vci", "client_attestation_trust_anchor_pem", clientAttestationTrustAnchorPem);
 
 		log("Register trust anchor certificate for client attestation", args("trust_anchor_pem", clientAttestationTrustAnchorPem));

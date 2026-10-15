@@ -310,6 +310,86 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/trust-anchors": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Lists the suite's CA certificates
+     * @description Lists the CA certificates that issue the certificates the suite signs with, with the URL each is served at, the URL of its CRL, what its leaf certificates sign and the ETSI TS 119 602 list of trusted entities it belongs in.
+     */
+    get: operations["trustAnchors"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/trust-anchors/{slug}.pem": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Returns one of the suite's CA certificates
+     * @description Returns the named CA certificate, PEM encoded; see /trust-anchors for the names.
+     */
+    get: operations["trustAnchorCert"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/status-lists/wrprc.jwt": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Returns the status list of the suite's registration certificate
+     * @description Returns the Token Status List (a compact JWS) that the suite's wallet-relying-party registration certificate points to. It is signed by a certificate issued by the CA at /trust-anchors/wrprc-provider-ca.pem.
+     */
+    get: operations["wrprcStatusList"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/mdoc-iaca.crl": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Returns the CRL of the mdoc IACA root certificate
+     * @description Returns the DER encoded certificate revocation list issued by the mdoc IACA root certificate (served at /mdoc-iaca-root.pem) for the document signer certificates the suite embeds in the mdoc credentials it creates. The list is empty: the suite revokes nothing.
+     */
+    get: operations["mdocIacaCrl"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/mdoc-iaca-root.pem": {
     parameters: {
       query?: never;
@@ -322,6 +402,46 @@ export interface paths {
      * @description Returns the IACA root certificate used for mdoc signing and verification
      */
     get: operations["mdocIacaRootCert"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/lote/{slug}.jwt": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Returns one of the suite's lists of trusted entities
+     * @description Returns the ETSI TS 119 602 list of trusted entities (a compact JWS) that lists the suite's CA for the named role: pid-providers, wallet-providers, wrpac-providers or wrprc-providers. The sealing certificate is served at /trust-anchors/lote-signer.pem.
+     */
+    get: operations["lote"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/lote/empty/{slug}.jwt": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Returns an empty variant of one of the suite's lists of trusted entities
+     * @description Returns a signed list of the named type that lists no trusted entity at all, for tests of what an implementation does when nothing is trusted.
+     */
+    get: operations["loteEmpty"];
     put?: never;
     post?: never;
     delete?: never;
@@ -350,7 +470,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/api/ui/spec_links": {
+  "/crl/{slug}.crl": {
     parameters: {
       query?: never;
       header?: never;
@@ -358,10 +478,10 @@ export interface paths {
       cookie?: never;
     };
     /**
-     * Get specification links
-     * @description Map of specification-reference prefix (as used in log entry 'requirements', e.g. 'OIDCC-') to the base URL of that specification.
+     * Returns the CRL of one of the suite's CA certificates
+     * @description Returns the DER encoded certificate revocation list issued by the named CA (served at /trust-anchors/{slug}.pem) for the leaf certificates the suite signs with. The list is empty: the suite revokes nothing.
      */
-    get: operations["getSpecLinks"];
+    get: operations["suiteCaCrl"];
     put?: never;
     post?: never;
     delete?: never;
@@ -382,6 +502,26 @@ export interface paths {
      * @description Map of section requirement (e.g. 'BrazilOBDCR-7.1') to the full URL of that section, for specifications whose section fragments are not derivable from the section number. A requirement equal to a key, or starting with the key followed by '-', links to that URL in preference to the prefix map from /api/ui/spec_links.
      */
     get: operations["getSpecSectionLinks"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/ui/spec_links": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get specification links
+     * @description Map of specification-reference prefix (as used in log entry 'requirements', e.g. 'OIDCC-') to the base URL of that specification.
+     */
+    get: operations["getSpecLinks"];
     put?: never;
     post?: never;
     delete?: never;
@@ -2529,6 +2669,96 @@ export interface operations {
       };
     };
   };
+  trustAnchors: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The CA certificates */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": Record<string, never>;
+        };
+      };
+    };
+  };
+  trustAnchorCert: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description The CA's name, as listed at /trust-anchors */
+        slug: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The CA certificate */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description No CA with that name */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  wrprcStatusList: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The signed status list */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/statuslist+jwt": string;
+        };
+      };
+    };
+  };
+  mdocIacaCrl: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The CRL, DER encoded */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/pkix-crl": string;
+        };
+      };
+    };
+  };
   mdocIacaRootCert: {
     parameters: {
       query?: never;
@@ -2546,6 +2776,66 @@ export interface operations {
         content: {
           "text/plain": string;
         };
+      };
+    };
+  };
+  lote: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description The list's name */
+        slug: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The signed list */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/jwt": string;
+        };
+      };
+      /** @description No list with that name */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  loteEmpty: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description The list's name */
+        slug: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The signed empty list */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/jwt": string;
+        };
+      };
+      /** @description No list with that name */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
@@ -2569,7 +2859,37 @@ export interface operations {
       };
     };
   };
-  getSpecLinks: {
+  suiteCaCrl: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description The CA's name, as listed at /trust-anchors */
+        slug: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The CRL, DER encoded */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/pkix-crl": string;
+        };
+      };
+      /** @description No CA with that name */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  getSpecSectionLinks: {
     parameters: {
       query?: never;
       header?: never;
@@ -2596,7 +2916,7 @@ export interface operations {
       };
     };
   };
-  getSpecSectionLinks: {
+  getSpecLinks: {
     parameters: {
       query?: never;
       header?: never;

@@ -3,6 +3,8 @@ package net.openid.conformance.vci10wallet.condition;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
@@ -45,16 +47,19 @@ public class ValidateKeyAttestationX5cCertificateChain extends AbstractValidateX
 			List<String> x5c = OIDFJSON.convertJsonArrayToList(x5cEl.getAsJsonArray());
 			List<X509Certificate> certs = parseX5cCertificatesFromStrings(x5c);
 
-			String trustAnchorPem = env.getString("vci", "key_attestation_trust_anchor_pem");
-			X509Certificate trustAnchorCert = parseTrustAnchorPem(trustAnchorPem);
+			// the configured 'Key Attestation Trust Anchor' plus the wallet providers listed in the configured LoTE
+			LoteTrustAnchors.TrustAnchorSet anchors = resolveTrustAnchors(env, env.getString("vci", "key_attestation_trust_anchor_pem"),
+				"Key Attestation Trust Anchor", LoteSlot.ISSUANCE_SUFFIX, LoteSlot.WALLET);
 
-			validateX5cCertificateChain(certs, trustAnchorCert);
+			X509Certificate matched = validateX5cCertificateChainAgainst(certs, anchors);
 			verifyJwtSignatureWithX5cLeafCert(rawJwt, certs);
 
 			logSuccess("Validated key attestation x5c certificate chain and signature",
 				args("x5c", x5c,
 					"leaf_cert_subject", certs.get(0).getSubjectX500Principal().getName(),
-					"chain_length", certs.size()));
+					"chain_length", certs.size(),
+					"trust_anchors", anchors.sourcesJson(),
+					"matched_trust_anchor", matched == null ? null : anchors.sourceOf(matched)));
 
 			return env;
 		} catch (ConditionError e) {

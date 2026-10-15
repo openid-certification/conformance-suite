@@ -2,6 +2,8 @@ package net.openid.conformance.condition.client;
 
 import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.MdocUtil;
 import org.multipaz.cbor.Cbor;
@@ -62,19 +64,24 @@ public class ValidateMdocDsCertificateChain extends AbstractValidateX5cCertifica
 		// A configured VICAL takes precedence as the source of mdoc issuer trust; the chain is
 		// then evaluated against the VICAL's IACA list by ValidateMdocIssuerChainAgainstVical,
 		// and only the trust-anchor-independent chain checks are performed here.
-		X509Certificate trustAnchor = null;
+		LoteTrustAnchors.TrustAnchorSet anchors;
 		if (env.getObject("vical") != null) {
 			log("A VICAL is configured, so the mdoc issuer certificate chain is evaluated against the"
 				+ " VICAL rather than the configured credential trust anchor");
+			anchors = new LoteTrustAnchors.TrustAnchorSet(List.of(), List.of());
 		} else {
-			trustAnchor = parseTrustAnchorPem(env.getString("credential_trust_anchor_pem"));
+			// the configured 'Credential Trust Anchor' plus the PID and mDL providers listed in the configured LoTEs
+			anchors = resolveTrustAnchors(env, env.getString("credential_trust_anchor_pem"),
+				"Credential Trust Anchor", LoteSlot.ISSUANCE_SUFFIX, LoteSlot.PID, LoteSlot.MDL);
 		}
-		validateX5cCertificateChain(certs, trustAnchor);
+		X509Certificate matched = validateX5cCertificateChainAgainst(certs, anchors);
 
 		logSuccess("Validated the mdoc x5chain document signer certificate chain",
 			args("leaf_cert_subject", certs.get(0).getSubjectX500Principal().getName(),
 				"chain_length", certs.size(),
-				"pkix_validated_against_trust_anchor", trustAnchor != null));
+				"pkix_validated_against_trust_anchor", matched != null,
+				"trust_anchors", anchors.sourcesJson(),
+				"matched_trust_anchor", matched == null ? null : anchors.sourceOf(matched)));
 
 		return env;
 	}

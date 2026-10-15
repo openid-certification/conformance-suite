@@ -63,6 +63,7 @@ public class LogEntryHelper {
 		specLinks.put("OIDCR-", "https://openid.net/specs/openid-connect-registration-1_0.html#rfc.section.");
 		specLinks.put("OAuth2-FP-", "https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html#rfc.section.");
 		specLinks.put("OAuth2-iss-", "https://tools.ietf.org/html/rfc9207#section-");
+		specLinks.put("RFC2585-", "https://tools.ietf.org/html/rfc2585#section-");
 		specLinks.put("RFC3986-", "https://tools.ietf.org/html/rfc3986#section-");
 		specLinks.put("RFC6749-", "https://tools.ietf.org/html/rfc6749#section-");
 		specLinks.put("RFC6749A-", "https://tools.ietf.org/html/rfc6749#appendix-");
@@ -110,6 +111,7 @@ public class LogEntryHelper {
 		specLinks.put("OIDCRIL-", "https://openid.net/specs/openid-connect-rpinitiated-1_0.html#rfc.section.");
 		specLinks.put("BCP195-", "https://tools.ietf.org/html/bcp195#section-");
 		specLinks.put("ISO18013-5-", "https://www.iso.org/standard/69084.html#");
+		specLinks.put("ETSI119602-", "https://www.etsi.org/deliver/etsi_ts/119600_119699/119602/01.01.01_60/ts_119602v010101p.pdf#");
 		specLinks.put("ISO18013-7-", "https://www.iso.org/standard/82772.html#");
 		specLinks.put("ISO23220-2-", "https://www.iso.org/standard/86782.html#");
 		specLinks.put("ISO23220-4-", "https://www.iso.org/standard/86785.html#");

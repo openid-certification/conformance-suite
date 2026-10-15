@@ -1,0 +1,101 @@
+package net.openid.conformance.condition.client.lote;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.nimbusds.jose.jwk.JWK;
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.JWKUtil;
+import net.openid.conformance.util.X509CertificateUtil;
+
+import java.security.cert.X509Certificate;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Pre-flight interoperability checks: the certificate chains the suite itself will present must
+ * chain to a trusted entity in the configured list of trusted entities for the role, or the
+ * implementation under test that trusts the list is expected to reject them. A failure reports
+ * on the suite's listing with the scheme operator, or on the test configuration, not on the
+ * implementation under test, so these conditions are expected to be called as a WARNING.
+ */
+public abstract class AbstractValidateOwnCertificatesAgainstLote extends AbstractCondition {
+
+	/**
+	 * @param chains the suite's own chains, leaf first, keyed by what they are
+	 * @param what the suite's role, for the messages ("request signing", "credential signing", ...)
+	 * @param slots the lists whose issuance services must cover the chains
+	 */
+	protected Environment check(Environment env, Map<String, List<X509Certificate>> chains, String what, LoteSlot... slots) {
+		LoteTrustAnchors.TrustAnchorSet anchors;
+		try {
+			anchors = LoteTrustAnchors.resolve(env, null, null, LoteSlot.ISSUANCE_SUFFIX, slots);
+		} catch (X509CertificateUtil.X5cCertificateChainException e) {
+			throw error(e.getMessage());
+		}
+		List<String> slotLabels = new ArrayList<>();
+		for (LoteSlot slot : slots) {
+			if (env.containsObject(slot.envKey)) {
+				slotLabels.add("'" + slot.fieldLabel + "'");
+			}
+		}
+
+		JsonObject results = new JsonObject();
+		List<String> uncovered = new ArrayList<>();
+		for (Map.Entry<String, List<X509Certificate>> entry : chains.entrySet()) {
+			JsonObject result = new JsonObject();
+			result.addProperty("leaf_subject", entry.getValue().get(0).getSubjectX500Principal().getName());
+			try {
+				X509Certificate matched = X509CertificateUtil.validateX5cCertificateChain(entry.getValue(), anchors.anchors());
+				result.addProperty("trusted", matched != null);
+				result.addProperty("matched_trust_anchor", matched == null ? null : anchors.sourceOf(matched));
+				if (matched == null) {
+					uncovered.add(entry.getKey());
+				}
+			} catch (X509CertificateUtil.X5cCertificateChainException e) {
+				result.addProperty("trusted", false);
+				result.addProperty("error", e.getMessage());
+				uncovered.add(entry.getKey());
+			}
+			results.add(entry.getKey(), result);
+		}
+
+		if (!uncovered.isEmpty()) {
+			throw error("The suite's own " + what + " certificate does not chain to a trusted entity in the configured "
+					+ String.join(" / ", slotLabels) + "; an implementation that trusts that list is expected to reject what the suite"
+					+ " signs with it. Check the suite's listing with the scheme operator (its CA certificates are published at"
+					+ " /trust-anchors), or the test configuration: " + String.join(", ", uncovered),
+				args("results", results, "trust_anchors_in_list", anchors.sourcesJson()));
+		}
+
+		logSuccess("The suite's own " + what + " certificate chains to a trusted entity in the configured " + String.join(" / ", slotLabels),
+			args("results", results));
+		return env;
+	}
+
+	/** The x5c chain of the signing key of a configured JWKS, or null when the JWKS is absent. */
+	protected List<X509Certificate> chainOfConfiguredJwks(JsonElement jwksEl, String fieldLabel) {
+		if (jwksEl == null || jwksEl.isJsonNull()) {
+			return null;
+		}
+		JsonObject jwks = jwksEl.isJsonObject() && jwksEl.getAsJsonObject().has("keys")
+			? jwksEl.getAsJsonObject() : JWKUtil.createJwksObjectFromJwkObjects(jwksEl.getAsJsonObject());
+		JWK signingKey;
+		try {
+			signingKey = JWKUtil.getSigningKey(jwks);
+		} catch (ParseException | IllegalArgumentException e) {
+			throw error("The " + fieldLabel + " of the test configuration could not be parsed as a JWKS with one signing key", e);
+		}
+		if (signingKey.getX509CertChain() == null || signingKey.getX509CertChain().isEmpty()) {
+			throw error("The signing key in the " + fieldLabel + " of the test configuration has no 'x5c' certificate chain, so there is"
+				+ " no certificate to evaluate against the list of trusted entities");
+		}
+		try {
+			return X509CertificateUtil.parseX5cCertificatesFromNimbusBase64(signingKey.getX509CertChain());
+		} catch (X509CertificateUtil.X5cCertificateChainException e) {
+			throw error("Failed to parse the x5c of the " + fieldLabel + " of the test configuration: " + e.getMessage());
+		}
+	}
+}

@@ -661,6 +661,22 @@
         }
       ]
     },
+    "rfc2585": {
+      "link_url": "https://tools.ietf.org/html/rfc2585",
+      "prefixes": [
+        "RFC2585-"
+      ],
+      "versions": [
+        {
+          "fetched": "2026-10-14",
+          "file": "ietf/rfc2585.txt",
+          "role": "linked",
+          "sha256": "98d316b4b32dcba6478c30135f1c7e26fcca1d44e6c207270622110eaa7949d4",
+          "source_format": "txt",
+          "source_url": "https://www.rfc-editor.org/rfc/rfc2585.txt"
+        }
+      ]
+    },
     "rfc3986": {
       "link_url": "https://tools.ietf.org/html/rfc3986",
       "prefixes": [
@@ -1159,6 +1175,7 @@
     "CID-IDA-": "third-party specification; redistribution rights not confirmed (#1957 first import is IETF+OIDF only)",
     "CID-PURPOSE-": "third-party specification; redistribution rights not confirmed (#1957 first import is IETF+OIDF only)",
     "CID-SP-": "third-party specification; redistribution rights not confirmed (#1957 first import is IETF+OIDF only)",
+    "ETSI119602-": "ETSI specification (ETSI TS 119 602 V1.1.1, Lists of trusted entities); ETSI's licence does not allow redistribution of the text",
     "FAPI-ISSUES-": "issue tracker, not a specification",
     "FAPI2-IMP-": "OIDF working copy at a mutable URL; no published source sibling",
     "ISO18013-5-": {

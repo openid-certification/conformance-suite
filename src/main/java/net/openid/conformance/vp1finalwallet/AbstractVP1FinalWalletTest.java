@@ -46,7 +46,11 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInVer
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInVpAuthorizationResponse;
 import net.openid.conformance.condition.client.CheckIatInBindingJwt;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
+import net.openid.conformance.condition.client.AddBuiltInAccessCertificateToClientConfiguration;
+import net.openid.conformance.condition.client.AddBuiltInRegistrationCertificateToClientConfiguration;
 import net.openid.conformance.condition.client.CheckIfClientIdInX509CertSanDns;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.ValidateOwnRequestSigningCertificateAgainstWrpacLote;
 import net.openid.conformance.condition.client.CheckIfSecondClientIdInX509CertSanDns;
 import net.openid.conformance.condition.client.CheckNoPresentationSubmissionParameter;
 import net.openid.conformance.condition.client.CheckNonceInBindingJwt;
@@ -104,6 +108,7 @@ import net.openid.conformance.condition.client.RegisterCredentialTrustAnchor;
 import net.openid.conformance.condition.client.RegisterStatusListTrustAnchor;
 import net.openid.conformance.sequence.client.SetupRicalFromConfiguration;
 import net.openid.conformance.sequence.client.SetupVicalFromConfiguration;
+import net.openid.conformance.sequence.client.SetupLoteFromConfiguration;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import net.openid.conformance.condition.client.ValidateConfiguredClientCertificatesAgainstRical;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseMode;
@@ -193,11 +198,15 @@ import java.util.concurrent.TimeUnit;
 @VariantConfigurationFields(parameter = VP1FinalWalletClientIdPrefix.class, value = "x509_san_dns", configurationFields = {
 	"client.client_id",
 	"client.rical",
-	"client.rical_url"
+	"client.rical_url",
+	"client.wrpac_lote_url",
+	"lote.signing_certificate_pem"
 })
 @VariantConfigurationFields(parameter = VP1FinalWalletClientIdPrefix.class, value = "x509_hash", configurationFields = {
 	"client.rical",
-	"client.rical_url"
+	"client.rical_url",
+	"client.wrpac_lote_url",
+	"lote.signing_certificate_pem"
 })
 @VariantConfigurationFields(parameter = VP1FinalWalletResponseMode.class, value = "direct_post", configurationFields = {
 	"server.authorization_endpoint"
@@ -213,7 +222,10 @@ import java.util.concurrent.TimeUnit;
 })
 @VariantConfigurationFields(parameter = VPProfile.class, value = "haip", configurationFields = {
 	"credential.trust_anchor_pem",
-	"credential.status_list_trust_anchor_pem"
+	"credential.status_list_trust_anchor_pem",
+	"credential.pid_lote_url",
+	"credential.mdl_lote_url",
+	"lote.signing_certificate_pem"
 })
 // HAIP fixes the response encryption parameters (ECDH-ES with both A128GCM and A256GCM), so
 // the tester cannot configure them - AddVP1FinalEncryptionParametersToClientMetadata ignores
@@ -227,7 +239,10 @@ import java.util.concurrent.TimeUnit;
 @VariantConfigurationFields(parameter = VP1FinalWalletCredentialFormat.class, value = "iso_mdl", configurationFields = {
 	"credential.vical",
 	"credential.vical_url",
-	"credential.trust_anchor_pem"
+	"credential.trust_anchor_pem",
+	"credential.pid_lote_url",
+	"credential.mdl_lote_url",
+	"lote.signing_certificate_pem"
 })
 @VariantConfigurationFields(parameter = VP1FinalWalletRequestMethod.class, value = "request_uri_multisigned", configurationFields = {
 	"client2.jwks",
@@ -377,6 +392,9 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 		callAndStopOnFailure(RegisterCredentialTrustAnchor.class);
 		callAndStopOnFailure(RegisterStatusListTrustAnchor.class);
+		// the PID and mDL providers LoTEs anchor the presented credentials' signers and status list signers
+		call(new SetupLoteFromConfiguration(LoteSlot.PID, Condition.ConditionResult.FAILURE));
+		call(new SetupLoteFromConfiguration(LoteSlot.MDL, Condition.ConditionResult.FAILURE));
 		if (getVariant(VP1FinalWalletCredentialFormat.class) == VP1FinalWalletCredentialFormat.ISO_MDL) {
 			// register and validate the optionally configured VICAL used by the mdoc issuer
 			// trust checks in ValidateMdocCredential
@@ -407,6 +425,10 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	}
 
 	protected void configureClient() {
+		if (clientIdPrefix == VP1FinalWalletClientIdPrefix.X509_SAN_DNS || clientIdPrefix == VP1FinalWalletClientIdPrefix.X509_HASH) {
+			callAndStopOnFailure(AddBuiltInAccessCertificateToClientConfiguration.class);
+			callAndStopOnFailure(AddBuiltInRegistrationCertificateToClientConfiguration.class);
+		}
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class);
@@ -507,6 +529,14 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 			// trusting the RICAL is expected to reject the request otherwise. A WARNING as
 			// this reports on the test configuration, not on the wallet under test.
 			call(sequence(SetupRicalFromConfiguration.class));
+			// likewise the optionally configured WRPAC providers list of trusted entities
+			call(new SetupLoteFromConfiguration(LoteSlot.WRPAC, ConditionResult.WARNING));
+			call(condition(ValidateOwnRequestSigningCertificateAgainstWrpacLote.class)
+				.skipIfObjectsMissing(LoteSlot.WRPAC_ENV_KEY)
+				.onSkip(ConditionResult.INFO)
+				.onFail(ConditionResult.WARNING)
+				.dontStopOnFailure()
+				.requirements("ETSI119602-6.6.3"));
 			call(condition(ValidateConfiguredClientCertificatesAgainstRical.class)
 				.skipIfObjectsMissing("rical")
 				.onSkip(ConditionResult.INFO)
