@@ -27,11 +27,6 @@ public class AuthzenPDPEvaluationsRejectGetMethodTest extends AbstractAuthzenPDP
 	}
 
 	@Override
-	protected String getExpectedEvaluationsResponseJson() {
-		return "{}";
-	}
-
-	@Override
 	protected boolean sendRawRequest() {
 		return true;
 	}

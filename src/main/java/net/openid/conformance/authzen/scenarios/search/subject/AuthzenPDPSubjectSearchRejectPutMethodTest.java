@@ -25,11 +25,6 @@ public class AuthzenPDPSubjectSearchRejectPutMethodTest extends AbstractAuthzenP
 	}
 
 	@Override
-	protected String getExpectedSearchResponseJson() {
-		return "{}";
-	}
-
-	@Override
 	protected boolean sendRawRequest() {
 		return true;
 	}

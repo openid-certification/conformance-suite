@@ -48,11 +48,6 @@ public class AuthzenPDPSubjectSearchChangedPageParametersTest extends AbstractAu
 	}
 
 	@Override
-	protected String getExpectedSearchResponseJson() {
-		return "{ \"results\": [] }";
-	}
-
-	@Override
 	protected void performAuthzenApiFlow() {
 		eventLog.startBlock("Request the first page");
 		try {

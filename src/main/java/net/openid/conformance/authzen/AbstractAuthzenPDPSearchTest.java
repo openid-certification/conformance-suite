@@ -22,12 +22,30 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 
 	private static final int MAX_PAGES = 100;
 
-	protected abstract String getExpectedSearchResponseJson();
+	/**
+	 * Override to supply the results a successful search is matched against (e.g.
+	 * {"results": [ ... ]}). Modules that expect only an error status never match results, so
+	 * they need not override it.
+	 */
+	protected String getExpectedSearchResponseJson() {
+		return null;
+	}
 
+	private String requireExpectedSearchResponseJson() {
+		String expectedJson = getExpectedSearchResponseJson();
+		if (expectedJson == null) {
+			throw new TestFailureException(getId(), getName() + " accepts HTTP 200 but defines no expected search results");
+		}
+		return expectedJson;
+	}
+
+	/**
+	 * A search module matches the results of every page together, in {@link #runPaginatedSearchLoop}
+	 * or {@link #performIdempotencyIteration}, never a single response.
+	 */
 	@Override
 	protected void validateAuthApiEndpointResponse() {
-		callAndContinueOnFailure(new ExtractAuthzenSearchExpectedResponse(getExpectedSearchResponseJson()), ConditionResult.FAILURE);
-		callAndContinueOnFailure(EnsureAuthzenSearchResponseValsMatchExpectedVals.class, ConditionResult.FAILURE);
+		throw new TestFailureException(getId(), "Search results are matched once every page has been fetched, not per response");
 	}
 
 	/**
@@ -64,7 +82,7 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	 */
 	@Override
 	protected void performIdempotencyIteration() {
-		callAndContinueOnFailure(new ExtractAuthzenSearchExpectedResponse(getExpectedSearchResponseJson()), ConditionResult.FAILURE);
+		callAndContinueOnFailure(new ExtractAuthzenSearchExpectedResponse(requireExpectedSearchResponseJson()), ConditionResult.FAILURE);
 		if (fetchAllSearchPages()) {
 			throw new TestFailureException(getId(),
 				"The PDP did not answer the search with HTTP 200, so its results cannot be compared across identical requests");
@@ -144,7 +162,7 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 		eventLog.startBlock("Make paginated request to API endpoint");
 		try {
 			// Extract the expected response once up front so per-page conditions can use it.
-			callAndContinueOnFailure(new ExtractAuthzenSearchExpectedResponse(getExpectedSearchResponseJson()), ConditionResult.FAILURE);
+			callAndContinueOnFailure(new ExtractAuthzenSearchExpectedResponse(requireExpectedSearchResponseJson()), ConditionResult.FAILURE);
 
 			if (!fetchAllSearchPages()) {
 				matchAggregatedSearchResults();

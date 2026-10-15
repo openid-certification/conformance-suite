@@ -24,11 +24,6 @@ public class AuthzenPDPResourceSearchMissingResourceTest extends AbstractAuthzen
 	}
 
 	@Override
-	protected String getExpectedSearchResponseJson() {
-		return "{ \"results\": [] }";
-	}
-
-	@Override
 	protected int getExpectedHttpStatusCode() {
 		return 400;
 	}

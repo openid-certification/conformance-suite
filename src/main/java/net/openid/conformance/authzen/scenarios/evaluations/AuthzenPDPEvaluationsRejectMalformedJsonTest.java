@@ -19,11 +19,6 @@ public class AuthzenPDPEvaluationsRejectMalformedJsonTest extends AbstractAuthze
 	}
 
 	@Override
-	protected String getExpectedEvaluationsResponseJson() {
-		return "{}";
-	}
-
-	@Override
 	protected boolean sendRawRequest() {
 		return true;
 	}

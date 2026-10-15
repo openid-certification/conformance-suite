@@ -45,13 +45,4 @@ public abstract class AbstractAuthzenPDPEvaluationsBackwardCompatTest extends Ab
 			{ "decision": true }
 			""";
 	}
-
-	@Override
-	protected String getExpectedEvaluationsResponseJson() {
-		// Unused: this family validates a single Access Evaluation response (see
-		// getExpectedDecisionResponseJson()), not an `evaluations` array. The
-		// abstract method is satisfied with a harmless placeholder that is never
-		// parsed because validateAuthApiEndpointResponse() is overridden above.
-		return "{}";
-	}
 }

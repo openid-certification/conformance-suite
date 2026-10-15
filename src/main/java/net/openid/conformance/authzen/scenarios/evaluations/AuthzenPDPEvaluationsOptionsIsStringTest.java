@@ -28,11 +28,6 @@ public class AuthzenPDPEvaluationsOptionsIsStringTest extends AbstractAuthzenPDP
 	}
 
 	@Override
-	protected String getExpectedEvaluationsResponseJson() {
-		return "{}";
-	}
-
-	@Override
 	protected int getExpectedHttpStatusCode() {
 		return 400;
 	}

@@ -19,11 +19,6 @@ public class AuthzenPDPActionSearchRejectMalformedJsonTest extends AbstractAuthz
 	}
 
 	@Override
-	protected String getExpectedSearchResponseJson() {
-		return "{}";
-	}
-
-	@Override
 	protected boolean sendRawRequest() {
 		return true;
 	}

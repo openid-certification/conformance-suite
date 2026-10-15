@@ -15,6 +15,7 @@ import net.openid.conformance.authzen.condition.WarnAuthzenEvaluationsResponseUn
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.PDPServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 
@@ -48,7 +49,14 @@ public abstract class AbstractAuthzenPDPEvaluationsTest extends AbstractAuthzenP
 		return "access_evaluations_endpoint";
 	}
 
-	protected abstract String getExpectedEvaluationsResponseJson();
+	/**
+	 * Override to supply the expected evaluations response JSON (e.g. {"evaluations": [ ... ]}),
+	 * which the decisions in a 200 response are compared against. Modules that expect only an
+	 * error status never validate a response body, so they need not override it.
+	 */
+	protected String getExpectedEvaluationsResponseJson() {
+		return null;
+	}
 
 	/**
 	 * Returns the `evaluations_semantic` value carried in the request payload, or
@@ -82,7 +90,11 @@ public abstract class AbstractAuthzenPDPEvaluationsTest extends AbstractAuthzenP
 
 	@Override
 	protected void validateAuthApiEndpointResponse() {
-		callAndContinueOnFailure(new ExtractAuthzenEvaluationsExpectedResponse(getExpectedEvaluationsResponseJson()), ConditionResult.FAILURE);
+		String expectedJson = getExpectedEvaluationsResponseJson();
+		if (expectedJson == null) {
+			throw new TestFailureException(getId(), getName() + " accepts HTTP 200 but defines no expected evaluations");
+		}
+		callAndContinueOnFailure(new ExtractAuthzenEvaluationsExpectedResponse(expectedJson), ConditionResult.FAILURE);
 		if (isShortCircuitSemantic()) {
 			callAndContinueOnFailure(EnsureAuthzenEvaluationsResponseValsMatchExpectedValsAsPrefix.class, ConditionResult.FAILURE, "AUTHZEN-7.1.2.1", "AUTHZEN-7.2");
 		} else {
