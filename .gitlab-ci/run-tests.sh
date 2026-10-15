@@ -891,6 +891,8 @@ makeAuthzenTests() {
     TESTS="${TESTS} authzen-pdp-subject-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
     TESTS="${TESTS} authzen-pdp-resource-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
     TESTS="${TESTS} authzen-pdp-action-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
+    # A search plan with discovery: the endpoint comes from the PDP metadata
+    TESTS="${TESTS} authzen-pdp-resource-search-test-plan[pdp_auth_type=none][pdp_server_metadata=discovery][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
 }
 
 makeLocalProviderTests() {
