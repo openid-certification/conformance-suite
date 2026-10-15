@@ -254,10 +254,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 				eventLog.startBlock("Iteration " + i);
 				try {
 					resetStateBetweenIdenticalRequests();
-					createAuthzenApiRequest();
-					performSingleApiRequest();
-					processAuthApiEndpointResponse();
-					validateAuthApiEndpointResponse();
+					performIdempotencyIteration();
 					if (i == 1) {
 						callAndStopOnFailure(capture);
 					} else {
@@ -275,6 +272,17 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 		} finally {
 			eventLog.endBlock();
 		}
+	}
+
+	/**
+	 * Sends one of the identical requests of {@link #runIdempotencyLoop} and validates the
+	 * response, leaving it where the loop's capture and match conditions read it.
+	 */
+	protected void performIdempotencyIteration() {
+		createAuthzenApiRequest();
+		performSingleApiRequest();
+		processAuthApiEndpointResponse();
+		validateAuthApiEndpointResponse();
 	}
 
 	/**
