@@ -41,6 +41,8 @@ public abstract class AbstractAuthzenPDPEvaluationTest extends AbstractAuthzenPD
 			throw new TestFailureException(getId(), getName() + " accepts HTTP 200 but defines no expected decision");
 		}
 		callAndContinueOnFailure(new ExtractAuthzenDecisionExpectedResponse(expectedJson), ConditionResult.FAILURE);
+		// The expected decision comes from the certification fixture (scenario 4.4), not from the
+		// Authorization API specification, and the scenario has no requirement link prefix.
 		callAndContinueOnFailure(EnsureAuthzenDecisionResponseValMatchesExpected.class, ConditionResult.FAILURE);
 	}
 
