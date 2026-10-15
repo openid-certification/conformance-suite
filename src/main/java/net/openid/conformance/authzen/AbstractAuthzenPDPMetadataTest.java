@@ -10,6 +10,7 @@ import net.openid.conformance.authzen.condition.EnsureDiscoveryMetadataResponseV
 import net.openid.conformance.authzen.condition.EnsureMetadataCapabilitiesValid;
 import net.openid.conformance.authzen.condition.EnsurePDPJwksConfigured;
 import net.openid.conformance.authzen.condition.EnsurePolicyDecisionPointMatchesIssuer;
+import net.openid.conformance.authzen.condition.ExtractPDPSignedMetadataValues;
 import net.openid.conformance.authzen.condition.GetPDPDynamicServerConfiguration;
 import net.openid.conformance.authzen.condition.ParseUsableAuthzenPdpJwksKeys;
 import net.openid.conformance.authzen.condition.ValidateDiscoverySignedMetadata;
@@ -64,6 +65,15 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 	protected void fetchAndValidateDiscoveryMetadata() {
 		callAndStopOnFailure(GetPDPDynamicServerConfiguration.class);
 		callAndContinueOnFailure(EnsureDiscoveryMetadataResponseValid.class, ConditionResult.FAILURE, "AUTHZEN-9.2.2");
+		// Sections 9.2.2 and 9.2.3 apply to the response as the PDP published it, so these run
+		// before any signed_metadata values replace plain ones. A mismatched policy_decision_point
+		// is reported here, before the signed metadata checks that need the configured keys.
+		eventLog.startBlock("Check the published PDP metadata");
+		try {
+			checkMetadataDocument("pdp");
+		} finally {
+			eventLog.endBlock();
+		}
 		// signed_metadata is OPTIONAL (§9.1.3): only when the PDP metadata carries
 		// it do we validate it, verify its signature against the configured PDP JWK
 		// Set, and apply its precedence over the plain JSON metadata so the
@@ -96,6 +106,10 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 					.dontStopOnFailure()
 					.requirements("RFC7517-4", "AUTHZEN-9.1.3")));
 			call(sequence(ValidateDiscoverySignedMetadata.class));
+			// The signed values become the PDP's metadata, so they are checked like the published
+			// document before they are put in effect.
+			callAndStopOnFailure(ExtractPDPSignedMetadataValues.class, "AUTHZEN-9.1.3");
+			checkMetadataDocument("pdp_signed_metadata_values");
 			callAndContinueOnFailure(ApplySignedMetadataPrecedence.class, ConditionResult.FAILURE, "AUTHZEN-9.1.3");
 			eventLog.endBlock();
 		} else {
@@ -106,8 +120,40 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 	}
 
 	/**
-	 * Checks the endpoints and capabilities in the {@code pdp} environment object. With
-	 * {@code fromDiscovery}, also checks the metadata document's own requirements.
+	 * Checks a set of PDP metadata values, the published document or the values carried in
+	 * signed_metadata, against Section 9.2: a policy_decision_point identical to the PDP
+	 * Identifier, no parameters without values, and only registered parameters. Signed metadata
+	 * need not repeat policy_decision_point, so it is checked only where present.
+	 */
+	private void checkMetadataDocument(String envKey) {
+		boolean signedValues = !"pdp".equals(envKey);
+		env.mapKey("server", envKey);
+		if (signedValues) {
+			env.mapKey("pdp", envKey);
+		}
+		try {
+			if (!signedValues || env.getElementFromObject(envKey, "policy_decision_point") != null) {
+				// §9.2.3: "If these values are not identical, the data contained in the response MUST
+				// NOT be used." Everything after this point runs against the endpoints that response
+				// names, so this is stop-on-failure.
+				callAndStopOnFailure(new EnsurePolicyDecisionPointMatchesIssuer(signedValues
+					? EnsurePolicyDecisionPointMatchesIssuer.SIGNED_METADATA
+					: EnsurePolicyDecisionPointMatchesIssuer.PUBLISHED_DOCUMENT), "AUTHZEN-9.2.3");
+			}
+			callAndContinueOnFailure(EnsureDiscoveryMetadataParamsNotEmpty.class, ConditionResult.FAILURE, "AUTHZEN-9.2.2");
+			callAndContinueOnFailure(WarnAuthzenMetadataUnknownMembers.class, ConditionResult.WARNING, "AUTHZEN-9.2.2", "AUTHZEN-12.1.3");
+		} finally {
+			if (signedValues) {
+				env.unmapKey("pdp");
+			}
+			env.unmapKey("server");
+		}
+	}
+
+	/**
+	 * Checks the endpoints and capabilities in the {@code pdp} environment object, the values the
+	 * test uses: from the test configuration, or the discovered metadata with any signed values
+	 * applied.
 	 */
 	protected void checkPDPServerConfiguration(boolean fromDiscovery) {
 		eventLog.startBlock("Check PDP Server Configuration");
@@ -119,15 +165,6 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 			// No metadata is fetched, so Section 9.1.1 does not apply; Section 10.1 requires the
 			// endpoints the test configuration names to be https.
 			callAndContinueOnFailure(CheckStaticPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-10.1");
-		}
-		if (fromDiscovery) {
-			// §9.2.3: "If these values are not identical, the data contained in the response MUST NOT
-			// be used." Everything after this point runs against the endpoints that response names, so
-			// this is stop-on-failure, matching how ValidateDiscoverySignedMetadata treats a
-			// signed_metadata JWT whose values must not be applied.
-			callAndStopOnFailure(EnsurePolicyDecisionPointMatchesIssuer.class, "AUTHZEN-9.2.3");
-			callAndContinueOnFailure(EnsureDiscoveryMetadataParamsNotEmpty.class, ConditionResult.FAILURE, "AUTHZEN-9.2.2");
-			callAndContinueOnFailure(WarnAuthzenMetadataUnknownMembers.class, ConditionResult.WARNING, "AUTHZEN-9.2.2", "AUTHZEN-12.1.3");
 		}
 		callAndContinueOnFailure(EnsureMetadataCapabilitiesValid.class, ConditionResult.FAILURE, "AUTHZEN-9.1.2");
 		callAndContinueOnFailure(WarnAuthzenCapabilitiesNotAuthzenUrns.class, ConditionResult.WARNING, "AUTHZEN-9.1.2", "AUTHZEN-12.4");
