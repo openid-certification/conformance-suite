@@ -19,11 +19,6 @@ public class AuthzenPDPSubjectSearchRejectTopLevelArrayTest extends AbstractAuth
 	}
 
 	@Override
-	protected String getExpectedSearchResponseJson() {
-		return "{}";
-	}
-
-	@Override
 	protected boolean sendRawRequest() {
 		return true;
 	}

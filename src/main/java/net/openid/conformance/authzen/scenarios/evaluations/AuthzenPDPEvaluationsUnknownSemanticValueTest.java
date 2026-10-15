@@ -28,11 +28,6 @@ public class AuthzenPDPEvaluationsUnknownSemanticValueTest extends AbstractAuthz
 	}
 
 	@Override
-	protected String getExpectedEvaluationsResponseJson() {
-		return "{}";
-	}
-
-	@Override
 	protected int getExpectedHttpStatusCode() {
 		return 400;
 	}
