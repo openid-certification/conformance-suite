@@ -9,9 +9,11 @@ import java.util.Set;
 /**
  * Section 9.2.2: the metadata response "contains a set of metadata parameters as defined in the
  * AuthZEN Policy Decision Point Metadata Registry", whose initial registrations (Section 12.1.3)
- * are the parameters below. A name outside them is often a misspelling, such as
- * supported_capabilities for capabilities. Reads the PDP metadata in {@code pdp}, after any
- * signed_metadata values have been applied, so it covers both.
+ * are the parameters below. A name outside them is often a misspelling. Section 8.2.1 itself
+ * calls the capabilities parameter supported_capabilities, but Section 9.1.2 and the registry
+ * name it capabilities, so supported_capabilities is reported too. Reads the PDP metadata in {@code pdp}, which the
+ * caller maps to the published document and, separately, to the values carried in
+ * signed_metadata, so both are checked before the signed values take precedence.
  */
 public class WarnAuthzenMetadataUnknownMembers extends AbstractWarnAuthzenUnknownMembers {
 
