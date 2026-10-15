@@ -8,6 +8,7 @@ import net.openid.conformance.authzen.condition.AddApiKeyAuthenticationParameter
 import net.openid.conformance.authzen.condition.AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest;
 import net.openid.conformance.authzen.condition.AddXRequestIdHeaderToAuthzenApiRequest;
 import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAllowingJsonParseFailure;
+import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAllowingTlsRejection;
 import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifyExpectedStatus;
 import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.authzen.condition.EnsureAuthzenApiEndpointPathContainsV1;
@@ -19,6 +20,7 @@ import net.openid.conformance.authzen.condition.WarnUnsupportedMethodAccepted;
 import net.openid.conformance.authzen.condition.EnsurePDPMetadataAdvertisesEndpoint;
 import net.openid.conformance.authzen.condition.CorruptAuthzenClientCredentials;
 import net.openid.conformance.authzen.condition.CreateAuthzenApiEndpointRequestFromRaw;
+import net.openid.conformance.authzen.condition.GenerateUntrustedAuthzenMtlsClientCertificate;
 import net.openid.conformance.authzen.condition.GetAuthzenClientConfiguration;
 import net.openid.conformance.authzen.condition.GetPDPStaticServerConfiguration;
 import net.openid.conformance.authzen.condition.ValidatePDPIdentifier;
@@ -26,6 +28,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
+import net.openid.conformance.condition.client.RemoveMTLSCertificates;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -68,6 +71,8 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 	protected boolean serverSupportsDiscovery;
 	protected Class<? extends ConditionSequence> profileCompleteClientConfiguration;
 	protected Class<? extends ConditionSequence> addPDPEndpointClientAuthentication;
+
+	private boolean pdpAuthUsesMtls;
 	protected Class<? extends Condition> loadClientConfiguration;
 	private boolean endpointPathV1Checked;
 
@@ -121,6 +126,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 		// mutual_tls_authentication object ConfigureClientForMtls stores; the request itself
 		// carries no credentials.
 		addPDPEndpointClientAuthentication = null;
+		pdpAuthUsesMtls = true;
 	}
 
 	@Override
@@ -230,7 +236,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 			callAndContinueOnFailure(WarnMethodRejectedWithNotFound.class, ConditionResult.WARNING, "AUTHZEN-10.1");
 			callAndContinueOnFailure(EnsureMethodNotAllowedResponseAllowsPost.class, ConditionResult.WARNING, "AUTHZEN-10.1", "RFC7231-6.5.5");
 		}
-		if (includeXRequestIdHeader()) {
+		if (includeXRequestIdHeader() && !pdpRejectedAtTlsLayer()) {
 			callAndContinueOnFailure(EnsureAuthzenApiResponseXRequestIdMatches.class, ConditionResult.FAILURE, "AUTHZEN-10.1.3");
 		}
 	}
@@ -337,6 +343,19 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 	}
 
 	/**
+	 * Under mtls, a module that omits or corrupts the credentials sends no client certificate,
+	 * or one no CA vouches for, which the PDP may refuse in the TLS handshake.
+	 */
+	private boolean sendsUnacceptableClientCertificate() {
+		return pdpAuthUsesMtls && (skipAuthentication() || corruptAuthCredentials());
+	}
+
+	/** True when the PDP refused the last call in the TLS handshake, so there is no HTTP response. */
+	protected boolean pdpRejectedAtTlsLayer() {
+		return Boolean.TRUE.equals(env.getBoolean(CallAuthzenApiEndpointAllowingTlsRejection.TLS_REJECTED_KEY));
+	}
+
+	/**
 	 * Override to skip adding client authentication credentials to the request. Used
 	 * by negative tests that verify the PDP returns 401 when called without auth.
 	 */
@@ -383,7 +402,13 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 			endpointPathV1Checked = true;
 		}
 		addAuthenticationToAuthzenApiEndpoint();
-		performApiRequestCall();
+		try {
+			performApiRequestCall();
+		} finally {
+			// An untrusted client certificate mapped in by addAuthenticationToAuthzenApiEndpoint is for
+			// this call only.
+			env.unmapKey("mutual_tls_authentication");
+		}
 	}
 
 	protected void performApiRequestCall() {
@@ -405,6 +430,15 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 				if (!responseStatusIsSuccess()) {
 					env.mapKey("endpoint_response", "authzen_api_endpoint_response");
 					callAndContinueOnFailure(EnsureHttpStatusCodeMatchesExpected.class, ConditionResult.FAILURE, expectedStatusRequirements(acceptable));
+					env.unmapKey("endpoint_response");
+				}
+				return;
+			}
+			if (sendsUnacceptableClientCertificate()) {
+				callAndStopOnFailure(CallAuthzenApiEndpointAllowingTlsRejection.class, "AUTHZEN-11.3");
+				if (!pdpRejectedAtTlsLayer()) {
+					env.mapKey("endpoint_response", "authzen_api_endpoint_response");
+					callAndContinueOnFailure(EnsureHttpStatusCodeMatchesExpected.class, getUnexpectedHttpStatusSeverity(), expectedStatusRequirements(acceptable));
 					env.unmapKey("endpoint_response");
 				}
 				return;
@@ -494,10 +528,18 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 
 	protected void addAuthenticationToAuthzenApiEndpoint() {
 		if (skipAuthentication()) {
+			if (pdpAuthUsesMtls) {
+				callAndStopOnFailure(RemoveMTLSCertificates.class, "AUTHZEN-11.3");
+			}
 			return;
 		}
 		if (corruptAuthCredentials()) {
-			callAndStopOnFailure(CorruptAuthzenClientCredentials.class);
+			if (pdpAuthUsesMtls) {
+				callAndStopOnFailure(GenerateUntrustedAuthzenMtlsClientCertificate.class, "AUTHZEN-11.3");
+				env.mapKey("mutual_tls_authentication", "untrusted_mutual_tls_authentication");
+			} else {
+				callAndStopOnFailure(CorruptAuthzenClientCredentials.class);
+			}
 		}
 		if (addPDPEndpointClientAuthentication != null) {
 			mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");

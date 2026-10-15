@@ -10,10 +10,10 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "authzen-pdp-resource-search-missing-credentials-returns-401",
 	displayName = "AuthZEN Resource Search API - Section 11.3: Missing credentials returns 401",
-	summary = "Per Section 11.3, when client authentication is required and credentials are missing, the PDP MUST return HTTP 401. The response SHOULD include a WWW-Authenticate header (surfaced as a warning).",
+	summary = "Per Section 11.3, when client authentication is required and credentials are missing, the PDP MUST return HTTP 401. The response SHOULD include a WWW-Authenticate header (surfaced as a warning). Under mtls the request is sent without a client certificate; the PDP may instead refuse the connection in the TLS handshake, which also passes.",
 	profile = "AuthZEN"
 )
-@VariantNotApplicable(parameter = PDPAuthType.class, values = {"none", "mtls"})
+@VariantNotApplicable(parameter = PDPAuthType.class, values = {"none"})
 public class AuthzenPDPResourceSearchMissingCredentialsReturns401Test extends AbstractAuthzenPDPResourceSearchTest {
 
 	public static final String payload = """
@@ -46,7 +46,9 @@ public class AuthzenPDPResourceSearchMissingCredentialsReturns401Test extends Ab
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
-		callAndContinueOnFailure(EnsureAuthzenApiResponseHasWwwAuthenticate.class, ConditionResult.WARNING, "AUTHZEN-11.3");
+		if (!pdpRejectedAtTlsLayer()) {
+			callAndContinueOnFailure(EnsureAuthzenApiResponseHasWwwAuthenticate.class, ConditionResult.WARNING, "AUTHZEN-11.3");
+		}
 		super.onPostAuthorizationFlowComplete();
 	}
 }
