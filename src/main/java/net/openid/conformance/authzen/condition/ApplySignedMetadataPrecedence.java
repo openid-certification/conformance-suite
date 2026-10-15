@@ -20,12 +20,13 @@ import net.openid.conformance.testmodule.Environment;
  * plain {@code pdp} object so all downstream checks see the authoritative (signed)
  * values. Registered JWT housekeeping claims ({@code iss}, {@code iat},
  * {@code exp}, {@code nbf}, {@code aud}, {@code jti}, {@code sub}) are not metadata
- * fields and are not copied. This condition only runs when {@code signed_metadata}
+ * fields and are not copied, and neither is a nested {@code signed_metadata}. This condition only runs when {@code signed_metadata}
  * is present (see {@link net.openid.conformance.authzen.AbstractAuthzenPDPMetadataTest}).
  */
 public class ApplySignedMetadataPrecedence extends AbstractCondition {
 
-	private static final Set<String> JWT_IGNORED_CLAIMS = Set.of("iss", "iat", "exp", "nbf", "aud", "jti", "sub", "signed_metadata");
+	/** Claims of the signed_metadata JWT itself rather than metadata values. */
+	public static final Set<String> JWT_CLAIMS = Set.of("iss", "iat", "exp", "nbf", "aud", "jti", "sub", "signed_metadata");
 
 	@Override
 	@PreEnvironment(required = {"pdp", "pdp_signed_metadata"})
@@ -40,7 +41,7 @@ public class ApplySignedMetadataPrecedence extends AbstractCondition {
 
 		JsonObject applied = new JsonObject();
 		for (Map.Entry<String, JsonElement> claim : claims.entrySet()) {
-			if (JWT_IGNORED_CLAIMS.contains(claim.getKey())) {
+			if (JWT_CLAIMS.contains(claim.getKey())) {
 				continue;
 			}
 			pdp.add(claim.getKey(), claim.getValue());
