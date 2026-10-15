@@ -6,6 +6,7 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.util.NoopTlsAuthentication;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.FAPITLSClient.ServerHelloReceived;
 import org.bouncycastle.tls.AlertDescription;
 import org.bouncycastle.tls.DefaultTlsClient;
 import org.bouncycastle.tls.NameType;
@@ -134,10 +135,9 @@ public abstract class AbstractCheckInsecureCiphers extends AbstractCondition {
 
 	/**
 	 * Connect with TLS 1.2 + BC's default cipher list to determine whether the server
-	 * supports TLS 1.2 at all. Returns true on a completed handshake; false when the
-	 * server rejects the handshake at the TLS layer (protocol_version, handshake_failure,
-	 * or TCP reset). Any other IOException is treated as an unexpected probe failure and
-	 * surfaced via {@code throw error(...)} so it remains attributable.
+	 * supports TLS 1.2. Stop at ServerHello so client authentication is not required.
+	 * Returns false when the server rejects the probe before ServerHello with
+	 * protocol_version, handshake_failure, or TCP reset. Other errors fail the probe.
 	 */
 	private boolean probeTls12Supported(String host, int port) {
 		Socket socket = null;
@@ -159,9 +159,16 @@ public abstract class AbstractCheckInsecureCiphers extends AbstractCondition {
 				protected Vector<ServerName> getSNIServerNames() {
 					return new Vector<ServerName>(List.of(new ServerName(NameType.host_name, host.getBytes(StandardCharsets.UTF_8))));
 				}
+
+				@Override
+				public void notifyServerVersion(ProtocolVersion serverVersion) throws IOException {
+					throw new ServerHelloReceived(serverVersion);
+				}
 			};
 			protocol.connect(client);
 			return true;
+		} catch (ServerHelloReceived e) {
+			return ProtocolVersion.TLSv12.equals(e.getServerVersion());
 		} catch (IOException e) {
 			if ((e instanceof TlsFatalAlertReceived received)
 					&& (received.getAlertDescription() == AlertDescription.protocol_version

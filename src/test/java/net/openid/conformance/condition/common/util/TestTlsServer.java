@@ -13,10 +13,13 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.tls.Certificate;
+import org.bouncycastle.tls.CertificateRequest;
+import org.bouncycastle.tls.ClientCertificateType;
 import org.bouncycastle.tls.DefaultTlsServer;
 import org.bouncycastle.tls.ProtocolVersion;
 import org.bouncycastle.tls.SignatureAndHashAlgorithm;
 import org.bouncycastle.tls.TlsCredentials;
+import org.bouncycastle.tls.TlsFatalAlert;
 import org.bouncycastle.tls.TlsServerProtocol;
 import org.bouncycastle.tls.crypto.TlsCertificate;
 import org.bouncycastle.tls.crypto.TlsCryptoParameters;
@@ -36,9 +39,12 @@ import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * In-process BouncyCastle-based TLS server fixture for unit tests.
@@ -59,13 +65,21 @@ public final class TestTlsServer implements AutoCloseable {
 	private final ExecutorService executor;
 	private final KeyPair keyPair;
 	private final X509Certificate certificate;
+	private final Short missingClientCertificateAlert;
+	private final AtomicInteger connectionCount = new AtomicInteger();
 
 	public TestTlsServer(ProtocolVersion[] supportedVersions, int[] supportedCipherSuites) throws Exception {
+		this(supportedVersions, supportedCipherSuites, null);
+	}
+
+	public TestTlsServer(ProtocolVersion[] supportedVersions, int[] supportedCipherSuites,
+			Short missingClientCertificateAlert) throws Exception {
 		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
 			Security.addProvider(new BouncyCastleProvider());
 		}
 		this.supportedVersions = supportedVersions.clone();
 		this.supportedCipherSuites = supportedCipherSuites.clone();
+		this.missingClientCertificateAlert = missingClientCertificateAlert;
 
 		KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
 		kpg.initialize(2048);
@@ -88,9 +102,14 @@ public final class TestTlsServer implements AutoCloseable {
 		return serverSocket.getLocalPort();
 	}
 
+	public int getConnectionCount() {
+		return connectionCount.get();
+	}
+
 	private void acceptLoop() {
 		while (!serverSocket.isClosed()) {
 			try (Socket client = serverSocket.accept()) {
+				connectionCount.incrementAndGet();
 				BcTlsCrypto crypto = new BcTlsCrypto(new SecureRandom());
 
 				TlsCertificate tlsCert = crypto.createCertificate(certificate.getEncoded());
@@ -111,6 +130,26 @@ public final class TestTlsServer implements AutoCloseable {
 					@Override
 					protected int[] getSupportedCipherSuites() {
 						return supportedCipherSuites.clone();
+					}
+
+					@Override
+					public CertificateRequest getCertificateRequest() throws IOException {
+						if (missingClientCertificateAlert == null) {
+							return null;
+						}
+						Vector<SignatureAndHashAlgorithm> algorithms =
+							new Vector<>(List.of(SignatureAndHashAlgorithm.rsa_pss_rsae_sha256));
+						if (ProtocolVersion.TLSv13.equals(context.getServerVersion())) {
+							return new CertificateRequest(new byte[0], algorithms, null, null);
+						}
+						return new CertificateRequest(new short[]{ClientCertificateType.rsa_sign}, algorithms, null);
+					}
+
+					@Override
+					public void notifyClientCertificate(Certificate clientCertificate) throws IOException {
+						if (missingClientCertificateAlert != null && clientCertificate.isEmpty()) {
+							throw new TlsFatalAlert(missingClientCertificateAlert);
+						}
 					}
 
 					@Override
