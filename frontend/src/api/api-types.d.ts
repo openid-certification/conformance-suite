@@ -370,6 +370,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/status-lists/wrprc.jwt": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Returns the status list of the suite's registration certificate
+     * @description Returns the Token Status List (a compact JWS) that the suite's wallet-relying-party registration certificate points to. It is signed by a certificate issued by the CA at /trust-anchors/wrprc-provider-ca.pem.
+     */
+    get: operations["wrprcStatusList"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/mdoc-iaca.crl": {
     parameters: {
       query?: never;
@@ -2746,6 +2766,26 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  wrprcStatusList: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The signed status list */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/statuslist+jwt": string;
+        };
       };
     };
   };

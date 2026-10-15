@@ -47,6 +47,8 @@ public final class LoteBuilder {
 
 	private static final Duration VALIDITY = Duration.ofHours(24);
 
+	private static final String CONTACT_MAILTO = "mailto:" + TestKeysAndCerts.CONTACT_EMAIL;
+
 	private LoteBuilder() {
 	}
 
@@ -85,10 +87,10 @@ public final class LoteBuilder {
 		info.addProperty("NextUpdate", DateTimeFormatter.ISO_INSTANT.format(truncated.plus(VALIDITY)));
 		info.addProperty("LoTEType", list.loteType);
 		JsonObject address = new JsonObject();
-		address.add("SchemeOperatorElectronicAddress", inEnglish("mailto:certification@oidf.org", "uriValue"));
+		address.add("SchemeOperatorElectronicAddress", inEnglish(CONTACT_MAILTO, "uriValue"));
 		info.add("SchemeOperatorAddress", address);
 		info.add("SchemeName", inEnglish(list.schemeName + (empty ? " (empty)" : ""), "value"));
-		info.add("SchemeInformationURI", inEnglish(TestKeysAndCerts.getHttpsBaseUrl() + "/trust-anchors", "uriValue"));
+		info.add("SchemeInformationURI", inEnglish(TestKeysAndCerts.getTrustAnchorsUrl(), "uriValue"));
 		info.addProperty("StatusDeterminationApproach", list.statusDeterminationApproach);
 		info.add("SchemeTypeCommunityRules", inEnglish(list.schemeTypeCommunityRules, "uriValue"));
 		info.addProperty("SchemeTerritory", SCHEME_TERRITORY);
@@ -96,7 +98,7 @@ public final class LoteBuilder {
 		JsonObject policy = new JsonObject();
 		JsonObject policyUri = new JsonObject();
 		policyUri.addProperty("lang", "en");
-		policyUri.addProperty("uriValue", "https://openid.net/certification/");
+		policyUri.addProperty("uriValue", TestKeysAndCerts.CONTACT_URL);
 		policy.add("LoTEPolicy", policyUri);
 		policies.add(policy);
 		info.add("PolicyOrLegalNotice", policies);
@@ -122,9 +124,9 @@ public final class LoteBuilder {
 		information.add("TEName", inEnglish(TRUSTED_ENTITY_NAME, "value"));
 		information.add("TETradeName", inEnglish(TestKeysAndCerts.ORGANIZATION_IDENTIFIER, "value"));
 		JsonObject address = new JsonObject();
-		address.add("TEElectronicAddress", inEnglish("mailto:certification@oidf.org", "uriValue"));
+		address.add("TEElectronicAddress", inEnglish(CONTACT_MAILTO, "uriValue"));
 		information.add("TEAddress", address);
-		information.add("TEInformationURI", inEnglish(TestKeysAndCerts.getHttpsBaseUrl() + "/trust-anchors", "uriValue"));
+		information.add("TEInformationURI", inEnglish(TestKeysAndCerts.getTrustAnchorsUrl(), "uriValue"));
 
 		JsonArray services = new JsonArray();
 		for (LoteList.Service service : list.services) {
