@@ -45,5 +45,16 @@
   "condition": "WarnMethodRejectedWithNotFound",
   "expected-result": "warning",
   "comment": "Cerbos PDP behaviour: it answers GET and PUT on the AuthZEN endpoints with 404, the fallback the AuthZEN working group accepts when a framework routes on method and path; 405 with Allow: POST is preferred"
+ },
+ {
+  "test-name": "authzen-pdp-*-credentials-returns-401",
+  "variant": {
+   "pdp_auth_type": "mtls"
+  },
+  "configuration-filename": "*",
+  "current-block": "*",
+  "condition": "EnsureAuthzenApiResponseHasWwwAuthenticate",
+  "expected-result": "warning",
+  "comment": "The CI proxy refuses a missing or untrusted client certificate with a 401 that carries no WWW-Authenticate: no HTTP authentication scheme exists for TLS client certificates, so it has no challenge to name"
  }
 ]
