@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import net.openid.conformance.SwaggerConfig;
+import net.openid.conformance.util.LoteList;
 import net.openid.conformance.util.TestKeysAndCerts;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.security.cert.CertificateEncodingException;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,25 +41,21 @@ public class TrustAnchorEndpoint {
 	/** The media type of a single DER certificate, RFC 2585 section 4.1. */
 	public static final String CERTIFICATE_CONTENT_TYPE = "application/pkix-cert";
 
-	/** What each CA's leaves sign, and the ETSI TS 119 602 list of trusted entities it belongs in. */
-	private record Role(String role, List<String> lists) {
-	}
-
-	private static final Map<TestKeysAndCerts.SuiteCa, Role> ROLES = Map.of(
-		TestKeysAndCerts.SuiteCa.MDOC_IACA_ROOT, new Role(
+	/** What each CA's leaves sign; the lists of trusted entities a CA is in are those of {@link LoteList} naming it. */
+	private static final Map<TestKeysAndCerts.SuiteCa, String> ROLES = Map.of(
+		TestKeysAndCerts.SuiteCa.MDOC_IACA_ROOT,
 			"Issues the document signer certificates in the mdoc credentials the suite creates (ISO/IEC 18013-5 IACA)"
 				+ " and the MSO revocation list signer",
-			List.of("PID providers", "mDL providers")),
-		TestKeysAndCerts.SuiteCa.PID_PROVIDER, new Role(
+		TestKeysAndCerts.SuiteCa.PID_PROVIDER,
 			"Issues the certificate the suite signs SD-JWT VC credentials with",
-			List.of("PID providers")),
-		TestKeysAndCerts.SuiteCa.WALLET_PROVIDER, new Role(
+		TestKeysAndCerts.SuiteCa.WALLET_PROVIDER,
 			"Issues the certificate the suite signs wallet attestations and key attestations with",
-			List.of("Wallet providers")),
-		TestKeysAndCerts.SuiteCa.ACCESS, new Role(
+		TestKeysAndCerts.SuiteCa.ACCESS,
 			"Issues the suite's wallet-relying-party access certificate, which signs OpenID4VP authorization"
 				+ " requests and issuer metadata and authenticates the suite as an mdoc reader",
-			List.of("WRPAC providers"))
+		TestKeysAndCerts.SuiteCa.WRPRC_PROVIDER,
+			"Issues the certificate the suite signs its wallet-relying-party registration certificate and that"
+				+ " certificate's status list with"
 	);
 
 	/** The name the sealing certificate of the suite's lists of trusted entities is served under. */
@@ -80,8 +76,8 @@ public class TrustAnchorEndpoint {
 	@Operation(operationId = "trustAnchors",
 		summary = "Lists the suite's CA certificates",
 		description = "Lists the CA certificates that issue the certificates the suite signs with, with the URL"
-			+ " each is served at, the URL of its CRL, what its leaf certificates sign and the ETSI TS 119 602"
-			+ " list of trusted entities it belongs in.")
+			+ " each is served at, the URL of its CRL, what its leaf certificates sign and the names of the ETSI TS 119 602"
+			+ " lists of trusted entities under /lote it is in.")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "The CA certificates",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "object")))
@@ -91,7 +87,6 @@ public class TrustAnchorEndpoint {
 	public ResponseEntity<String> listTrustAnchors() {
 		JsonArray anchors = new JsonArray();
 		for (TestKeysAndCerts.SuiteCa ca : TestKeysAndCerts.SuiteCa.values()) {
-			Role role = ROLES.get(ca);
 			JsonObject anchor = new JsonObject();
 			anchor.addProperty("name", ca.getSlug());
 			anchor.addProperty("subject", ca.getCert().getSubject().getName());
@@ -99,9 +94,13 @@ public class TrustAnchorEndpoint {
 			anchor.addProperty("crl_url", ca.getCrlUrl());
 			// an ephemeral CA stands in when the deployment lacks the published CA's key
 			anchor.addProperty("ephemeral", ca.getIdentity().getEphemeral());
-			anchor.addProperty("role", role.role());
+			anchor.addProperty("role", ROLES.get(ca));
 			JsonArray lists = new JsonArray();
-			role.lists().forEach(lists::add);
+			for (LoteList list : LoteList.values()) {
+				if (list.services.stream().anyMatch(service -> service.ca() == ca)) {
+					lists.add(list.slug);
+				}
+			}
 			anchor.add("lists", lists);
 			anchors.add(anchor);
 		}

@@ -150,6 +150,6 @@ public class LoteBuilder_UnitTest {
 		assertThat(pidCas).contains(TestKeysAndCerts.SuiteCa.MDOC_IACA_ROOT, TestKeysAndCerts.SuiteCa.PID_PROVIDER);
 		assertThat(LoteList.WALLET_PROVIDERS.services).extracting(LoteList.Service::ca).containsOnly(TestKeysAndCerts.SuiteCa.WALLET_PROVIDER);
 		assertThat(LoteList.WRPAC_PROVIDERS.services).extracting(LoteList.Service::ca).containsOnly(TestKeysAndCerts.SuiteCa.ACCESS);
-		assertThat(LoteList.WRPRC_PROVIDERS.services).isEmpty();
+		assertThat(LoteList.WRPRC_PROVIDERS.services).extracting(LoteList.Service::ca).containsOnly(TestKeysAndCerts.SuiteCa.WRPRC_PROVIDER);
 	}
 }

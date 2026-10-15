@@ -47,6 +47,7 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInVpA
 import net.openid.conformance.condition.client.CheckIatInBindingJwt;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.AddBuiltInAccessCertificateToClientConfiguration;
+import net.openid.conformance.condition.client.AddBuiltInRegistrationCertificateToClientConfiguration;
 import net.openid.conformance.condition.client.CheckIfClientIdInX509CertSanDns;
 import net.openid.conformance.condition.client.lote.LoteSlot;
 import net.openid.conformance.condition.client.lote.ValidateOwnRequestSigningCertificateAgainstWrpacLote;
@@ -420,6 +421,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	protected void configureClient() {
 		if (clientIdPrefix.usesX5cCertificate()) {
 			callAndStopOnFailure(AddBuiltInAccessCertificateToClientConfiguration.class);
+			callAndStopOnFailure(AddBuiltInRegistrationCertificateToClientConfiguration.class);
 		}
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 

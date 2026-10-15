@@ -10,8 +10,7 @@ import java.util.List;
  * per EU profile of ETSI TS 119 602 (Annexes D to G), each listing the suite CA whose leaves sign
  * what the list is about under the service types the profile defines. Each CA appears under both an
  * issuance and a revocation service, as the eIDAS Dashboard asks of every notified provider; the
- * same certificate serves both, which the Dashboard allows for services of different types. The WRPRC list is empty:
- * the suite issues no registration certificates. An mDL providers list is added once the
+ * same certificate serves both, which the Dashboard allows for services of different types. An mDL providers list is added once the
  * organisers of an event publish the list and service type URIs for it, which the specification
  * does not define.
  */
@@ -47,7 +46,11 @@ public enum LoteList {
 
 	WRPRC_PROVIDERS("wrprc-providers", "http://uri.etsi.org/19602/LoTEType/EUWRPRCProvidersList",
 		"http://uri.etsi.org/19602/WRPRCProvidersList/StatusDetn/EU", "http://uri.etsi.org/19602/WRPRCProvidersList/schemerules/EU",
-		"EU WRPRC Providers List", List.of());
+		"EU WRPRC Providers List", List.of(
+			new Service("http://uri.etsi.org/19602/SvcType/WRPRC/Issuance", "OpenID Foundation conformance suite registration certificates",
+				TestKeysAndCerts.SuiteCa.WRPRC_PROVIDER),
+			new Service("http://uri.etsi.org/19602/SvcType/WRPRC/Revocation", "OpenID Foundation conformance suite registration certificate status",
+				TestKeysAndCerts.SuiteCa.WRPRC_PROVIDER)));
 
 	/** One trusted entity service: a service type and the CA whose certificate is its digital identity. */
 	@Immutable

@@ -14,6 +14,7 @@ import net.openid.conformance.sharing.privatelink.PrivateLinkOneTimeToken;
 import net.openid.conformance.sharing.privatelink.PrivateLinkOneTimeTokenAuthenticationProvider;
 import net.openid.conformance.sharing.privatelink.PrivateLinkUserDetailsService;
 import net.openid.conformance.util.MdocIacaCrl;
+import net.openid.conformance.util.SuiteWrprc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -176,6 +177,7 @@ class WebSecurityOidcLoginConfig {
 					"/trust-anchors", "/trust-anchors/*.pem", "/trust-anchors/*.crt", // the suite's CA certificates, pinned by implementations under test
 					"/crl/*.crl", // the CRLs of the suite's CAs, named by the leaf certificates it signs with
 					"/lote/*.jwt", "/lote/empty/*.jwt", // the suite's lists of trusted entities, fetched by implementations under test
+					SuiteWrprc.STATUS_LIST_PATH, // the status list the suite's registration certificate points to
 					"/logout.html", //
 					"/robots.txt",  //
 					"/.well-known/**", //

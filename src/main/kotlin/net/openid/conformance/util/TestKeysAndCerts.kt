@@ -68,7 +68,7 @@ import org.slf4j.LoggerFactory
  * tests, the verifier in OpenID4VP wallet tests — and the trust anchors an implementation under
  * test pins (or finds in a trusted list) to accept what the suite signs.
  *
- * Four fixed self-signed CAs ([SuiteCa]), whose certificates are checked in, issue short-lived leaf
+ * Five fixed self-signed CAs ([SuiteCa]), whose certificates are checked in, issue short-lived leaf
  * certificates that are minted at runtime and re-minted daily; the private keys of all but the mdoc
  * IACA come from the deployment's environment (see [resolveIdentity]):
  *
@@ -79,7 +79,9 @@ import org.slf4j.LoggerFactory
  *   and key attestations;
  * - the access CA issues the suite's wallet-relying-party access certificate (WRPAC), which signs
  *   OpenID4VP authorization requests, authenticates the suite as an mdoc reader, and signs the
- *   suite's issuer metadata.
+ *   suite's issuer metadata;
+ * - the WRPRC provider CA issues the certificate that signs the suite's wallet-relying-party
+ *   registration certificate (WRPRC) and its status list.
  *
  * The leaves follow the ETSI profiles the EUDI Wallet ecosystem validates against — ETSI TS 119 412-6
  * for PID and wallet provider sign/seal certificates (EN 319 412-3 subject with organizationName and
@@ -102,8 +104,8 @@ object TestKeysAndCerts {
 
 	const val ORGANIZATION_NAME: String = "OpenID Foundation"
 
-	private const val CONTACT_EMAIL = "certification@oidf.org"
-	private const val CONTACT_URL = "https://openid.net/certification/"
+	const val CONTACT_EMAIL: String = "certification@oidf.org"
+	const val CONTACT_URL: String = "https://openid.net/certification/"
 
 	// Self-signed IACA root, ECDSA P-256, minted 2026-08-22, expires 2035-08-20 (9 years —
 	// the ceiling ISO/IEC 18013-5 Table B.1's note gives for an mDL-only IACA). Before
@@ -145,7 +147,7 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 	// keys are not in the source: a deployment supplies them in environment variables (see
 	// [keyEnvironmentVariable]), and without them the suite signs with ephemeral stand-ins.
 
-	const val PID_PROVIDER_CA_CERT_PEM: String = """-----BEGIN CERTIFICATE-----
+	private const val PID_PROVIDER_CA_CERT_PEM = """-----BEGIN CERTIFICATE-----
 MIICOzCCAeGgAwIBAgIUE7pKERnd41sH3oDB0FL81qfMLnkwCgYIKoZIzj0EAwIw
 ejELMAkGA1UEBhMCVVMxGjAYBgNVBAoMEU9wZW5JRCBGb3VuZGF0aW9uMSMwIQYD
 VQRhDBpMRUlYRy05ODQ1MDA0NTFBQzQzNzNENDk5ODEqMCgGA1UEAwwhT3BlbklE
@@ -161,7 +163,7 @@ HFIGgiLsY0yRbfWr6AIgOyrG1/oPOToh3X6jPOec8OSCyw/1/e0nLvNF74bqs6I=
 -----END CERTIFICATE-----"""
 
 
-	const val WALLET_PROVIDER_CA_CERT_PEM: String = """-----BEGIN CERTIFICATE-----
+	private const val WALLET_PROVIDER_CA_CERT_PEM = """-----BEGIN CERTIFICATE-----
 MIICQjCCAeegAwIBAgIUeJ+Ss/lWt4cJiE2HmEorwBMsWOQwCgYIKoZIzj0EAwIw
 fTELMAkGA1UEBhMCVVMxGjAYBgNVBAoMEU9wZW5JRCBGb3VuZGF0aW9uMSMwIQYD
 VQRhDBpMRUlYRy05ODQ1MDA0NTFBQzQzNzNENDk5ODEtMCsGA1UEAwwkT3BlbklE
@@ -178,7 +180,7 @@ WRmIVLdJ
 -----END CERTIFICATE-----"""
 
 
-	const val ACCESS_CA_CERT_PEM: String = """-----BEGIN CERTIFICATE-----
+	private const val ACCESS_CA_CERT_PEM = """-----BEGIN CERTIFICATE-----
 MIICLzCCAdWgAwIBAgIUVQAiO4m7I4d0fYcoE/LFgtpGiBswCgYIKoZIzj0EAwIw
 dDELMAkGA1UEBhMCVVMxGjAYBgNVBAoMEU9wZW5JRCBGb3VuZGF0aW9uMSMwIQYD
 VQRhDBpMRUlYRy05ODQ1MDA0NTFBQzQzNzNENDk5ODEkMCIGA1UEAwwbT3BlbklE
@@ -191,6 +193,26 @@ AQcDQgAEkvPyf/1izGo31stSePpcCeRELkMt87aClKxgoz5d+9YsumZEJBq5EgII
 N8/3Q+tRNkLEMBIGA1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMAoG
 CCqGSM49BAMCA0gAMEUCIQC1gqdzO6gtEENTR96u92tQCXH2wVI0tqasPT9+JCQb
 JAIgWnI3xptHc6CENKJTTvGa23uRogXwpt5z7YZaXwwpO+4=
+-----END CERTIFICATE-----"""
+
+
+	// The WRPRC provider CA, minted 2026-10-15 and expiring 2035-10-13, with the same profile as the
+	// three CAs above. It issues the leaf that signs the suite's wallet-relying-party registration
+	// certificate and its status list (see SuiteWrprc). Its key comes from the environment as well.
+	private const val WRPRC_PROVIDER_CA_CERT_PEM = """-----BEGIN CERTIFICATE-----
+MIICQDCCAeWgAwIBAgIUa0ckOF41QHypgW40GcfKmnyJ4aEwCgYIKoZIzj0EAwIw
+fDELMAkGA1UEBhMCVVMxGjAYBgNVBAoMEU9wZW5JRCBGb3VuZGF0aW9uMSMwIQYD
+VQRhDBpMRUlYRy05ODQ1MDA0NTFBQzQzNzNENDk5ODEsMCoGA1UEAwwjT3BlbklE
+IEZvdW5kYXRpb24gV1JQUkMgUHJvdmlkZXIgQ0EwHhcNMjYxMDE1MDAwMDAwWhcN
+MzUxMDEzMDAwMDAwWjB8MQswCQYDVQQGEwJVUzEaMBgGA1UECgwRT3BlbklEIEZv
+dW5kYXRpb24xIzAhBgNVBGEMGkxFSVhHLTk4NDUwMDQ1MUFDNDM3M0Q0OTk4MSww
+KgYDVQQDDCNPcGVuSUQgRm91bmRhdGlvbiBXUlBSQyBQcm92aWRlciBDQTBZMBMG
+ByqGSM49AgEGCCqGSM49AwEHA0IABEUWftLE2WHBGjRZjd8SS14wMHS7fU+RfJJf
+T0AjZoaw7SHz0qGMxP1bCBJGejjN+acYockMQ1rXCYPdExZo+U6jRTBDMB0GA1Ud
+DgQWBBRpyAL16fiH+7EZfVImogYDOKfykjASBgNVHRMBAf8ECDAGAQH/AgEAMA4G
+A1UdDwEB/wQEAwIBBjAKBggqhkjOPQQDAgNJADBGAiEAvQKzCpJ823FkbKHbDTdL
+Em2cp0p5hMBNtbz2ijuiCwMCIQCHDuMwYC76LA/cKXoy0YyCfMQCc9sHqHK5fFJ8
+s1qUQw==
 -----END CERTIFICATE-----"""
 
 
@@ -247,7 +269,8 @@ MEUCIQDSqd1rf++s6eTJ+XL2BUviwUH66yNixTSpu3E+81sW0gIgQenBimeuREfz
 		MDOC_IACA_ROOT("mdoc-iaca-root", IACA_ROOT_CERT_PEM, IACA_ROOT_KEY_PEM),
 		PID_PROVIDER("pid-provider-ca", PID_PROVIDER_CA_CERT_PEM, null),
 		WALLET_PROVIDER("wallet-provider-ca", WALLET_PROVIDER_CA_CERT_PEM, null),
-		ACCESS("access-ca", ACCESS_CA_CERT_PEM, null);
+		ACCESS("access-ca", ACCESS_CA_CERT_PEM, null),
+		WRPRC_PROVIDER("wrprc-provider-ca", WRPRC_PROVIDER_CA_CERT_PEM, null);
 
 		/** The certificate and key in use: the published certificate, or an ephemeral stand-in. */
 		val identity: SigningIdentity
@@ -272,14 +295,14 @@ MEUCIQDSqd1rf++s6eTJ+XL2BUviwUH66yNixTSpu3E+81sW0gIgQenBimeuREfz
 
 		/** The URL the suite serves this certificate at, PEM encoded, under the configured base URL. */
 		val trustAnchorUrl: String
-			get() = "$httpsBaseUrl/trust-anchors/$slug.pem"
+			get() = "$trustAnchorsUrl/$slug.pem"
 
 		/**
 		 * The URL the suite serves this certificate at DER encoded, which the leaves' authority
 		 * information access names: RFC 5280 section 4.2.2.1 wants a single DER certificate there.
 		 */
 		val caIssuersUrl: String
-			get() = "$httpsBaseUrl/trust-anchors/$slug.crt"
+			get() = "$trustAnchorsUrl/$slug.crt"
 
 		/**
 		 * The URL the suite serves this CA's CRL at. Plain http, as CRL distribution points are by
@@ -443,14 +466,15 @@ MEUCIQDSqd1rf++s6eTJ+XL2BUviwUH66yNixTSpu3E+81sW0gIgQenBimeuREfz
 	val loteSignerCertPem: String
 		get() = loteSigner.certPem
 
-	/** The sealing key of the suite's lists of trusted entities, with [loteSignerCert] as its x5c. */
+	/** The sealing key of the suite's lists of trusted entities, with [loteSignerCert] as its x5c; the identity is fixed, so built once. */
 	@JvmStatic
-	val loteSignerJwk: ECKey
-		get() = ECKey.Builder(Curve.P_256, loteSignerCert.publicKey as java.security.interfaces.ECPublicKey)
+	val loteSignerJwk: ECKey by lazy {
+		ECKey.Builder(Curve.P_256, loteSignerCert.publicKey as java.security.interfaces.ECPublicKey)
 			.privateKey(loteSigner.privateKey)
 			.algorithm(JWSAlgorithm.ES256)
 			.x509CertChain(listOf(com.nimbusds.jose.util.Base64.encode(loteSignerCert.encoded)))
 			.build()
+	}
 
 	/**
 	 * The IACA's signing key: it issues the leaf certificates minted here and signs the CRL the
@@ -519,6 +543,15 @@ MEUCIQDSqd1rf++s6eTJ+XL2BUviwUH66yNixTSpu3E+81sW0gIgQenBimeuREfz
 		get() = rotatingWrpac.get()
 
 	/**
+	 * The certificate (and key) the suite signs its wallet-relying-party registration certificate and
+	 * that certificate's status list with, issued by [SuiteCa.WRPRC_PROVIDER]. ETSI TS 119 475 defines
+	 * no profile for it beyond being the provider's signing certificate, so it is a plain leaf.
+	 */
+	@JvmStatic
+	val wrprcSigner: MintedLeaf
+		get() = rotatingWrprcSigner.get()
+
+	/**
 	 * A leaf key that is re-minted daily (and so never served anywhere near its certificate's
 	 * expiry): frequent rotation keeps regeneration a routine event, so nothing can quietly start
 	 * depending on one specific leaf certificate — the CAs are the only stable things to pin.
@@ -553,10 +586,11 @@ MEUCIQDSqd1rf++s6eTJ+XL2BUviwUH66yNixTSpu3E+81sW0gIgQenBimeuREfz
 	private val rotatingSdJwtPidSigner = DailyRotatedKey { mintSdJwtPidSigner() }
 	private val rotatingWalletAttestationSigner = DailyRotatedKey { mintWalletAttestationSigner() }
 	private val rotatingWrpac = DailyRotatedKey { mintWrpac() }
+	private val rotatingWrprcSigner = DailyRotatedKey { mintWrprcSigner() }
 
 	private val rotatingLeaves = listOf(
 		rotatingDocumentSigner, rotatingStatusListSigner, rotatingSdJwtPidSigner,
-		rotatingWalletAttestationSigner, rotatingWrpac
+		rotatingWalletAttestationSigner, rotatingWrpac, rotatingWrprcSigner
 	)
 
 	/**
@@ -576,6 +610,11 @@ MEUCIQDSqd1rf++s6eTJ+XL2BUviwUH66yNixTSpu3E+81sW0gIgQenBimeuREfz
 	@JvmStatic
 	var plainHttpBaseUrl: String = "http://localhost:8080"
 		private set
+
+	/** The URL of the index of the suite's CA certificates, under [httpsBaseUrl]; each CA's [SuiteCa.trustAnchorUrl] is below it. */
+	@JvmStatic
+	val trustAnchorsUrl: String
+		get() = "$httpsBaseUrl/trust-anchors"
 
 	/** The host the WRPAC's subject alternative name carries: that of [httpsBaseUrl]. */
 	@JvmStatic
@@ -772,6 +811,10 @@ MEUCIQDSqd1rf++s6eTJ+XL2BUviwUH66yNixTSpu3E+81sW0gIgQenBimeuREfz
 			addQcTypeStatement(builder, QCT_PID_OID)
 			addCertificatePolicy(builder, NCP_POLICY_OID)
 		}
+
+	/** Registration certificate signer, under [SuiteCa.WRPRC_PROVIDER]. */
+	private fun mintWrprcSigner(): MintedLeaf =
+		mintLeaf(SuiteCa.WRPRC_PROVIDER, legalPersonSubject("certification.openid.net WRPRC provider")) { }
 
 	/** Wallet and key attestation signer: a wallet provider sign/seal certificate, ETSI TS 119 412-6 clause 5. */
 	private fun mintWalletAttestationSigner(): MintedLeaf =

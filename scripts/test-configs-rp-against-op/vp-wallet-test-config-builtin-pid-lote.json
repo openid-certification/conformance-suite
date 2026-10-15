@@ -5,12 +5,6 @@
         "authorization_endpoint": "{BASEURL}test/a/oidf-vp-test-wallet/authorize"
     },
     "client": {
-        "verifier_info": [
-            {
-                "format": "registration_certificate_jwt",
-                "data": "eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJ0ZXN0LXJlZ2lzdHJhdGlvbiJ9.synthetic-not-validated-by-mock-wallet"
-            }
-        ],
         "wrpac_lote_url": "{BASEURL}lote/wrpac-providers.jwt"
     },
     "browser": [
