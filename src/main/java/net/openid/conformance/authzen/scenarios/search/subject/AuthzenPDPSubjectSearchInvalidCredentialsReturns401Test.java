@@ -30,11 +30,6 @@ public class AuthzenPDPSubjectSearchInvalidCredentialsReturns401Test extends Abs
 	}
 
 	@Override
-	protected String getExpectedSearchResponseJson() {
-		return "{ \"results\": [] }";
-	}
-
-	@Override
 	protected boolean corruptAuthCredentials() {
 		return true;
 	}
