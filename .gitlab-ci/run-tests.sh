@@ -883,7 +883,7 @@ makeAuthzenTests() {
     # Discovery certification level: the metadata checks on their own, with the same signed_metadata
     TESTS="${TESTS} authzen-pdp-discovery-test-plan ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
     # Authentication variants, against the authenticating proxy (authzen-auth-proxy) in front of
-    # the same PDP; these also run the 401 modules for api_key and client_secret_basic
+    # the same PDP; these also run the 401 modules
     TESTS="${TESTS} authzen-pdp-evaluation-test-plan[pdp_auth_type=api_key][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-auth-proxy-api-key-config.json"
     # api_key with discovery: the metadata is fetched without credentials, the API calls with them
     TESTS="${TESTS} authzen-pdp-evaluations-test-plan[pdp_auth_type=api_key][pdp_server_metadata=discovery][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-auth-proxy-api-key-config.json"
