@@ -17,17 +17,10 @@ public class AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest
 	@PostEnvironment(required = "authzen_api_endpoint_request_headers")
 	public Environment evaluate(Environment env) {
 
-		String id = env.getString("client", "client_id");
-
-		if (id == null) {
-			throw error("'client_id' field is missing from the 'Client' section in the test configuration");
-		}
-
-		String secret = env.getString("client", "client_secret");
-
-		if (secret == null) {
-			throw error("'client_secret' field is missing from the 'Client' section in the test configuration");
-		}
+		// An empty value would still produce a Basic header, which the PDP would reject for a
+		// request the test meant to authenticate.
+		String id = getRequiredCredential(env, "client_id");
+		String secret = getRequiredCredential(env, "client_secret");
 
 		JsonObject headers = env.getObject("authzen_api_endpoint_request_headers");
 
@@ -48,6 +41,17 @@ public class AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest
 		logSuccess("Added basic authorization header", headers);
 
 		return env;
+	}
+
+	private String getRequiredCredential(Environment env, String field) {
+		String value = env.getString("client", field);
+		if (value == null) {
+			throw error("'" + field + "' field is missing from the 'Client' section in the test configuration");
+		}
+		if (value.isBlank()) {
+			throw error("'" + field + "' field in the 'Client' section of the test configuration is empty");
+		}
+		return value;
 	}
 
 }

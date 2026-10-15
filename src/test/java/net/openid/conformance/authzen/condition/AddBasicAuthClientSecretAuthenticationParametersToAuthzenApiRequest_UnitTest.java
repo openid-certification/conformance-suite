@@ -15,6 +15,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -80,6 +81,46 @@ class AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest_UnitTe
 	@Test
 	public void missingId_fails() {
 		env.putObject("client", json("{ \"client_secret\": \"x\" }"));
+		fails(new AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest());
+	}
+
+	@Test
+	public void nullId_fails() {
+		env.putObject("client", json("{ \"client_id\": null, \"client_secret\": \"x\" }"));
+		fails(new AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest());
+	}
+
+	@Test
+	public void emptyId_failsWithoutAddingAHeader() {
+		env.putObject("client", json("{ \"client_id\": \"\", \"client_secret\": \"x\" }"));
+		ConditionError e = assertThrows(ConditionError.class, () -> run(new AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest()));
+		assertTrue(e.getMessage().contains("'client_id' field in the 'Client' section of the test configuration is empty"), e.getMessage());
+		assertNull(env.getObject("authzen_api_endpoint_request_headers"));
+	}
+
+	@Test
+	public void whitespaceOnlyId_fails() {
+		env.putObject("client", json("{ \"client_id\": \" \\t \", \"client_secret\": \"x\" }"));
+		fails(new AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest());
+	}
+
+	@Test
+	public void nullSecret_fails() {
+		env.putObject("client", json("{ \"client_id\": \"pep-1\", \"client_secret\": null }"));
+		fails(new AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest());
+	}
+
+	@Test
+	public void emptySecret_failsWithoutAddingAHeader() {
+		env.putObject("client", json("{ \"client_id\": \"pep-1\", \"client_secret\": \"\" }"));
+		ConditionError e = assertThrows(ConditionError.class, () -> run(new AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest()));
+		assertTrue(e.getMessage().contains("'client_secret' field in the 'Client' section of the test configuration is empty"), e.getMessage());
+		assertNull(env.getObject("authzen_api_endpoint_request_headers"));
+	}
+
+	@Test
+	public void whitespaceOnlySecret_fails() {
+		env.putObject("client", json("{ \"client_id\": \"pep-1\", \"client_secret\": \"  \" }"));
 		fails(new AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest());
 	}
 }
