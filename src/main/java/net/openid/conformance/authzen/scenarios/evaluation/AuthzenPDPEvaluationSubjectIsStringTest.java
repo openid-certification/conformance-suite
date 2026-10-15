@@ -33,4 +33,10 @@ public class AuthzenPDPEvaluationSubjectIsStringTest extends AbstractAuthzenPDPE
 	protected boolean sendRawRequest() {
 		return true;
 	}
+
+	@Override
+	protected String[] additionalStatusRequirements() {
+		// Section 5.1: "A Subject is an object".
+		return new String[] {"AUTHZEN-5.1"};
+	}
 }

@@ -27,7 +27,7 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	@Override
 	protected void validateAuthApiEndpointResponse() {
 		callAndContinueOnFailure(new ExtractAuthzenSearchExpectedResponse(getExpectedSearchResponseJson()), ConditionResult.FAILURE);
-		callAndContinueOnFailure(EnsureAuthzenSearchResponseValsMatchExpectedVals.class, ConditionResult.FAILURE, "AUTHZEN-8.3");
+		callAndContinueOnFailure(EnsureAuthzenSearchResponseValsMatchExpectedVals.class, ConditionResult.FAILURE);
 	}
 
 	/**
@@ -193,7 +193,9 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 
 	private void matchAggregatedSearchResults() {
 		env.mapKey("authzen_search_endpoint_response", "authzen_search_endpoint_aggregated_results");
-		callAndContinueOnFailure(EnsureAuthzenSearchResponseValsMatchExpectedVals.class, ConditionResult.FAILURE, "AUTHZEN-8.3");
+		// The expected entities come from the certification fixture (scenario 4.5), not from the
+		// Authorization API specification, and the scenario has no requirement link prefix.
+		callAndContinueOnFailure(EnsureAuthzenSearchResponseValsMatchExpectedVals.class, ConditionResult.FAILURE);
 		env.unmapKey("authzen_search_endpoint_response");
 	}
 }

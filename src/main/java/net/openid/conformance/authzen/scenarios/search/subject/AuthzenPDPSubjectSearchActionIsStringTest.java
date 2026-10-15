@@ -38,4 +38,10 @@ public class AuthzenPDPSubjectSearchActionIsStringTest extends AbstractAuthzenPD
 	protected boolean sendRawRequest() {
 		return true;
 	}
+
+	@Override
+	protected String[] additionalStatusRequirements() {
+		// Section 5.3: "Action is an object".
+		return new String[] {"AUTHZEN-5.3"};
+	}
 }

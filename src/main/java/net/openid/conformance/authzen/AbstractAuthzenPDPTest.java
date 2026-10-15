@@ -3,6 +3,7 @@ package net.openid.conformance.authzen;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import java.util.Arrays;
 import java.util.Set;
 import net.openid.conformance.authzen.condition.AddApiKeyAuthenticationParametersToAuthzenApiRequest;
 import net.openid.conformance.authzen.condition.AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest;
@@ -27,6 +28,7 @@ import net.openid.conformance.authzen.condition.ValidatePDPIdentifier;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.RemoveMTLSCertificates;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
@@ -414,7 +416,11 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 	protected void performApiRequestCall() {
 		Set<Integer> acceptable = getAcceptableHttpStatusCodes();
 		if (acceptable.size() == 1 && acceptable.iterator().next().intValue() == 200) {
-			call(sequence(CallAuthzenApiEndpointAndVerifySuccessfulResponse.class));
+			call(new CallAuthzenApiEndpointAndVerifySuccessfulResponse()
+				.replace(EnsureHttpStatusCodeIs200.class, condition(EnsureHttpStatusCodeIs200.class)
+					.requirements(expectedStatusRequirements(acceptable))
+					.onFail(ConditionResult.FAILURE)
+					.dontStopOnFailure()));
 		} else {
 			JsonObject wrapper = new JsonObject();
 			JsonArray codes = new JsonArray();
@@ -478,21 +484,52 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 	}
 
 	/**
-	 * The section requiring the status a module expects: the HTTPS POST binding for a request with
-	 * another method, Section 11.3 for 401, Section 10.1.1 for the 400 a malformed request gets,
-	 * otherwise the HTTPS binding.
+	 * The sections requiring the status a module expects: Section 10.1, the HTTPS POST binding, for
+	 * a request with another method or the wrong media type, Section 11.3 for 401, Sections 10.1.1
+	 * and 10.1.2 for the 400 a malformed request gets, otherwise Section 10.1; preceded by
+	 * {@link #additionalStatusRequirements()}.
 	 */
 	protected String[] expectedStatusRequirements(Set<Integer> acceptable) {
+		String[] byStatus = statusRequirements(acceptable);
+		String[] additional = additionalStatusRequirements();
+		String[] requirements = Arrays.copyOf(additional, additional.length + byStatus.length);
+		System.arraycopy(byStatus, 0, requirements, additional.length, byStatus.length);
+		return requirements;
+	}
+
+	/**
+	 * Sections of the specification that the module's request tests, beyond the one that says
+	 * which status answers it; they are listed first on the status check, whichever statuses the
+	 * module accepts.
+	 */
+	protected String[] additionalStatusRequirements() {
+		return new String[0];
+	}
+
+	private String[] statusRequirements(Set<Integer> acceptable) {
 		if (!"POST".equals(getRequestHttpMethod())) {
+			return new String[] {"AUTHZEN-10.1"};
+		}
+		if (getRequestContentTypeOverride() != null && !acceptable.contains(200)) {
+			// The request's media type is wrong: the Content-Type requirement is in Section 10.1.
 			return new String[] {"AUTHZEN-10.1"};
 		}
 		if (acceptable.contains(401)) {
 			return new String[] {"AUTHZEN-11.3"};
 		}
 		if (acceptable.contains(400)) {
-			return new String[] {"AUTHZEN-10.1.1", "AUTHZEN-10.1.2"};
+			return badRequestRequirements();
 		}
 		return new String[] {"AUTHZEN-10.1"};
+	}
+
+	/**
+	 * The sections for the 400 a malformed request gets: Section 10.1.1, whose JSON serialization
+	 * rules such a request breaks (a top-level object, the JSON type of each member, no omitted
+	 * required attribute), and Section 10.1.2, which defines the 400 response.
+	 */
+	protected String[] badRequestRequirements() {
+		return new String[] {"AUTHZEN-10.1.1", "AUTHZEN-10.1.2"};
 	}
 
 	/**

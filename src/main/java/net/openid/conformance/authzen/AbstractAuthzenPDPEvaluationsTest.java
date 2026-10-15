@@ -84,7 +84,7 @@ public abstract class AbstractAuthzenPDPEvaluationsTest extends AbstractAuthzenP
 	protected void validateAuthApiEndpointResponse() {
 		callAndContinueOnFailure(new ExtractAuthzenEvaluationsExpectedResponse(getExpectedEvaluationsResponseJson()), ConditionResult.FAILURE);
 		if (isShortCircuitSemantic()) {
-			callAndContinueOnFailure(EnsureAuthzenEvaluationsResponseValsMatchExpectedValsAsPrefix.class, ConditionResult.FAILURE, "AUTHZEN-7.2");
+			callAndContinueOnFailure(EnsureAuthzenEvaluationsResponseValsMatchExpectedValsAsPrefix.class, ConditionResult.FAILURE, "AUTHZEN-7.1.2.1", "AUTHZEN-7.2");
 		} else {
 			callAndContinueOnFailure(EnsureAuthzenEvaluationsResponseValsMatchExpectedVals.class, ConditionResult.FAILURE, "AUTHZEN-7.2");
 		}
