@@ -64,6 +64,14 @@ class EnsurePolicyDecisionPointMatchesIssuer_UnitTest {
 	}
 
 	@Test
+	public void nonStringValue_fails() {
+		put("https://pdp.example.com", null);
+		env.getObject("server").addProperty("policy_decision_point", 42);
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("is not a string"), e.getMessage());
+	}
+
+	@Test
 	public void caseMismatch_fails() {
 		put("https://PDP.example.com", "https://pdp.example.com");
 		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
@@ -93,5 +101,29 @@ class EnsurePolicyDecisionPointMatchesIssuer_UnitTest {
 	public void missingReturnedUrl_fails() {
 		put("https://pdp.example.com/", null);
 		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void mismatch_namesTheDiscoveryDocumentByDefault() {
+		put("https://pdp.example.com", "https://other.example.com");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("in the PDP's discovery document is not identical"), e.getMessage());
+	}
+
+	@Test
+	public void mismatchInSignedMetadata_namesTheSignedMetadata() {
+		cond = new EnsurePolicyDecisionPointMatchesIssuer(EnsurePolicyDecisionPointMatchesIssuer.SIGNED_METADATA);
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		put("https://pdp.example.com", "https://other.example.com");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("in the PDP's signed_metadata is not identical"), e.getMessage());
+		assertTrue(!e.getMessage().contains("discovery document"), e.getMessage());
+	}
+
+	@Test
+	public void missingReturnedUrl_namesTheDocument() {
+		put("https://pdp.example.com/", null);
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("The PDP's discovery document contains no `policy_decision_point`"), e.getMessage());
 	}
 }
