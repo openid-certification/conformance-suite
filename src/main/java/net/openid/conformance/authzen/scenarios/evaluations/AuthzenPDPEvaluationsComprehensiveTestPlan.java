@@ -52,7 +52,7 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsDenyOnFirstDenyTest.class,
 		AuthzenPDPEvaluationsPermitOnFirstPermitTest.class,
 		AuthzenPDPEvaluationsUnknownSemanticValueTest.class,
-		// Per-eval overrides top-level defaults (Section 7.1.1.1)
+		// Per-eval overrides top-level defaults (Section 7.1.1)
 		AuthzenPDPEvaluationsPerEvalOverridesDefaultTest.class,
 		// Missing subject everywhere returns decision-false evaluation (Cert Profile 3.4.1)
 		AuthzenPDPEvaluationsMissingSubjectReturnsDecisionFalseTest.class,
