@@ -32,11 +32,6 @@ public class AuthzenPDPEvaluationsInvalidCredentialsReturns401Test extends Abstr
 	}
 
 	@Override
-	protected String getExpectedEvaluationsResponseJson() {
-		return "{}";
-	}
-
-	@Override
 	protected boolean corruptAuthCredentials() {
 		return true;
 	}

@@ -25,11 +25,6 @@ public class AuthzenPDPSubjectSearchRejectNonJsonContentTypeTest extends Abstrac
 	}
 
 	@Override
-	protected String getExpectedSearchResponseJson() {
-		return "{}";
-	}
-
-	@Override
 	protected boolean sendRawRequest() {
 		return true;
 	}

@@ -19,11 +19,6 @@ public class AuthzenPDPActionSearchRejectEmptyBodyTest extends AbstractAuthzenPD
 	}
 
 	@Override
-	protected String getExpectedSearchResponseJson() {
-		return "{}";
-	}
-
-	@Override
 	protected boolean sendRawRequest() {
 		return true;
 	}

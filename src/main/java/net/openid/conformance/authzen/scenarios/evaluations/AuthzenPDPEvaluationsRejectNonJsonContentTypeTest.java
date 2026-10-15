@@ -27,11 +27,6 @@ public class AuthzenPDPEvaluationsRejectNonJsonContentTypeTest extends AbstractA
 	}
 
 	@Override
-	protected String getExpectedEvaluationsResponseJson() {
-		return "{}";
-	}
-
-	@Override
 	protected boolean sendRawRequest() {
 		return true;
 	}

@@ -32,11 +32,6 @@ public class AuthzenPDPEvaluationsMissingCredentialsReturns401Test extends Abstr
 	}
 
 	@Override
-	protected String getExpectedEvaluationsResponseJson() {
-		return "{}";
-	}
-
-	@Override
 	protected boolean skipAuthentication() {
 		return true;
 	}
