@@ -31,7 +31,9 @@ public abstract class AbstractAuthzenPDPEvaluationsBackwardCompatTest extends Ab
 	@Override
 	protected void validateAuthApiEndpointResponse() {
 		callAndContinueOnFailure(new ExtractAuthzenDecisionExpectedResponse(getExpectedDecisionResponseJson()), ConditionResult.FAILURE);
-		callAndContinueOnFailure(EnsureAuthzenDecisionResponseValMatchesExpected.class, ConditionResult.FAILURE, "AUTHZEN-6.2");
+		// The expected decision comes from the certification fixture (scenario 4.4), not from the
+		// Authorization API specification, and the scenario has no requirement link prefix.
+		callAndContinueOnFailure(EnsureAuthzenDecisionResponseValMatchesExpected.class, ConditionResult.FAILURE);
 	}
 
 	/**
