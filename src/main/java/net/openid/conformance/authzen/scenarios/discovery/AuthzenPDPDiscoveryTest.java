@@ -31,9 +31,7 @@ public class AuthzenPDPDiscoveryTest extends AbstractAuthzenPDPMetadataTest {
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
-		eventLog.startBlock("Fetch and validate PDP metadata");
 		fetchAndValidateDiscoveryMetadata();
-		eventLog.endBlock();
 		checkPDPServerConfiguration(true);
 		fireTestFinished();
 	}
