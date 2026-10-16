@@ -13,6 +13,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 class EnsureEvaluationsResponseLengthMatchesRequest_UnitTest {
@@ -60,18 +61,29 @@ class EnsureEvaluationsResponseLengthMatchesRequest_UnitTest {
 	}
 
 	@Test
-	public void requestWithoutEvaluations_isNotChecked() {
+	public void requestWithoutEvaluations_fails() {
 		put("""
 			{ "subject": { "type": "user", "id": "alice" } }""", """
 			{ "decision": true }""");
-		cond.execute(env);
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("has no non-empty `evaluations` array"), e.getMessage());
 	}
 
 	@Test
-	public void requestWithEmptyEvaluations_isNotChecked() {
+	public void requestWithEmptyEvaluations_fails() {
 		put("""
 			{ "evaluations": [] }""", """
-			{ "decision": true }""");
-		cond.execute(env);
+			{ "evaluations": [] }""");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("has no non-empty `evaluations` array"), e.getMessage());
+	}
+
+	@Test
+	public void requestWithNonArrayEvaluations_fails() {
+		put("""
+			{ "evaluations": {} }""", """
+			{ "evaluations": [] }""");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("has no non-empty `evaluations` array"), e.getMessage());
 	}
 }
