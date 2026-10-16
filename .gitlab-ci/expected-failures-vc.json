@@ -38,6 +38,50 @@
         "comment": "The OP alternate happy flow test deliberately sends a mismatched iss claim to ensure it's ignored per spec section 5"
     },
     {
+        "test-name": "oid4vp-1final-verifier-present-revoked-credential",
+        "variant": {
+            "credential_format": "sd_jwt_vc"
+        },
+        "configuration-filename": "*vp-verifier-test-config-with-redirect-haip.json",
+        "current-block": "Authorization endpoint",
+        "condition": "CheckForUnexpectedParametersInVpAuthorizationRequest",
+        "expected-result": "warning",
+        "comment": "The paired wallet alternate happy flow deliberately sends an unknown parameter to ensure it's ignored (the HAIP SD-JWT cells pair with the alternate flow for its redirect_uri)"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-present-revoked-credential",
+        "variant": {
+            "credential_format": "sd_jwt_vc"
+        },
+        "configuration-filename": "*vp-verifier-test-config-with-redirect-haip.json",
+        "current-block": "Authorization endpoint",
+        "condition": "ValidateRequestObjectIssIfPresent",
+        "expected-result": "warning",
+        "comment": "The paired wallet alternate happy flow deliberately sends a mismatched iss claim to ensure it's ignored per spec section 5 (the HAIP SD-JWT cells pair with the alternate flow for its redirect_uri)"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-present-credential-without-status",
+        "variant": {
+            "credential_format": "sd_jwt_vc"
+        },
+        "configuration-filename": "*vp-verifier-test-config-with-redirect-haip.json",
+        "current-block": "Authorization endpoint",
+        "condition": "CheckForUnexpectedParametersInVpAuthorizationRequest",
+        "expected-result": "warning",
+        "comment": "The paired wallet alternate happy flow deliberately sends an unknown parameter to ensure it's ignored (the HAIP SD-JWT cells pair with the alternate flow for its redirect_uri)"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-present-credential-without-status",
+        "variant": {
+            "credential_format": "sd_jwt_vc"
+        },
+        "configuration-filename": "*vp-verifier-test-config-with-redirect-haip.json",
+        "current-block": "Authorization endpoint",
+        "condition": "ValidateRequestObjectIssIfPresent",
+        "expected-result": "warning",
+        "comment": "The paired wallet alternate happy flow deliberately sends a mismatched iss claim to ensure it's ignored per spec section 5 (the HAIP SD-JWT cells pair with the alternate flow for its redirect_uri)"
+    },
+    {
         "test-name": "oid4vp-id3-verifier-happy-flow",
         "variant": "*",
         "configuration-filename": "*vp-verifier-test-config-with-redirect*.json",
@@ -226,7 +270,7 @@
         "current-block": "Authorization endpoint",
         "condition": "CheckNoTransactionDataInVpAuthorizationRequest",
         "expected-result": "failure",
-        "comment": "Paired wallet negative test deliberately sends transaction_data with an unknown type; verifier-side (acting as wallet) correctly rejects per OID4VP \u00a75"
+        "comment": "Paired wallet negative test deliberately sends transaction_data with an unknown type; verifier-side (acting as wallet) correctly rejects per OID4VP section 5"
     },
     {
         "test-name": "oid4vp-1final-verifier-happy-flow",
@@ -256,5 +300,53 @@
         "condition": "ValidateDpopAccessTokenJkt",
         "expected-result": "failure",
         "comment": "The issuer multiple-clients test ends by presenting client 2's access token with client 1's DPoP key on purpose; the emulated issuer must refuse it, which it logs as a failure and answers with 401"
+    },
+    {
+        "test-name": "oid4vp-1final-wallet-*happy-flow",
+        "variant": {
+            "credential_format": "sd_jwt_vc"
+        },
+        "configuration-filename": "*vp-wallet-test-config-dcql-sdjwt-negative-revoked*.json",
+        "current-block": "Verify credential JWT",
+        "condition": "CheckCredentialStatus",
+        "expected-result": "failure",
+        "comment": "Wallet receives a credential marked revoked in its Token Status List from the verifier negative test"
+    },
+    {
+        "test-name": "oid4vp-1final-wallet-happy-flow",
+        "variant": {
+            "credential_format": "iso_mdl"
+        },
+        "configuration-filename": "*vp-wallet-test-config-dcql-mdoc-negative-revoked*.json",
+        "current-block": "Direct post endpoint",
+        "condition": "EnsureMdocNotRevoked",
+        "expected-result": "failure",
+        "comment": "Wallet receives an mdoc marked revoked in its MSO revocation list from the verifier negative test"
+    },
+    {
+        "test-name": "oid4vp-1final-wallet-happy-flow",
+        "variant": {
+            "credential_format": "iso_mdl"
+        },
+        "configuration-filename": "*vp-wallet-test-config-dcql-mdoc-negative-identifier-list*.json",
+        "current-block": "Direct post endpoint",
+        "condition": "EnsureMdocNotRevoked",
+        "expected-result": "failure",
+        "comment": "Wallet receives an mdoc whose MSO identifier appears in its identifier list from the verifier negative test"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-happy-flow",
+        "variant": {
+            "credential_format": "sd_jwt_vc",
+            "client_id_prefix": "x509_san_dns",
+            "request_method": "request_uri_signed",
+            "vp_profile": "plain_vp",
+            "response_mode": "direct_post"
+        },
+        "configuration-filename": "*vp-verifier-test-config-transaction-data.json",
+        "current-block": "",
+        "condition": "EnsureVerifierFetchedRevocationList",
+        "expected-result": "warning",
+        "comment": "The paired wallet-side module deliberately rejects the request over the unknown transaction_data type, so no credential is validated and the status list is never fetched"
     }
 ]

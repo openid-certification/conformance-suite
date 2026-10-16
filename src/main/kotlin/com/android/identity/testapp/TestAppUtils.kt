@@ -1,5 +1,6 @@
 package org.multipaz.testapp
 
+import net.openid.conformance.util.EmulatedCredentialValidity
 import net.openid.conformance.util.TestKeysAndCerts
 import com.nimbusds.jose.jwk.JWK
 import kotlinx.coroutines.runBlocking
@@ -35,6 +36,7 @@ import org.multipaz.mdoc.request.buildDeviceRequest
 import org.multipaz.mdoc.response.DeviceResponse
 import org.multipaz.mdoc.response.buildDeviceResponse
 import org.multipaz.request.MdocRequestedClaim
+import org.multipaz.revocation.RevocationStatus
 import org.multipaz.sdjwt.SdJwt
 import org.multipaz.sdjwt.credential.KeyBoundSdJwtVcCredential
 import org.multipaz.sdjwt.credential.KeylessSdJwtVcCredential
@@ -50,6 +52,7 @@ import org.multipaz.util.Logger
 import org.multipaz.util.truncateToWholeSeconds
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.toKotlinDuration
 
 object TestAppUtils {
     private const val TAG = "TestAppUtils"
@@ -78,15 +81,20 @@ object TestAppUtils {
 	// documentStore and docTypeToDocumentId are process-wide singleton state that
 	// documentStoreInit() replaces wholesale, so provisioning and the lookups that
 	// follow it must run as one critical section across concurrently executing modules.
+	//
+	// revocationStatus, when set, is referenced from the MSO of every provisioned mdoc so the
+	// verifier looks the presented credential up in that revocation list; when null the MSO
+	// carries no status element, as ISO/IEC 18013-5 12.3.6.2 permits.
 	@JvmOverloads
 	@Synchronized
 	fun generateDeviceResponse(
 		sessionTranscript: ByteArray,
 		requestedDocType: String? = null,
-		requestedClaims: Map<String, Set<String>>? = null
+		requestedClaims: Map<String, Set<String>>? = null,
+		revocationStatus: RevocationStatus? = null
 	): ByteArray {
 		return runBlocking {
-			documentStoreInit()
+			documentStoreInit(revocationStatus)
 			generateEncodedDeviceResponse(sessionTranscript, requestedDocType, requestedClaims)
 		}
 	}
@@ -199,7 +207,7 @@ object TestAppUtils {
 
 	var documentStore: DocumentStore? = null
 
-	private suspend fun documentStoreInit() {
+	private suspend fun documentStoreInit(revocationStatus: RevocationStatus?) {
 		docTypeToDocumentId.clear()
 		val storage = EphemeralStorage()
 		val softwareSecureArea = SoftwareSecureArea.create(storage)
@@ -221,7 +229,8 @@ object TestAppUtils {
 			dsKey = dsKey,
 			deviceKeyAlgorithm = Algorithm.ESP256,
 			deviceKeyMacAlgorithm = Algorithm.ECDH_P256,
-			numCredentialsPerDomain = 1
+			numCredentialsPerDomain = 1,
+			revocationStatus = revocationStatus
 		)
 	}
 
@@ -264,6 +273,7 @@ object TestAppUtils {
         deviceKeyAlgorithm: Algorithm,
         deviceKeyMacAlgorithm: Algorithm,
         numCredentialsPerDomain: Int,
+        revocationStatus: RevocationStatus?,
     ) {
         require(deviceKeyAlgorithm.isSigning)
         require(deviceKeyMacAlgorithm == Algorithm.UNSET || deviceKeyMacAlgorithm.isKeyAgreement)
@@ -277,7 +287,8 @@ object TestAppUtils {
             numCredentialsPerDomain,
             DrivingLicense.getDocumentType(),
             "Erika",
-            "Erika's Driving License"
+            "Erika's Driving License",
+            revocationStatus
         )
         provisionDocument(
             documentStore,
@@ -289,7 +300,8 @@ object TestAppUtils {
             numCredentialsPerDomain,
             PhotoID.getDocumentType(),
             "Erika",
-            "Erika's Photo ID"
+            "Erika's Photo ID",
+            revocationStatus
         )
         provisionDocument(
             documentStore,
@@ -302,6 +314,7 @@ object TestAppUtils {
             PhotoID.getDocumentType(),
             "Erika #2",
             "Erika's Photo ID #2",
+            revocationStatus
         )
         provisionDocument(
             documentStore,
@@ -313,7 +326,8 @@ object TestAppUtils {
             numCredentialsPerDomain,
             EUPersonalID.getDocumentType(),
             "Erika",
-            "Erika's EU PID"
+            "Erika's EU PID",
+            revocationStatus
         )
         provisionDocument(
             documentStore,
@@ -325,7 +339,8 @@ object TestAppUtils {
             numCredentialsPerDomain,
             UtopiaMovieTicket.getDocumentType(),
             "Erika",
-            "Erika's Movie Ticket"
+            "Erika's Movie Ticket",
+            revocationStatus
         )
     }
 
@@ -346,7 +361,8 @@ object TestAppUtils {
         numCredentialsPerDomain: Int,
         documentType: DocumentType,
         givenNameOverride: String,
-        displayName: String
+        displayName: String,
+        revocationStatus: RevocationStatus?
     ): String {
         val document = documentStore.createDocument(
             displayName = displayName,
@@ -362,7 +378,12 @@ object TestAppUtils {
         // unlikely to present a credential its issuer minted only seconds earlier.
         val signedAt = now - 1.hours
         val validFrom =  now - 1.hours
-        val validUntil = now + 365.days
+        // The document's administrative validity (its expiry_date element) is a year; the MSO's own
+        // validity may be shorter, as ISO/IEC 18013-5 9.1.2.4 NOTE 2 spells out, and is when the
+        // MSO cannot be revoked - see EmulatedCredentialValidity.
+        val expiryDate = now + 365.days
+        val validUntil = if (revocationStatus != null) expiryDate
+            else validFrom + EmulatedCredentialValidity.WITHOUT_REVOCATION_INFORMATION.toKotlinDuration()
 
         if (documentType.mdocDocumentType != null) {
             addMdocCredentials(
@@ -375,9 +396,11 @@ object TestAppUtils {
                 signedAt = signedAt,
                 validFrom = validFrom,
                 validUntil = validUntil,
+                expiryDate = expiryDate,
                 dsKey = dsKey,
                 numCredentialsPerDomain = numCredentialsPerDomain,
-                givenNameOverride = givenNameOverride
+                givenNameOverride = givenNameOverride,
+                revocationStatus = revocationStatus
             )
         }
 
@@ -418,15 +441,17 @@ object TestAppUtils {
         signedAt: Instant,
         validFrom: Instant,
         validUntil: Instant,
+        expiryDate: Instant,
         dsKey: AsymmetricKey.X509Certified,
         numCredentialsPerDomain: Int,
-        givenNameOverride: String
+        givenNameOverride: String,
+        revocationStatus: RevocationStatus?
     ) {
         // multipaz's EUPersonalID sample data uses attribute identifiers the PID Rulebook no longer
         // defines, so the PID gets the same attributes the emulated issuer mints.
         val issuerNamespaces = if (documentType.mdocDocumentType?.docType == EUPersonalID.EUPID_DOCTYPE) {
             VciMdocUtils.buildIssuerNamespacesForDocType(
-                EUPersonalID.EUPID_DOCTYPE, signedAt, validUntil,
+                EUPersonalID.EUPID_DOCTYPE, signedAt, expiryDate,
                 VciMdocUtils.subjectCountry(dsKey.certChain.certificates.first()) ?: "US")
         } else buildIssuerNamespaces {
             for ((nsName, ns) in documentType.mdocDocumentType?.namespaces!!) {
@@ -497,6 +522,7 @@ object TestAppUtils {
                     digestAlgorithm = Algorithm.SHA256,
                     valueDigests = issuerNamespaces.getValueDigests(Algorithm.SHA256),
                     deviceKey = mdocCredential.getAttestation().publicKey,
+                    revocationStatus = revocationStatus,
                 )
                 val taggedEncodedMso = Cbor.encode(Tagged(Tagged.ENCODED_CBOR, Bstr(Cbor.encode(mso.toDataItem()))))
 

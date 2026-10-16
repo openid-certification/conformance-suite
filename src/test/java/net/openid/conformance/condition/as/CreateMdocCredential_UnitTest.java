@@ -11,10 +11,17 @@ import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.MdocUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.multipaz.mdoc.mso.MobileSecurityObject;
+import org.multipaz.revocation.RevocationStatus;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Base64;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -175,6 +182,68 @@ public class CreateMdocCredential_UnitTest {
 		assertThatExceptionOfType(ConditionError.class)
 			.isThrownBy(() -> cond.execute(env))
 			.withMessageContaining("meta.doctype_value");
+	}
+
+	@Test
+	public void testEvaluate_noStatusElementWithoutAStatusListReference() throws Exception {
+		env.putString("session_transcript", SESSION_TRANSCRIPT);
+
+		cond.execute(env);
+
+		MobileSecurityObject mso = msoOfPresentedMdoc();
+		assertThat(mso.getRevocationStatus()).isNull();
+		// with no way to revoke it the mdoc is short-lived: CIR (EU) 2024/2979 only exempts
+		// attestations valid for 24 hours or less from the revocation requirement. The 23 hours
+		// run from the MSO's validFrom, which is backdated an hour
+		assertThat(validUntilFromNow(mso)).isBetween(Duration.ofHours(21), Duration.ofHours(22));
+	}
+
+	@Test
+	public void testEvaluate_referencesTheStatusListWhenOneWasAllocated() throws Exception {
+		env.putString("session_transcript", SESSION_TRANSCRIPT);
+		env.putObjectFromJsonString(RevocationListReference.ENV_KEY, """
+			{"mechanism": "status_list", "uri": "https://example.com/test/a/alias/statuslists/1", "idx": 41}""");
+
+		cond.execute(env);
+
+		// ISO/IEC 18013-5 12.3.6.2: the MSO's status element references the revocation list
+		MobileSecurityObject mso = msoOfPresentedMdoc();
+		RevocationStatus status = mso.getRevocationStatus();
+		assertThat(status).isInstanceOf(RevocationStatus.StatusList.class);
+		RevocationStatus.StatusList statusList = (RevocationStatus.StatusList) status;
+		assertThat(statusList.getUri()).isEqualTo("https://example.com/test/a/alias/statuslists/1");
+		assertThat(statusList.getIdx()).isEqualTo(41);
+		// no Certificate element, so the revocation list's signer certificate must chain to the
+		// CA that certified the document signer
+		assertThat(statusList.getCertificate()).isNull();
+		// the revocation list is what allows the mdoc to outlive the 24 hour exemption
+		assertThat(validUntilFromNow(mso)).isGreaterThan(Duration.ofDays(300));
+	}
+
+	private Duration validUntilFromNow(MobileSecurityObject mso) {
+		kotlin.time.Instant validUntil = mso.getValidUntil();
+		return Duration.between(Instant.now(),
+			Instant.ofEpochSecond(validUntil.getEpochSeconds(), validUntil.getNanosecondsOfSecond()));
+	}
+
+	@Test
+	public void testEvaluate_referencesTheIdentifierListWhenOneWasAllocated() throws Exception {
+		env.putString("session_transcript", SESSION_TRANSCRIPT);
+		env.putObjectFromJsonString(RevocationListReference.ENV_KEY, """
+			{"mechanism": "identifier_list", "uri": "https://example.com/test/a/alias/identifierlists/1", "id": "AQIDBA=="}""");
+
+		cond.execute(env);
+
+		RevocationStatus status = msoOfPresentedMdoc().getRevocationStatus();
+		assertThat(status).isInstanceOf(RevocationStatus.IdentifierList.class);
+		RevocationStatus.IdentifierList identifierList = (RevocationStatus.IdentifierList) status;
+		assertThat(identifierList.getUri()).isEqualTo("https://example.com/test/a/alias/identifierlists/1");
+		assertThat(identifierList.getId().toByteArray(0, 4)).containsExactly(1, 2, 3, 4);
+	}
+
+	private MobileSecurityObject msoOfPresentedMdoc() throws Exception {
+		parseCredential();
+		return MdocUtil.parseMso(Base64.getDecoder().decode(env.getString("mdoc_credential_cbor")));
 	}
 
 	private void parseCredential() {
