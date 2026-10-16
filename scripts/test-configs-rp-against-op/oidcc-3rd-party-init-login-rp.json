@@ -1,0 +1,38 @@
+{
+    "alias": "oidf-oidcc-rp-test",
+    "description": "OIDCC RP 3rd party initiated login test config for running against OP tests",
+    "server": {
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "RSA",
+                    "kid": "oidcc-3rd-party-rp-test-2026-10",
+                    "use": "sig",
+                    "alg": "RS256",
+                    "n": "k7Rxn6wjE4bz4xOBjZzVtW_xgk_JJau0P2aKU5BSbVy3QYPzObkTHPYsr0a21g3w098toldGer5h6Lfw_FCUd2wLoKqyWz6ts-cJvkPXqYkjoNpozTqZ8gB_9oUs6XMlZnYUltpmBALp7aqibBKLYxPwAUl84dwXg9wELUOfS76aQgtLNbXD_rpQjcp9lGbN6-wP51dqpcdFmxYV6xBNL36OKOgdEJSSnhgJfeTuY-nH1zeIfN6JDdA1qT0bBzQgshk-vE1a-yOVw4EUhkIb17v25Naj56dcm6n10FD7sjx-bCtIiBumkJCYyF8EKB1BbNvU5ES7MoZMTx0ay4t0JQ",
+                    "e": "AQAB",
+                    "d": "EuhvAS8ygE3uy5tUItI4Y1UUuAdJqxpbZSBVxdO8UYakaO0gxjtkcHktCDUHs8guE5lGyLjea1kSxI1DerFACDebF3KyiU6xQs3pJ-OcaHYHSxCaiOcfDOU2fFLZCHt2hrLH-PW1SH8s_gExcJ9BG6pSN3_2Th10Hyubl0XITxRB9YZ9gXzGmnZi8H7OjicMPzEIuOwn5vRU85KOujhrW8IF5Eyk4kfp5kg6qx5oRkgsJC17Al9Bk-f3aQ_AFx2I97FRR_AtBtTsJTGanhvFztJbbuQz10g5sVPQQm_h4LiFS7wp2tjnD4L7UItYY4RPw7cgMaZmz0Mgf24DBHdU0w",
+                    "p": "xVRsLHw8Z2t3bnHWRnRMGneyKuSX_jzTtq5L47H_IFhwkCs4VeYdOLQGj9fW_RrbeLPeJxEBMZ6nBiSJ_Ic_7zmiuqMOijimI16mz8tQ7j5rGoljpLcUgT_IGngqGVflWfNtWvy7981wit1WW5R6_D-4TtZZFndunvBxALVMiQM",
+                    "q": "v57dmN_Czo3kG9SmU3GmlO6v1ckQafNAHyN8ixZiEPW1vXlMkf835CNmmK-1vn0NzthbQGD6aHDmGv8iL8pQQKEVhunT0WphpiSJOmjwLHeL9ZHaJLkMB7HTYAc9IoGR1hZ4w7GVyZJYxUM-8g81910r8simaF5Usq11weqZgbc",
+                    "dp": "jb0AHkv2j0qP9NLr2Jt8dp53aXvc-Q7z-4nilOCroq4j3EpPItQxNSOKexPMJu19q4t3DJSYSO3uhukD_FGhyNGbY3fv37SlEU7RfvxJW3eWMu9wlUW0AsqvjuO1SZLq-NtzNyHGWk5EglpNx2Y1mK6kUmyAfTS4To3ifWG8YcU",
+                    "dq": "qWq1M49KdkL_VhfaAlauWGj774E4UORvYdiHKZXdmG8VgvL23vIOIVenQwG_Jy77gVDKxQ2495Qx7dZ7DFPMRoflN4YO780ljrYo2gqjpjz_8ltEykkNONRhNTrRM2vpW6Y8mZCuBSyt7aJ5yZvnM9Adpib-8bHNIri4L33SwNs",
+                    "qi": "QV58ZA3o6_csts1k6Jvz3fFmYO8uyddTIzn5KR4ctXbgnJglP14nEeDPEjTsLDRzWNrDxOL_I5oX1c4b7kiOyncoU52GpRJt4jW-Vo-bBPyHgQR7nPvylHo0yqBoMpGjD9sjXQVW2jyFwGiYEjT_4l-iIQAaWzmtLnQIowy4q6U"
+                }
+            ]
+        }
+    },
+    "client": {
+        "client_id": "oidcc-3rd-party-init-login-client",
+        "client_secret": "oidcc-3rd-party-init-login-secret",
+        "scope": "openid",
+        "redirect_uri": "{LOCALBASEURL}test/a/oidf-oidcc-op-test/callback",
+        "initiate_login_uri": "{LOCALBASEURL}robots.txt"
+    },
+    "browser": [
+        {
+            "comment": "The OP test module cannot serve an initiate_login_uri, so a static page stands in for it; the OP test starts the authorization flow itself",
+            "match": "https://*/robots.txt*",
+            "tasks": []
+        }
+    ]
+}
