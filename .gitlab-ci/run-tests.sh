@@ -876,7 +876,8 @@ makeSsfTests() {
 
 makeAuthzenTests() {
     AUTHZEN_CONFIGS="${SUITE_DIR}/scripts/test-configs-authzen"
-    # Certification Profile payload tests, against the cerbos-authzen-pdp service in docker-compose-localtest.yml
+    # Against the cerbos-authzen-pdp service in docker-compose-localtest.yml, always through
+    # authzen-auth-proxy; see that service for running these from the host
     TESTS="${TESTS} authzen-pdp-evaluation-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
     # Discovery, with the PDP's HS256 signed_metadata verified against the JWK in the config
     TESTS="${TESTS} authzen-pdp-evaluation-test-plan[pdp_auth_type=none][pdp_server_metadata=discovery][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"

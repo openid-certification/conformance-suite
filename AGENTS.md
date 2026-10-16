@@ -112,6 +112,7 @@ Prerequisites:
 - MongoDB running on `127.0.0.1:27017` (via `devenv up` or docker-compose)
 - Nginx HTTPS proxy running (ports 8443/8444 -> 8080)
 - `../conformance-suite-private` checkout (for test configs)
+- For `--authzen-tests`: the `authzen-auth-proxy` service running and `127.0.0.1 authzen-auth-proxy` in `/etc/hosts` (see that service in `docker-compose-localtest.yml`)
 - Python 3 with `pyparsing >= 3` (on macOS: `PATH=/opt/homebrew/bin:$PATH`)
 
 ### OP-vs-RP Pairing
