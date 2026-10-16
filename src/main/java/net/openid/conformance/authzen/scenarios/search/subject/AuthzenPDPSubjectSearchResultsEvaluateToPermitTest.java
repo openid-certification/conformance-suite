@@ -5,6 +5,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.PDPServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 
+import java.util.List;
+
 @PublishTestModule(
 	testName = "authzen-pdp-subject-search-results-evaluate-to-permit",
 	displayName = "AuthZEN Subject Search API - Section 8.1: Search results evaluate to a permitted decision",
@@ -41,6 +43,12 @@ public class AuthzenPDPSubjectSearchResultsEvaluateToPermitTest extends Abstract
 				]
 			}
 			""";
+	}
+
+	@Override
+	protected List<String> getOtherEndpointMetadataParameters() {
+		// The search results are sent to the Access Evaluation API.
+		return List.of("access_evaluation_endpoint");
 	}
 
 	@Override

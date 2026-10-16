@@ -4,6 +4,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import net.openid.conformance.authzen.condition.AddApiKeyAuthenticationParametersToAuthzenApiRequest;
 import net.openid.conformance.authzen.condition.AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest;
@@ -75,7 +77,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 
 	private boolean pdpAuthUsesMtls;
 	protected Class<? extends Condition> loadClientConfiguration;
-	private boolean endpointPathV1Checked;
+	private final Set<String> endpointPathsV1Checked = new HashSet<>();
 
 	public static class ConfigureClientForMtls extends AbstractConditionSequence {
 		@Override
@@ -153,7 +155,15 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 
 		checkPDPServerConfiguration(serverSupportsDiscovery);
 		if (serverSupportsDiscovery) {
-			callAndStopOnFailure(new EnsurePDPMetadataAdvertisesEndpoint(getEndpointMetadataParameter()), "AUTHZEN-9.1.1", "AUTHZEN-10.1");
+			eventLog.startBlock("Check the PDP metadata advertises the API endpoints the test calls");
+			try {
+				callAndStopOnFailure(new EnsurePDPMetadataAdvertisesEndpoint(getEndpointMetadataParameter()), "AUTHZEN-9.1.1", "AUTHZEN-10.1");
+				for (String endpointParameter : getOtherEndpointMetadataParameters()) {
+					callAndStopOnFailure(new EnsurePDPMetadataAdvertisesEndpoint(endpointParameter), "AUTHZEN-9.1.1", "AUTHZEN-10.1");
+				}
+			} finally {
+				eventLog.endBlock();
+			}
 		}
 
 		// Set up the client configuration
@@ -394,14 +404,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 
 	protected void callAuthApiEndpointRequest() {
 		setAuthzenApiEndpoint();
-		if (!endpointPathV1Checked) {
-			// The endpoint URL is fixed per test, so the §4 v1-path SHOULD check
-			// only needs to fire once. Without this gate, idempotency loops (×3)
-			// and paginated search loops (up to MAX_PAGES) would emit the same
-			// warning every iteration.
-			callAndContinueOnFailure(EnsureAuthzenApiEndpointPathContainsV1.class, ConditionResult.WARNING, "AUTHZEN-4");
-			endpointPathV1Checked = true;
-		}
+		checkEndpointPathContainsV1();
 		addAuthenticationToAuthzenApiEndpoint();
 		try {
 			performApiRequestCall();
@@ -573,10 +576,29 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 	protected abstract void setAuthzenApiEndpoint();
 
 	/**
+	 * Runs the Section 4 v1-path SHOULD check on the endpoint in {@code authzen_api_endpoint} the
+	 * first time the module calls it, so idempotency and pagination loops do not repeat the
+	 * warning, while a module that calls a second API also has that endpoint checked.
+	 */
+	protected void checkEndpointPathContainsV1() {
+		if (endpointPathsV1Checked.add(env.getString("authzen_api_endpoint"))) {
+			callAndContinueOnFailure(EnsureAuthzenApiEndpointPathContainsV1.class, ConditionResult.WARNING, "AUTHZEN-4");
+		}
+	}
+
+	/**
 	 * The PDP metadata parameter (Section 9.1.1) that names the endpoint of the API this module
 	 * exercises.
 	 */
 	protected abstract String getEndpointMetadataParameter();
+
+	/**
+	 * The PDP metadata parameters naming the endpoints of any other API this module calls. Under
+	 * discovery each must be advertised, as {@link #getEndpointMetadataParameter()} must.
+	 */
+	protected List<String> getOtherEndpointMetadataParameters() {
+		return List.of();
+	}
 
 	protected JsonObject parseRequest() {
 		return JsonParser.parseString(getPayload()).getAsJsonObject();
