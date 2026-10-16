@@ -34,6 +34,8 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 		// negative tests
 		VP1FinalWalletResponseUriNotClientId.class,
 		VP1FinalWalletInvalidRequestObjectSignature.class,
+		VP1FinalWalletInvalidRequestObjectTyp.class,
+		VP1FinalWalletMissingRequestObjectTyp.class,
 		VP1FinalWalletMultiSignedOneInvalidSignature.class,
 		VP1FinalWalletMismatchedClientIdInRequestObject.class,
 		VP1FinalWalletRedirectUriWithDirectPost.class,
