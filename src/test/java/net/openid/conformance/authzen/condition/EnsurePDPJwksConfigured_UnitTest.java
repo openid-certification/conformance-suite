@@ -38,8 +38,15 @@ class EnsurePDPJwksConfigured_UnitTest {
 
 	@Test
 	public void jwksConfigured_succeeds() {
-		putConfig("{ \"pdp\": { \"jwks\": { \"keys\": [] } } }");
+		putConfig("{ \"pdp\": { \"jwks\": { \"keys\": [ { \"kty\": \"oct\", \"k\": \"c2VjcmV0\", \"alg\": \"HS256\" } ] } } }");
 		cond.execute(env);
+	}
+
+	@Test
+	public void emptyKeysArray_fails() {
+		putConfig("{ \"pdp\": { \"jwks\": { \"keys\": [] } } }");
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("empty \"keys\" array"), e.getMessage());
 	}
 
 	@Test
@@ -54,6 +61,19 @@ class EnsurePDPJwksConfigured_UnitTest {
 		putConfig("{ \"pdp\": { \"jwks\": { } } }");
 		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
 		assertTrue(e.getMessage().contains("PDP JWK Set"));
+	}
+
+	@Test
+	public void bareJwk_failsNamingTheExpectedFormat() {
+		putConfig("{ \"pdp\": { \"jwks\": { \"kty\": \"oct\", \"k\": \"c2VjcmV0\", \"alg\": \"HS256\" } } }");
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("must be a JWK Set"), e.getMessage());
+	}
+
+	@Test
+	public void keysNotAnArray_fails() {
+		putConfig("{ \"pdp\": { \"jwks\": { \"keys\": { \"kty\": \"oct\" } } } }");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
 	@Test
