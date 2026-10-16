@@ -63,14 +63,10 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 	 * signed_metadata JWT, and applies its values over the plain ones.
 	 */
 	protected void fetchAndValidateDiscoveryMetadata() {
-		callAndStopOnFailure(GetPDPDynamicServerConfiguration.class);
-		callAndContinueOnFailure(EnsureDiscoveryMetadataResponseValid.class, ConditionResult.FAILURE, "AUTHZEN-9.2.2");
-		// Sections 9.2.2 and 9.2.3 apply to the response as the PDP published it, so these run
-		// before any signed_metadata values replace plain ones. A mismatched policy_decision_point
-		// is reported here, before the signed metadata checks that need the configured keys.
-		eventLog.startBlock("Check the published PDP metadata");
+		eventLog.startBlock("Fetch the PDP metadata");
 		try {
-			checkMetadataDocument("pdp");
+			callAndStopOnFailure(GetPDPDynamicServerConfiguration.class);
+			callAndContinueOnFailure(EnsureDiscoveryMetadataResponseValid.class, ConditionResult.FAILURE, "AUTHZEN-9.2.2");
 		} finally {
 			eventLog.endBlock();
 		}
@@ -83,39 +79,61 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 		// ExtractPDPSignedMetadata is there to report, so it has to reach the sequence
 		// instead of throwing an UnexpectedTypeException out of the gate itself.
 		JsonElement signedMetadataElement = env.getElementFromObject("pdp", "signed_metadata");
-		if(signedMetadataElement != null && !signedMetadataElement.isJsonNull()) {
-			eventLog.startBlock("Verify signed metadata");
+		boolean hasSignedMetadata = signedMetadataElement != null && !signedMetadataElement.isJsonNull();
+		// Sections 9.2.2 and 9.2.3 apply to the response as the PDP published it, so these run
+		// before any signed_metadata values replace plain ones. A mismatched policy_decision_point
+		// is reported here, before the signed metadata checks that need the configured keys.
+		eventLog.startBlock("Check the published PDP metadata");
+		try {
+			checkMetadataDocument("pdp");
+			if (!hasSignedMetadata) {
+				// A 'Signed Metadata Issuer' only applies to a signed_metadata JWT. Ignoring it in
+				// silence would leave a tester who expected signed metadata reading a clean log.
+				callAndContinueOnFailure(WarnUnusedSignedMetadataIssuer.class, ConditionResult.WARNING, "AUTHZEN-9.1.3");
+			}
+		} finally {
+			eventLog.endBlock();
+		}
+		if (!hasSignedMetadata) {
+			return;
+		}
+		// Log blocks do not nest, and ValidateJwksSequence opens its own, so the configuration
+		// checks before it and the signature checks after it each get a block of their own.
+		eventLog.startBlock("Check the signed metadata configuration");
+		try {
 			callAndStopOnFailure(EnsurePDPJwksConfigured.class);
 			// Check the expected issuer before it is compared against the JWT, so a malformed
 			// value is reported as the configuration error it is rather than as a PDP mismatch.
 			callAndStopOnFailure(ValidatePDPMetadataIssuer.class, "AUTHZEN-9.1.3", "AUTHZEN-11.8", "RFC7519-4.1.1");
-			// Validate the PDP keys. signed_metadata may be MACed (Section 9.1.3), so a symmetric "oct"
-			// key with an HMAC algorithm is allowed: only private asymmetric key material is rejected,
-			// such a key is parsed and its length checked, and an HMAC algorithm is not reported as
-			// unusable.
-			call(new ValidateJwksSequence("config", "pdp.jwks", "PDP signing keys", "RFC7517-4")
-				.replace(EnsureJwksHasNoPrivateOrSymmetricKeyMaterial.class, condition(EnsureJwksHasNoPrivateAsymmetricKeyMaterial.class).requirement("RFC7517-9.2"))
-				.replace(ParseUsableJwksKeys.class, condition(ParseUsableAuthzenPdpJwksKeys.class)
-					.skipIfObjectMissing("jwks_to_validate")
-					.onFail(ConditionResult.FAILURE)
-					.dontStopOnFailure()
-					.requirements("RFC7517-4", "RFC7518-3.2"))
-				.replace(WarnOnUnusableJwksKeys.class, condition(WarnOnUnusableAuthzenPdpJwksKeys.class)
-					.skipIfObjectMissing("jwks_to_validate")
-					.onFail(ConditionResult.WARNING)
-					.dontStopOnFailure()
-					.requirements("RFC7517-4", "AUTHZEN-9.1.3")));
+		} finally {
+			eventLog.endBlock();
+		}
+		// Validate the PDP keys. signed_metadata may be MACed (Section 9.1.3), so a symmetric "oct"
+		// key with an HMAC algorithm is allowed: only private asymmetric key material is rejected,
+		// such a key is parsed and its length checked, and an HMAC algorithm is not reported as
+		// unusable.
+		call(new ValidateJwksSequence("config", "pdp.jwks", "PDP signing keys", "RFC7517-4")
+			.replace(EnsureJwksHasNoPrivateOrSymmetricKeyMaterial.class, condition(EnsureJwksHasNoPrivateAsymmetricKeyMaterial.class).requirement("RFC7517-9.2"))
+			.replace(ParseUsableJwksKeys.class, condition(ParseUsableAuthzenPdpJwksKeys.class)
+				.skipIfObjectMissing("jwks_to_validate")
+				.onFail(ConditionResult.FAILURE)
+				.dontStopOnFailure()
+				.requirements("RFC7517-4", "RFC7518-3.2"))
+			.replace(WarnOnUnusableJwksKeys.class, condition(WarnOnUnusableAuthzenPdpJwksKeys.class)
+				.skipIfObjectMissing("jwks_to_validate")
+				.onFail(ConditionResult.WARNING)
+				.dontStopOnFailure()
+				.requirements("RFC7517-4", "AUTHZEN-9.1.3")));
+		eventLog.startBlock("Verify signed metadata");
+		try {
 			call(sequence(ValidateDiscoverySignedMetadata.class));
 			// The signed values become the PDP's metadata, so they are checked like the published
 			// document before they are put in effect.
 			callAndStopOnFailure(ExtractPDPSignedMetadataValues.class, "AUTHZEN-9.1.3");
 			checkMetadataDocument("pdp_signed_metadata_values");
 			callAndContinueOnFailure(ApplySignedMetadataPrecedence.class, ConditionResult.FAILURE, "AUTHZEN-9.1.3");
+		} finally {
 			eventLog.endBlock();
-		} else {
-			// A 'Signed Metadata Issuer' only applies to a signed_metadata JWT. Ignoring it in
-			// silence would leave a tester who expected signed metadata reading a clean log.
-			callAndContinueOnFailure(WarnUnusedSignedMetadataIssuer.class, ConditionResult.WARNING, "AUTHZEN-9.1.3");
 		}
 	}
 
@@ -159,16 +177,19 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 		eventLog.startBlock("Check PDP Server Configuration");
 		// make sure the server configuration passes some basic sanity checks
 		env.mapKey("server", "pdp");
-		if (fromDiscovery) {
-			callAndContinueOnFailure(CheckPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-9.1.1", "AUTHZEN-10.1");
-		} else {
-			// No metadata is fetched, so Section 9.1.1 does not apply; Section 10.1 requires the
-			// endpoints the test configuration names to be https.
-			callAndContinueOnFailure(CheckStaticPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-10.1");
+		try {
+			if (fromDiscovery) {
+				callAndContinueOnFailure(CheckPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-9.1.1", "AUTHZEN-10.1");
+			} else {
+				// No metadata is fetched, so Section 9.1.1 does not apply; Section 10.1 requires the
+				// endpoints the test configuration names to be https.
+				callAndContinueOnFailure(CheckStaticPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-10.1");
+			}
+			callAndContinueOnFailure(EnsureMetadataCapabilitiesValid.class, ConditionResult.FAILURE, "AUTHZEN-9.1.2");
+			callAndContinueOnFailure(WarnAuthzenCapabilitiesNotAuthzenUrns.class, ConditionResult.WARNING, "AUTHZEN-9.1.2", "AUTHZEN-12.4");
+		} finally {
+			env.unmapKey("server");
+			eventLog.endBlock();
 		}
-		callAndContinueOnFailure(EnsureMetadataCapabilitiesValid.class, ConditionResult.FAILURE, "AUTHZEN-9.1.2");
-		callAndContinueOnFailure(WarnAuthzenCapabilitiesNotAuthzenUrns.class, ConditionResult.WARNING, "AUTHZEN-9.1.2", "AUTHZEN-12.4");
-		env.unmapKey("server");
-		eventLog.endBlock();
 	}
 }
