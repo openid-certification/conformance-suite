@@ -71,10 +71,12 @@ public abstract class AbstractAuthzenPDPEvaluationsTest extends AbstractAuthzenP
 		if (cachedEvaluationsSemantic != null) {
 			return cachedEvaluationsSemantic;
 		}
-		JsonObject options = parseRequest().getAsJsonObject("options");
+		// A module that sends a malformed options member expects the PDP to reject it, and the
+		// status check judges that; here it means no semantic was selected.
+		JsonElement options = parseRequest().get("options");
 		String semantic = "execute_all";
-		if (options != null && options.has("evaluations_semantic")) {
-			JsonElement value = options.get("evaluations_semantic");
+		if (options != null && options.isJsonObject() && options.getAsJsonObject().has("evaluations_semantic")) {
+			JsonElement value = options.getAsJsonObject().get("evaluations_semantic");
 			if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isString()) {
 				semantic = OIDFJSON.getString(value);
 			}
