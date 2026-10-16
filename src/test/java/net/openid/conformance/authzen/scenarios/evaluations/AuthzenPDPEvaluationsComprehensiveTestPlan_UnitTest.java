@@ -2,9 +2,11 @@ package net.openid.conformance.authzen.scenarios.evaluations;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.testmodule.TestModule;
+import net.openid.conformance.variant.VariantSelection;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -77,5 +79,23 @@ class AuthzenPDPEvaluationsComprehensiveTestPlan_UnitTest {
 		List<Class<? extends TestModule>> comprehensive = modulesOf(AuthzenPDPEvaluationsComprehensiveTestPlan.class);
 		assertEquals(comprehensive.size(), Set.copyOf(comprehensive).size(),
 			"AuthzenPDPEvaluationsComprehensiveTestPlan lists the same module twice");
+	}
+
+	@Test
+	public void comprehensivePlanIsNotCertifiable() {
+		// The plan requires OPTIONAL evaluation semantics, so it must not yield a certification package.
+		for (String support : List.of("core", "properties")) {
+			VariantSelection variant = new VariantSelection(Map.of("authzen_support", support));
+			assertTrue(new AuthzenPDPEvaluationsComprehensiveTestPlan().certificationProfileName(variant).isEmpty(),
+				"AuthzenPDPEvaluationsComprehensiveTestPlan must return no certification profile for authzen_support=" + support);
+		}
+	}
+
+	@Test
+	public void certificationPlanIsCertifiable() {
+		assertEquals(List.of("AuthZEN Evaluations"),
+			new AuthzenPDPEvaluationsTestPlan().certificationProfileName(new VariantSelection(Map.of("authzen_support", "core"))));
+		assertEquals(List.of("AuthZEN Evaluations w/properties"),
+			new AuthzenPDPEvaluationsTestPlan().certificationProfileName(new VariantSelection(Map.of("authzen_support", "properties"))));
 	}
 }
