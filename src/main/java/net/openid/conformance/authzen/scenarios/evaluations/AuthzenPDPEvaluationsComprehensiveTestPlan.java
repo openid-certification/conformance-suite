@@ -23,7 +23,9 @@ import net.openid.conformance.plan.TestPlan;
  * </ul>
  *
  * <p>Run this plan to check a PDP that does claim support for the short-circuiting semantics;
- * run {@link AuthzenPDPEvaluationsTestPlan} for the certification-track subset.
+ * run {@link AuthzenPDPEvaluationsTestPlan} for the certification-track subset. Because the
+ * plan requires OPTIONAL features, it returns no certification profile name, so the suite
+ * does not build a certification package for it.
  *
  * <p>The module list is a superset of {@link AuthzenPDPEvaluationsTestPlan}'s and must stay
  * one — {@code AuthzenPDPEvaluationsComprehensiveTestPlan_UnitTest} fails the build if a
@@ -33,7 +35,7 @@ import net.openid.conformance.plan.TestPlan;
 	testPlanName = "authzen-pdp-evaluations-comprehensive-test-plan",
 	shortName = "Comprehensive",
 	certifiable = false,
-	displayName = "Comprehensive AuthZEN PDP server test (Not part of certification program)",
+	displayName = "AuthZEN 1.0: PDP server test for batch evaluations, including optional evaluation semantics (not part of certification program - use the batch evaluations plan to certify)",
 	profile = TestPlan.ProfileNames.authzenTest,
 	specFamily = TestPlan.SpecFamilyNames.authzen,
 	testModules = {
