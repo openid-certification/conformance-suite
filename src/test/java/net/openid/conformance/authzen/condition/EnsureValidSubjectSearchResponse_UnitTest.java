@@ -70,7 +70,41 @@ class EnsureValidSubjectSearchResponse_UnitTest {
 				]
 			}""");
 		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("No subject type"));
+		assertTrue(e.getMessage().contains("no string subject type"));
+	}
+
+	@Test
+	public void requestWithNonStringType_throws() {
+		putRequest("""
+			{
+				"subject": {"type": 42}
+			}""");
+
+		putResponse("""
+			{
+				"results": [
+					{ "type": "user", "id":"alice" }
+				]
+			}""");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("no string subject type"));
+	}
+
+	@Test
+	public void requestWithNullType_throws() {
+		putRequest("""
+			{
+				"subject": {"type": null}
+			}""");
+
+		putResponse("""
+			{
+				"results": [
+					{ "type": "user", "id":"alice" }
+				]
+			}""");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("no string subject type"));
 	}
 
 	@Test
