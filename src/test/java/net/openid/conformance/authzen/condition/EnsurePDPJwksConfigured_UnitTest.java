@@ -57,6 +57,19 @@ class EnsurePDPJwksConfigured_UnitTest {
 	}
 
 	@Test
+	public void bareJwk_failsNamingTheExpectedFormat() {
+		putConfig("{ \"pdp\": { \"jwks\": { \"kty\": \"oct\", \"k\": \"c2VjcmV0\", \"alg\": \"HS256\" } } }");
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("must be a JWK Set"), e.getMessage());
+	}
+
+	@Test
+	public void keysNotAnArray_fails() {
+		putConfig("{ \"pdp\": { \"jwks\": { \"keys\": { \"kty\": \"oct\" } } } }");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
 	public void noPdpSection_fails() {
 		putConfig("{ }");
 		assertThrows(ConditionError.class, () -> cond.execute(env));
