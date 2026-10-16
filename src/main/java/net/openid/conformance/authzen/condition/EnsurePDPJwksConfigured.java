@@ -15,6 +15,12 @@ public class EnsurePDPJwksConfigured extends AbstractCondition {
 		if((jwks==null) || !jwks.isJsonObject() || jwks.getAsJsonObject().isEmpty()) {
 			throw error("'PDP JWK Set' field is empty or missing from the 'AuthZEN' section in the test configuration (required to verify the discovery metadata 'signed_metadata' JWT signature)");
 		}
+		JsonElement keys = jwks.getAsJsonObject().get("keys");
+		if (keys == null || !keys.isJsonArray()) {
+			throw error("'PDP JWK Set' in the 'AuthZEN' section of the test configuration must be a JWK Set, "
+				+ "{\"keys\": [ ... ]}, not a single JWK. Put the key inside a \"keys\" array.",
+				args("pdp_jwks", jwks));
+		}
 		logSuccess("'PDP JWK Set' is configured in the test configuration");
 		return env;
 	}
