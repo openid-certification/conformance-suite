@@ -1,6 +1,5 @@
 package net.openid.conformance.authzen.condition;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
@@ -55,23 +54,16 @@ public class VerifyAuthzenSignedMetadataSignature extends AbstractVerifyJwsSigna
 				+ "be verified. Supply the PDP's public signing key(s) there.");
 		}
 
-		JsonObject jwks = normalizeToJwkSet(jwksElem.getAsJsonObject());
+		JsonObject jwks = jwksElem.getAsJsonObject();
+		JsonElement keys = jwks.get("keys");
+		if (keys == null || !keys.isJsonArray()) {
+			// The field is documented, validated and used as a JWK Set; a single JWK is a
+			// configuration error, not a second accepted format.
+			throw error("'PDP JWK Set' in the 'AuthZEN' section of the test configuration must be a JWK Set, "
+				+ "{\"keys\": [ ... ]}, not a single JWK. Put the key inside a \"keys\" array.",
+				args("pdp_jwks", jwks));
+		}
 		verifyJwsSignature(signedMetadata, jwks, "signed_metadata", false, "PDP JWK Set");
 		return env;
-	}
-
-	/**
-	 * Accept either a JWK Set ({@code {"keys": [...]}}) or a bare single JWK,
-	 * wrapping the latter so the shared verifier always receives a JWK Set.
-	 */
-	private JsonObject normalizeToJwkSet(JsonObject configured) {
-		if (configured.has("keys")) {
-			return configured;
-		}
-		JsonObject jwks = new JsonObject();
-		JsonArray keys = new JsonArray();
-		keys.add(configured);
-		jwks.add("keys", keys);
-		return jwks;
 	}
 }

@@ -118,11 +118,24 @@ class VerifyAuthzenSignedMetadataSignature_UnitTest {
 	}
 
 	@Test
-	public void validSignatureAgainstConfiguredBareJwk_succeeds() throws Exception {
+	public void bareJwkInsteadOfJwkSet_fails() throws Exception {
+		// Even the key that signed the metadata is rejected when it is not inside a JWK Set: the
+		// field is a JWK Set, and the JWK set validation that runs before this condition says so.
 		ECKey key = genKey();
 		putSignedMetadata(sign(key, "https://pdp.example.com"));
 		putConfigJwks(bareJwk(key));
-		cond.execute(env);
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("must be a JWK Set"), e.getMessage());
+	}
+
+	@Test
+	public void keysNotAnArray_fails() throws Exception {
+		ECKey key = genKey();
+		putSignedMetadata(sign(key, "https://pdp.example.com"));
+		JsonObject jwks = new JsonObject();
+		jwks.add("keys", bareJwk(key));
+		putConfigJwks(jwks);
+		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
 	private static String signHs256(OctetSequenceKey key, String iss) throws Exception {
