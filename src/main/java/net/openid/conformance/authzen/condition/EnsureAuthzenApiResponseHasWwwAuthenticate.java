@@ -10,7 +10,8 @@ import java.util.Locale;
 /**
  * Section 11.3 — a 401 response from the PDP SHOULD include a `WWW-Authenticate`
  * response header indicating the expected scheme and realm. Caller decides the
- * severity (typically WARNING since this is SHOULD).
+ * severity (typically WARNING since this is SHOULD). Under mtls a missing header is only logged:
+ * the header names an HTTP authentication scheme, and none exists for a TLS client certificate.
  */
 public class EnsureAuthzenApiResponseHasWwwAuthenticate extends AbstractCondition {
 
@@ -38,6 +39,14 @@ public class EnsureAuthzenApiResponseHasWwwAuthenticate extends AbstractConditio
 			}
 		}
 		if (!found) {
+			if ("mtls".equals(env.getString("client_auth_type"))) {
+				// No HTTP authentication scheme names a TLS client certificate, so a PDP that answers a
+				// missing or untrusted certificate with a 401 has no standard challenge to send.
+				log("PDP returned 401 without a WWW-Authenticate response header. With mTLS there is no standard HTTP "
+						+ "authentication scheme for the header to name, so it is not expected",
+					args("response_headers", headers));
+				return env;
+			}
 			throw error("PDP returned 401 without a WWW-Authenticate response header (Section 11.3 SHOULD)",
 				args("response_headers", headers));
 		}

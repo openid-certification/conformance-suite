@@ -13,6 +13,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 class EnsureAuthzenApiResponseHasWwwAuthenticate_UnitTest {
@@ -61,6 +62,21 @@ class EnsureAuthzenApiResponseHasWwwAuthenticate_UnitTest {
 		JsonObject headers = new JsonObject();
 		headers.addProperty("Content-Type", "application/json");
 		putResponse(401, headers);
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void status401WithoutWwwAuthenticateUnderMtls_isOnlyLogged() {
+		// No HTTP authentication scheme exists for a TLS client certificate.
+		env.putString("client_auth_type", "mtls");
+		putResponse(401, new JsonObject());
+		cond.execute(env);
+	}
+
+	@Test
+	public void status401WithoutWwwAuthenticateUnderApiKey_fails() {
+		env.putString("client_auth_type", "api_key");
+		putResponse(401, new JsonObject());
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
