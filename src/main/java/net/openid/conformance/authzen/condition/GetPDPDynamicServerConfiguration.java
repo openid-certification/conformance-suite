@@ -12,6 +12,7 @@ import net.openid.conformance.testmodule.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -51,6 +52,10 @@ public class GetPDPDynamicServerConfiguration extends AbstractCondition {
 			jsonString = response.getBody();
 		} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
 			throw error("Error creating HTTP client", e);
+		} catch (RestClientResponseException e) {
+			// The PDP answered with an error status; the exception has no cause to report.
+			throw error("Unable to fetch server configuration from " + discoveryUrl + ": the PDP answered HTTP " + e.getStatusCode().value(),
+				e, args("status", e.getStatusCode().value(), "body", e.getResponseBodyAsString()));
 		} catch (RestClientException e) {
 			String msg = "Unable to fetch server configuration from " + discoveryUrl;
 			if (e.getCause() != null) {
