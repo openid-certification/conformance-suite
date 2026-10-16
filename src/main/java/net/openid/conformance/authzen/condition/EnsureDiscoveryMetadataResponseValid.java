@@ -4,8 +4,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.client.AbstractCheckEndpointContentTypeReturned;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+
+import java.util.Locale;
 
 /**
  * Section 9.2.2 — the well-known discovery endpoint MUST return HTTP
@@ -37,7 +40,10 @@ public class EnsureDiscoveryMetadataResponseValid extends AbstractCondition {
 			throw error("Discovery response is missing Content-Type",
 				args("headers", response.get("headers")));
 		}
-		if (!contentType.toLowerCase().startsWith("application/json")) {
+		// The media type before any parameters (such as charset) must be application/json;
+		// media types are case-insensitive (RFC 9110 Section 8.3.1).
+		String mediaType = AbstractCheckEndpointContentTypeReturned.getMimeTypeFromContentType(contentType);
+		if (!"application/json".equals(mediaType.toLowerCase(Locale.ROOT))) {
 			throw error("Discovery response Content-Type is not application/json",
 				args("content_type", contentType));
 		}

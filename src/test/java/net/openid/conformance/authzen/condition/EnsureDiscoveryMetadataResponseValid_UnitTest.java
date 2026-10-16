@@ -70,6 +70,27 @@ class EnsureDiscoveryMetadataResponseValid_UnitTest {
 	}
 
 	@Test
+	public void ok_jsonUpperCase_succeeds() {
+		put("""
+			{ "status": 200, "headers": { "content-type": "Application/JSON" } }""");
+		cond.execute(env);
+	}
+
+	@Test
+	public void jsonPrefixedMediaType_fails() {
+		put("""
+			{ "status": 200, "headers": { "content-type": "application/json-seq" } }""");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void jsonPrefixedMediaTypeWithParameter_fails() {
+		put("""
+			{ "status": 200, "headers": { "content-type": "application/jsonx; charset=utf-8" } }""");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
 	public void missingStatus_fails() {
 		put("""
 			{ "headers": { "content-type": "application/json" } }""");
