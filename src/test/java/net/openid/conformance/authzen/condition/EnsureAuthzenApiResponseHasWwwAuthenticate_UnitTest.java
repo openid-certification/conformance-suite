@@ -13,6 +13,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 class EnsureAuthzenApiResponseHasWwwAuthenticate_UnitTest {
@@ -62,6 +63,22 @@ class EnsureAuthzenApiResponseHasWwwAuthenticate_UnitTest {
 		headers.addProperty("Content-Type", "application/json");
 		putResponse(401, headers);
 		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void status401WithoutWwwAuthenticateUnderMtls_failsExplainingTheHandshakeAlternative() {
+		env.putString("client_auth_type", "mtls");
+		putResponse(401, new JsonObject());
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("refuses a missing or untrusted client certificate in the TLS handshake"), e.getMessage());
+	}
+
+	@Test
+	public void status401WithoutWwwAuthenticateUnderApiKey_failsWithoutTheMtlsNote() {
+		env.putString("client_auth_type", "api_key");
+		putResponse(401, new JsonObject());
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(!e.getMessage().contains("TLS handshake"), e.getMessage());
 	}
 
 	@Test

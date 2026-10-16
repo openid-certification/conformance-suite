@@ -38,6 +38,14 @@ public class EnsureAuthzenApiResponseHasWwwAuthenticate extends AbstractConditio
 			}
 		}
 		if (!found) {
+			if ("mtls".equals(env.getString("client_auth_type"))) {
+				// No HTTP authentication scheme names a TLS client certificate, so the header has no
+				// standard challenge to carry; the handshake refusal these modules accept avoids the 401.
+				throw error("PDP returned 401 without a WWW-Authenticate response header (Section 11.3 SHOULD). With mTLS there is no "
+						+ "standard HTTP authentication scheme for the header to name; a PDP that refuses a missing or untrusted client "
+						+ "certificate in the TLS handshake, which this test also accepts, sends no 401 at all",
+					args("response_headers", headers));
+			}
 			throw error("PDP returned 401 without a WWW-Authenticate response header (Section 11.3 SHOULD)",
 				args("response_headers", headers));
 		}
