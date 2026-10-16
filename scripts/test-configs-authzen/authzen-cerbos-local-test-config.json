@@ -1,13 +1,13 @@
 {
-    "description": "Authzen Cerbos certification PDP (docker-compose-localtest.yml)",
+    "description": "Authzen Cerbos certification PDP, through the authzen-auth-proxy port that checks no credentials (docker-compose-localtest.yml)",
     "publish": "everything",
     "pdp": {
-        "policy_decision_point": "https://cerbos-authzen-pdp:8443",
-        "access_evaluation_endpoint": "https://cerbos-authzen-pdp:8443/access/v1/evaluation",
-        "access_evaluations_endpoint": "https://cerbos-authzen-pdp:8443/access/v1/evaluations",
-        "search_subject_endpoint": "https://cerbos-authzen-pdp:8443/access/v1/search/subject",
-        "search_action_endpoint": "https://cerbos-authzen-pdp:8443/access/v1/search/action",
-        "search_resource_endpoint": "https://cerbos-authzen-pdp:8443/access/v1/search/resource",
+        "policy_decision_point": "https://authzen-auth-proxy:9446",
+        "access_evaluation_endpoint": "https://authzen-auth-proxy:9446/access/v1/evaluation",
+        "access_evaluations_endpoint": "https://authzen-auth-proxy:9446/access/v1/evaluations",
+        "search_subject_endpoint": "https://authzen-auth-proxy:9446/access/v1/search/subject",
+        "search_action_endpoint": "https://authzen-auth-proxy:9446/access/v1/search/action",
+        "search_resource_endpoint": "https://authzen-auth-proxy:9446/access/v1/search/resource",
         "jwks": {
             "keys": [
                 {
@@ -17,6 +17,7 @@
                     "k": "ZjU4N2M4NWEzOWUzZWNlMGViOGEzY2ZiZmEzNzFkMjRmYTQ2NzVkOWY1MGNkNjJmNjBkNGM5MmJhMzgxMDk1Yg"
                 }
             ]
-        }
+        },
+        "metadata_issuer": "https://cerbos-authzen-pdp:8443"
     }
 }
