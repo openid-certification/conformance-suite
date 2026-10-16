@@ -2,13 +2,16 @@ package net.openid.conformance.authzen.scenarios.evaluations;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.variant.VariantSelection;
+
+import java.util.List;
+import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "authzen-pdp-evaluations-test-plan",
 	shortName = "Batch evaluations",
-	certifiable = false,
-	alpha = true,
-	displayName = "AuthZEN 1.0: PDP server test for batch evaluations (alpha version - not currently part of certification program)",
+	certifiable = true,
+	displayName = "AuthZEN 1.0: PDP server test for batch evaluations",
 	profile = TestPlan.ProfileNames.authzenTest,
 	specFamily = TestPlan.SpecFamilyNames.authzen,
 	testModules = {
@@ -54,4 +57,19 @@ import net.openid.conformance.plan.TestPlan;
 	}
 )
 public class AuthzenPDPEvaluationsTestPlan implements TestPlan {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+
+		String certProfile = "AuthZEN Evaluations";
+		String suffix = "";
+
+		Map<String, String> v = variant.getVariant();
+		String authzenSupport = v.get("authzen_support");
+
+		if("properties".equalsIgnoreCase(authzenSupport)) {
+			suffix = " w/properties";
+		}
+
+		return List.of(certProfile + suffix);
+	}
 }
