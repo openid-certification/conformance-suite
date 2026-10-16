@@ -32,9 +32,16 @@ services:
     # Authenticating proxy in front of cerbos-authzen-pdp, which does not authenticate callers:
     # one port per authentication method (9443 api_key, 9444 client_secret_basic, 9445 mtls), so
     # the AuthZEN plans' authentication variants and 401 modules run against a PDP that enforces
-    # them. See scripts/test-configs-authzen/authzen-auth-proxy/nginx.conf. Pinned by digest, as
-    # the PDP is: nginx:1.27.3.
+    # them, and 9446, which checks no credentials. Every AuthZEN test configuration goes through
+    # the proxy. See scripts/test-configs-authzen/authzen-auth-proxy/nginx.conf. Pinned by
+    # digest, as the PDP is: nginx:1.27.3.
+    # To run the AuthZEN tests against a suite running on the host:
+    #   docker compose -f docker-compose-localtest.yml up --detach authzen-auth-proxy
+    # (this also starts cerbos-authzen-pdp), add '127.0.0.1 authzen-auth-proxy' to /etc/hosts,
+    # then run ./scripts/run-integration-tests.sh --authzen-tests.
     image: nginx@sha256:bc2f6a7c8ddbccf55bdb19659ce3b0a92ca6559e86d42677a5a02ef6bda2fcef
+    ports:
+      - "9443-9446:9443-9446"
     volumes:
       - "./scripts/test-configs-authzen/authzen-auth-proxy:/etc/nginx/authzen:ro"
     entrypoint: ["/etc/nginx/authzen/entrypoint.sh"]
@@ -44,7 +51,7 @@ services:
     healthcheck:
       # Any HTTP answer, such as the 401 an unauthenticated request gets, shows nginx is serving
       # TLS on that port.
-      test: ["CMD-SHELL", "for port in 9443 9444 9445; do curl -ks -o /dev/null https://localhost:$$port/ || exit 1; done"]
+      test: ["CMD-SHELL", "for port in 9443 9444 9445 9446; do curl -ks -o /dev/null https://localhost:$$port/ || exit 1; done"]
       interval: 2s
       timeout: 5s
       retries: 30
