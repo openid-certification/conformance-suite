@@ -30,6 +30,8 @@
 #   - MongoDB running on 127.0.0.1:27017 (via devenv or docker-compose)
 #   - Nginx HTTPS proxy running (ports 8443/8444 -> 8080)
 #   - ../conformance-suite-private checkout (for test configs)
+#   - --authzen-tests: authzen-auth-proxy running and '127.0.0.1 authzen-auth-proxy' in
+#     /etc/hosts (see the authzen-auth-proxy service in docker-compose-localtest.yml)
 #   - Python 3 with pyparsing >= 3
 
 set -euo pipefail
