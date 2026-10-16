@@ -5,7 +5,10 @@ import net.openid.conformance.plan.TestPlan;
 
 @PublishTestPlan(
 	testPlanName = "authzen-pdp-evaluations-test-plan",
-	displayName = "AuthZEN 1.0: PDP server test for batch evaluations - alpha tests (not currently part of certification program)",
+	shortName = "Batch evaluations",
+	certifiable = false,
+	alpha = true,
+	displayName = "AuthZEN 1.0: PDP server test for batch evaluations (alpha version - not currently part of certification program)",
 	profile = TestPlan.ProfileNames.authzenTest,
 	specFamily = TestPlan.SpecFamilyNames.authzen,
 	testModules = {

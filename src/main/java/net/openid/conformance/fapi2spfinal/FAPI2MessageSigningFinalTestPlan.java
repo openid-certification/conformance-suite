@@ -13,6 +13,8 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi2-message-signing-final-test-plan",
+	shortName = "Final",
+	certifiable = true,
 	displayName = "FAPI2-Message-Signing-Final: Authorization server test",
 	profile = TestPlan.ProfileNames.optest,
 	specFamily = TestPlan.SpecFamilyNames.fapi2MessageSigning,

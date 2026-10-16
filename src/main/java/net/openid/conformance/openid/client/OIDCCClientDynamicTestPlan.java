@@ -19,6 +19,8 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-client-dynamic-certification-test-plan",
+	shortName = "Dynamic",
+	certifiable = true,
 	displayName = "OpenID Connect Core: Dynamic Certification Profile Relying Party Tests",
 	summary = "This plan requires response_type 'code', request_uri support and dynamic client registration for all tests",
 	profile = TestPlan.ProfileNames.rptest,

@@ -5,7 +5,10 @@ import net.openid.conformance.plan.TestPlan;
 
 @PublishTestPlan(
 	testPlanName = "authzen-pdp-resource-search-test-plan",
-	displayName = "AuthZEN 1.0: PDP server test for Resource Search - alpha tests (not currently part of certification program)",
+	shortName = "Resource search",
+	certifiable = false,
+	alpha = true,
+	displayName = "AuthZEN 1.0: PDP server test for Resource Search (alpha version - not currently part of certification program)",
 	profile = TestPlan.ProfileNames.authzenTest,
 	specFamily = TestPlan.SpecFamilyNames.authzen,
 	testModules = {

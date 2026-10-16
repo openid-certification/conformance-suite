@@ -19,6 +19,8 @@ import net.openid.conformance.plan.TestPlan;
 
 @PublishTestPlan(
 	testPlanName = "ekyc-test-plan-oidccore",
+	shortName = "Using OpenID Connect Core",
+	certifiable = false,
 	displayName = "OpenID for IDA using OpenID Connect Core (not currently part of certification program - please email certification@oidf.org)",
 	profile = TestPlan.ProfileNames.ekyctest,
 	specFamily = TestPlan.SpecFamilyNames.ekyc,

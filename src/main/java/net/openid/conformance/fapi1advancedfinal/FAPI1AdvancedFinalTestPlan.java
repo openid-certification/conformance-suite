@@ -10,6 +10,8 @@ import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "fapi1-advanced-final-test-plan",
+	shortName = "Standard",
+	certifiable = true,
 	displayName = "FAPI1-Advanced-Final: Authorization server test",
 	profile = TestPlan.ProfileNames.optest,
 	specFamily = TestPlan.SpecFamilyNames.fapi1Advanced,

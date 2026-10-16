@@ -12,6 +12,8 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi-ciba-id1-test-plan",
+	shortName = "ID1",
+	certifiable = true,
 	displayName = "FAPI-CIBA-ID1: Authorization server test",
 	profile = TestPlan.ProfileNames.optest,
 	specFamily = TestPlan.SpecFamilyNames.fapiCiba,
