@@ -16,7 +16,10 @@ import net.openid.conformance.authzen.condition.EnsureAuthzenSearchResponseValsM
 import net.openid.conformance.authzen.condition.EnsureSearchPageTokenNotRepeated;
 import net.openid.conformance.authzen.condition.ExtractAuthzenSearchExpectedResponse;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.testmodule.TestFailureException;
+
+import java.util.Set;
 
 public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTest {
 
@@ -177,6 +180,7 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	/**
 	 * Sends the search request and then one request per {@code page.next_token}, each in its own
 	 * log block, adding each page's results to {@code authzen_search_endpoint_aggregated_results}.
+	 * A later page that is not a 200 fails the test.
 	 *
 	 * @return true when the first response is not a 200, so there are no results to match
 	 */
@@ -195,8 +199,11 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 					callAndStopOnFailure(AddAuthzenSearchPageTokenToRequest.class, "AUTHZEN-8.2");
 				}
 				performSingleApiRequest();
-				if (pageNum == 1 && !responseStatusIs200()) {
-					return true;
+				if (!responseStatusIs200()) {
+					if (pageNum == 1) {
+						return true;
+					}
+					requireLaterPageStatus200(pageNum);
 				}
 				processAuthApiEndpointResponse();
 				callAndStopOnFailure(EnsureSearchPageTokenNotRepeated.class, "AUTHZEN-8.2");
@@ -207,6 +214,25 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 		} while (!Strings.isNullOrEmpty(env.getString("authzen_search_endpoint_request_page_token")));
 
 		return false;
+	}
+
+	/**
+	 * A later page answers the same search, sent with the token the PDP returned (Section 8.2), so
+	 * it must be a 200 whichever error statuses the first request may get. For a module that only
+	 * accepts 200 the status check has already failed; otherwise the status is checked here.
+	 */
+	private void requireLaterPageStatus200(int pageNum) {
+		if (!getAcceptableHttpStatusCodes().equals(Set.of(200))) {
+			env.mapKey("endpoint_response", "authzen_api_endpoint_response");
+			try {
+				// Section 10.1: "A successful response is an HTTPS response with a status code of 200".
+				callAndStopOnFailure(EnsureHttpStatusCodeIs200.class, "AUTHZEN-10.1");
+			} finally {
+				env.unmapKey("endpoint_response");
+			}
+		}
+		throw new TestFailureException(getId(), "The PDP did not answer page " + pageNum
+			+ " of the search with HTTP 200, so the search results cannot be checked");
 	}
 
 	private void matchAggregatedSearchResults() {
