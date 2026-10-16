@@ -70,7 +70,41 @@ class EnsureValidResourceSearchResponse_UnitTest {
 				]
 			}""");
 		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("No resource type"));
+		assertTrue(e.getMessage().contains("no string resource type"));
+	}
+
+	@Test
+	public void requestWithNonStringType_throws() {
+		putRequest("""
+			{
+				"resource": {"type": 42}
+			}""");
+
+		putResponse("""
+			{
+				"results": [
+					{ "type": "mail", "id":"alice" }
+				]
+			}""");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("no string resource type"));
+	}
+
+	@Test
+	public void requestWithNullType_throws() {
+		putRequest("""
+			{
+				"resource": {"type": null}
+			}""");
+
+		putResponse("""
+			{
+				"results": [
+					{ "type": "mail", "id":"alice" }
+				]
+			}""");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("no string resource type"));
 	}
 
 	@Test

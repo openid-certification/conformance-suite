@@ -20,11 +20,12 @@ public class EnsureValidResourceSearchResponse extends EnsureValidSearchResponse
 
 	private String getRequestResourceType() {
 		if(resourceType == null) {
-			JsonElement subjectTypeElem = env.getElementFromObject("authzen_api_endpoint_request", "resource.type");
-			if(subjectTypeElem==null) {
-				throw error("No resource type in authzen_api_endpoint_request");
+			JsonElement resourceTypeElem = env.getElementFromObject("authzen_api_endpoint_request", "resource.type");
+			if (!OIDFJSON.isString(resourceTypeElem)) {
+				throw error("The search request the suite sent has no string resource type, so the type of each result cannot be checked",
+					args("resource", env.getElementFromObject("authzen_api_endpoint_request", "resource")));
 			}
-			resourceType = OIDFJSON.getString(subjectTypeElem);
+			resourceType = OIDFJSON.getString(resourceTypeElem);
 		}
 		return resourceType;
 	}
