@@ -134,6 +134,7 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 			try {
 				callAndStopOnFailure(new CreateAuthzenEvaluationRequestForSearchResult(searchRequest, searchedEntity, result), "AUTHZEN-8.1");
 				callAndStopOnFailure(SetAuthzenApiEndpointToAccessEvaluationEndpoint.class);
+				checkEndpointPathContainsV1();
 				addAuthenticationToAuthzenApiEndpoint();
 				call(sequence(CallAuthzenApiEndpointAndVerifySuccessfulResponse.class));
 				callAndStopOnFailure(ExtractAuthzenApiEndpointDecisionResponse.class, "AUTHZEN-6.2");
