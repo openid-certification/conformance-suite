@@ -257,38 +257,42 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 	 * (Evaluation / Evaluations / Subject Search / Resource Search / Action Search).
 	 * Each idempotency abstract base delegates to this method, passing its own
 	 * API-family label and the capture/match condition classes appropriate for
-	 * that family (decision, batch decisions or search results). The loop opens nested eventLog
-	 * blocks (one outer + one per iteration), each wrapped in try/finally so
-	 * block scopes always close even when a condition throws.
+	 * that family (decision, batch decisions or search results).
+	 *
+	 * <p>Log blocks do not nest, so each iteration logs its request in one block, or in the page
+	 * blocks a search opens, and records or compares the answer in a block of its own. Every
+	 * block is closed in a finally, so it closes even when a condition throws.
 	 */
 	protected void runIdempotencyLoop(String apiFamilyLabel,
 			Class<? extends Condition> capture,
 			Class<? extends Condition> match) {
 		final int iterations = 3;
-		eventLog.startBlock("Idempotency test: send the same " + apiFamilyLabel + " request " + iterations + " times");
-		try {
-			for (int i = 1; i <= iterations; i++) {
-				eventLog.startBlock("Iteration " + i);
-				try {
-					resetStateBetweenIdenticalRequests();
-					performIdempotencyIteration();
-					if (i == 1) {
-						callAndStopOnFailure(capture);
-					} else {
-						// Idempotency is required by certification scenario 5.6 ("The PDP MUST
-						// return the same decision value each time"), not by the Authorization
-						// API specification, which does not address it. The scenario has no
-						// requirement link prefix, so this assertion carries no tag.
-						callAndContinueOnFailure(match, getIdempotencySeverity());
-					}
-				} finally {
-					eventLog.endBlock();
-				}
+		for (int i = 1; i <= iterations; i++) {
+			eventLog.startBlock("Idempotency iteration " + i + " of " + iterations + ": send the " + apiFamilyLabel + " request");
+			try {
+				resetStateBetweenIdenticalRequests();
+				performIdempotencyIteration();
+			} finally {
+				eventLog.endBlock();
 			}
-			performPostApiFlow();
-		} finally {
-			eventLog.endBlock();
+			eventLog.startBlock(i == 1
+				? "Idempotency iteration 1: record the first answer"
+				: "Idempotency iteration " + i + ": compare with the first answer");
+			try {
+				if (i == 1) {
+					callAndStopOnFailure(capture);
+				} else {
+					// Idempotency is required by certification scenario 5.6 ("The PDP MUST
+					// return the same decision value each time"), not by the Authorization
+					// API specification, which does not address it. The scenario has no
+					// requirement link prefix, so this assertion carries no tag.
+					callAndContinueOnFailure(match, getIdempotencySeverity());
+				}
+			} finally {
+				eventLog.endBlock();
+			}
 		}
+		performPostApiFlow();
 	}
 
 	/**
