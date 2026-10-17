@@ -19,6 +19,8 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.PDPServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 
+import java.util.Arrays;
+
 @VariantConfigurationFields(parameter = PDPServerMetadata.class, value = "static", configurationFields = {
 	"pdp.access_evaluations_endpoint"
 })
@@ -100,8 +102,27 @@ public abstract class AbstractAuthzenPDPEvaluationsTest extends AbstractAuthzenP
 		if (isShortCircuitSemantic()) {
 			callAndContinueOnFailure(EnsureAuthzenEvaluationsResponseValsMatchExpectedValsAsPrefix.class, ConditionResult.FAILURE, "AUTHZEN-7.1.2.1", "AUTHZEN-7.2");
 		} else {
-			callAndContinueOnFailure(EnsureAuthzenEvaluationsResponseValsMatchExpectedVals.class, ConditionResult.FAILURE, "AUTHZEN-7.2");
+			callAndContinueOnFailure(EnsureAuthzenEvaluationsResponseValsMatchExpectedVals.class, ConditionResult.FAILURE, decisionsRequirements());
 		}
+	}
+
+	/**
+	 * The sections the decisions comparison cites: those of {@link #additionalDecisionsRequirements()},
+	 * then Section 7.2, which requires the decisions in request order.
+	 */
+	private String[] decisionsRequirements() {
+		String[] additional = additionalDecisionsRequirements();
+		String[] requirements = Arrays.copyOf(additional, additional.length + 1);
+		requirements[additional.length] = "AUTHZEN-7.2";
+		return requirements;
+	}
+
+	/**
+	 * Sections of the specification that set an expected decision, beyond Section 7.2; they are
+	 * listed first on the decisions comparison.
+	 */
+	protected String[] additionalDecisionsRequirements() {
+		return new String[0];
 	}
 
 	@Override
