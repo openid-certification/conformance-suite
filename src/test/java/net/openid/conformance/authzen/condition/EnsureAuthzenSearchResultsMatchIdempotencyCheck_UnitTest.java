@@ -60,6 +60,39 @@ class EnsureAuthzenSearchResultsMatchIdempotencyCheck_UnitTest {
 	}
 
 	@Test
+	public void sameEntitiesWithDifferentProperties_succeeds() {
+		putFirstAndCurrent("""
+			{ "results": [ { "type": "user", "id": "alice", "properties": { "last_login": "2026-10-16T10:00:00Z" } }, { "type": "user", "id": "bob" } ] }""", """
+			{ "results": [ { "type": "user", "id": "bob", "properties": { "department": "sales" } }, { "type": "user", "id": "alice", "properties": { "last_login": "2026-10-16T10:00:05Z" } } ] }""");
+		cond.execute(env);
+	}
+
+	@Test
+	public void differentEntityWithSameProperties_fails() {
+		putFirstAndCurrent("""
+			{ "results": [ { "type": "user", "id": "alice", "properties": { "department": "sales" } } ] }""", """
+			{ "results": [ { "type": "user", "id": "carol", "properties": { "department": "sales" } } ] }""");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void unregisteredMemberChanged_fails() {
+		// Only properties are left out; any other member is part of the result compared.
+		putFirstAndCurrent("""
+			{ "results": [ { "type": "user", "id": "alice", "tenant": "a" } ] }""", """
+			{ "results": [ { "type": "user", "id": "alice", "tenant": "b" } ] }""");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void duplicateMultiplicityDiffersWithProperties_fails() {
+		putFirstAndCurrent("""
+			{ "results": [ { "type": "user", "id": "alice", "properties": { "n": 1 } }, { "type": "user", "id": "alice", "properties": { "n": 2 } } ] }""", """
+			{ "results": [ { "type": "user", "id": "alice", "properties": { "n": 1 } }, { "type": "user", "id": "bob", "properties": { "n": 2 } } ] }""");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
 	public void resultCountChanged_fails() {
 		putFirstAndCurrent("""
 			{ "results": [ { "type": "user", "id": "alice" }, { "type": "user", "id": "bob" } ] }""", """
