@@ -46,8 +46,9 @@ import java.util.Map;
 		AuthzenPDPActionSearchSubjectMissingIdTest.class,
 		AuthzenPDPActionSearchSubjectMissingTypeTest.class,
 		AuthzenPDPActionSearchSubjectIsStringTest.class,
-		// Forward-compat: unknown top-level fields ignored (Section 10.1.1)
+		// Forward-compat: unknown fields ignored (Section 10.1.1)
 		AuthzenPDPActionSearchUnknownTopLevelFieldsTest.class,
+		AuthzenPDPActionSearchUnknownPageFieldsTest.class,
 		// An action in an Action Search request, which Section 8.6.1 omits: ignored or rejected
 		AuthzenPDPActionSearchExtraActionTest.class,
 		// Search Properties (Properties variant only)
