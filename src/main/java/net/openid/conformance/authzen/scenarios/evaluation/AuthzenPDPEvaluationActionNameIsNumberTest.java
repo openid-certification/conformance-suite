@@ -5,8 +5,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-action-name-is-number",
-	displayName = "AuthZEN Evaluation API - Section 10.1: Action name is number -- expect HTTP 400",
-	summary = "Section 10.1 invalid field type. `action.name` is a number instead of a string; PDP MUST return HTTP 400.\n" + AuthzenPDPEvaluationActionNameIsNumberTest.payload,
+	displayName = "AuthZEN Evaluation API - Section 5.3: Action name is number -- expect HTTP 400",
+	summary = "Section 5.3 invalid field type (certification scenario 5.4.6). `action.name` is a number instead of a string; PDP MUST return HTTP 400.\n" + AuthzenPDPEvaluationActionNameIsNumberTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPEvaluationActionNameIsNumberTest extends AbstractAuthzenPDPEvaluationTest {
