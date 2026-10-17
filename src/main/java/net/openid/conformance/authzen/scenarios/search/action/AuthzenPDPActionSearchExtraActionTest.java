@@ -40,6 +40,12 @@ public class AuthzenPDPActionSearchExtraActionTest extends AbstractAuthzenPDPAct
 	}
 
 	@Override
+	protected String[] additionalStatusRequirements() {
+		// Section 8.6.1: an Action Search request carries subject and resource, not action.
+		return new String[] {"AUTHZEN-8.6.1"};
+	}
+
+	@Override
 	protected String getExpectedSearchResponseJson() {
 		return """
 			{
