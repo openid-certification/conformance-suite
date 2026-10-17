@@ -5,8 +5,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-subject-search-action-is-string",
-	displayName = "AuthZEN Subject Search API - Section 10.1: Action is a string value -- expect HTTP 400",
-	summary = "Subject Search action is sent as the string \"read\" rather than the required JSON object; PDP MUST return HTTP 400.\n" + AuthzenPDPSubjectSearchActionIsStringTest.payload,
+	displayName = "AuthZEN Subject Search API - Section 5.3: Action is a string value -- expect HTTP 400",
+	summary = "Section 5.3 invalid field type (certification scenario 5.4.6). The Subject Search action is sent as the string \"read\" rather than the required JSON object; PDP MUST return HTTP 400.\n" + AuthzenPDPSubjectSearchActionIsStringTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPSubjectSearchActionIsStringTest extends AbstractAuthzenPDPSubjectSearchTest {
