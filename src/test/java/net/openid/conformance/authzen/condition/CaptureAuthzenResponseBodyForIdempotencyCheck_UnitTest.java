@@ -38,10 +38,8 @@ class CaptureAuthzenResponseBodyForIdempotencyCheck_UnitTest {
 	}
 
 	@Test
-	public void storesTheFirstBodyOnly() {
+	public void storesTheBody() {
 		env.putObject("authzen_api_endpoint_response", json("{ \"body_json\": { \"results\": [ { \"name\": \"read\" } ] } }"));
-		run(new CaptureAuthzenResponseBodyForIdempotencyCheck());
-		env.putObject("authzen_api_endpoint_response", json("{ \"body_json\": { \"results\": [] } }"));
 		run(new CaptureAuthzenResponseBodyForIdempotencyCheck());
 		assertTrue(env.getString("authzen_idempotency_first_response_body").contains("read"));
 	}

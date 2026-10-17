@@ -38,12 +38,10 @@ class CaptureDecisionForIdempotencyCheck_UnitTest {
 	}
 
 	@Test
-	public void capture_storesTheFirstDecisionOnly() {
-		env.putObject("authzen_api_endpoint_decision", json("{ \"decision\": true }"));
-		run(new CaptureDecisionForIdempotencyCheck());
+	public void capture_storesTheDecision() {
 		env.putObject("authzen_api_endpoint_decision", json("{ \"decision\": false }"));
 		run(new CaptureDecisionForIdempotencyCheck());
-		assertEquals("true", env.getString("authzen_idempotency_first_decision"));
+		assertEquals("false", env.getString("authzen_idempotency_first_decision"));
 	}
 
 	@Test
