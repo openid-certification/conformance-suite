@@ -22,6 +22,7 @@ import java.util.Map;
 		AuthzenPDPActionSearchActionSearchWithContextTest.class,
 		AuthzenPDPActionSearchResultsEvaluateToPermitTest.class,
 		AuthzenPDPActionSearchRequestWithPageLimitTest.class,
+		AuthzenPDPActionSearchChangedPageParametersTest.class,
 		AuthzenPDPActionSearchUnknownEntityIdentifierTest.class,
 		AuthzenPDPActionSearchUnknownEntityTypeTest.class,
 		// X-Request-ID handling (Section 10.1.3)
