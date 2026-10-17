@@ -15,10 +15,13 @@ import java.util.Map;
  * idempotency test loop are the ones {@link CaptureAuthzenSearchResultsForIdempotencyCheck}
  * captured on the first iteration.
  *
- * <p>Only the answer to the search is compared: the {@code results} of all pages together, as
- * a multiset (order-independent but multiplicity-preserving). How the PDP splits them into
- * pages, its opaque page tokens, {@code page.total} (which may be an estimate, Section 8.2.2)
- * and {@code context} (free-form information such as execution time) are not compared.
+ * <p>Only the answer to the search is compared: the entities in the {@code results} of all pages
+ * together, as a multiset (order-independent but multiplicity-preserving). Each result is
+ * compared without its {@code properties}, which describe the entity rather than identify it
+ * (Section 5) and may carry values such as timestamps that change between identical requests;
+ * a difference there is logged, not reported. How the PDP splits the results into pages, its
+ * opaque page tokens, {@code page.total} (which may be an estimate, Section 8.2.2) and
+ * {@code context} (free-form information such as execution time) are not compared.
  */
 public class EnsureAuthzenSearchResultsMatchIdempotencyCheck extends AbstractCondition {
 
@@ -32,13 +35,32 @@ public class EnsureAuthzenSearchResultsMatchIdempotencyCheck extends AbstractCon
 			throw error("The number of search results changed across consecutive identical requests — PDP is not idempotent",
 				args("first_iteration_results", expectedResults, "current_iteration_results", actualResults));
 		}
-		if (!countOccurrences(expectedResults).equals(countOccurrences(actualResults))) {
+		if (!countOccurrences(withoutProperties(expectedResults)).equals(countOccurrences(withoutProperties(actualResults)))) {
 			throw error("Search results changed across consecutive identical requests — PDP is not idempotent",
 				args("first_iteration_results", expectedResults, "current_iteration_results", actualResults));
 		}
+		if (!countOccurrences(expectedResults).equals(countOccurrences(actualResults))) {
+			log("The same entities were returned, but the properties of some differ from the first iteration; "
+				+ "properties are not compared",
+				args("first_iteration_results", expectedResults, "current_iteration_results", actualResults));
+		}
 
-		logSuccess("Search results matched first iteration (compared as a multiset)", args("results", actualResults));
+		logSuccess("Search results matched first iteration (compared as a multiset, without properties)", args("results", actualResults));
 		return env;
+	}
+
+	private static JsonArray withoutProperties(JsonArray results) {
+		JsonArray stripped = new JsonArray();
+		for (JsonElement result : results) {
+			if (result.isJsonObject() && result.getAsJsonObject().has("properties")) {
+				JsonObject copy = result.getAsJsonObject().deepCopy();
+				copy.remove("properties");
+				stripped.add(copy);
+			} else {
+				stripped.add(result);
+			}
+		}
+		return stripped;
 	}
 
 	/**
