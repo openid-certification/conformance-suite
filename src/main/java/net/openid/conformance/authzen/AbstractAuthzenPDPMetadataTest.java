@@ -106,7 +106,7 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 			callAndStopOnFailure(EnsurePDPJwksConfigured.class);
 			// Check the expected issuer before it is compared against the JWT, so a malformed
 			// value is reported as the configuration error it is rather than as a PDP mismatch.
-			callAndStopOnFailure(ValidatePDPMetadataIssuer.class, "AUTHZEN-9.1.3", "AUTHZEN-11.8", "RFC7519-4.1.1");
+			callAndStopOnFailure(ValidatePDPMetadataIssuer.class);
 		} finally {
 			eventLog.endBlock();
 		}
