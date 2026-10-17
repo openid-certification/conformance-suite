@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-action-search-action-search-with-context",
 	displayName = "AuthZEN Action Search API - Section 8.6.1: Action search with context",
-	summary = "Section 8.6.1 action search with the optional context field. The PDP MUST accept the request and return at least read and write.\n" + AuthzenPDPActionSearchActionSearchWithContextTest.payload,
+	summary = "Section 8.6.1 action search with the optional context field (certification scenario 7.4.2). The PDP MUST accept the request, and as context does not affect fixture decisions (scenario 4.6), the results MUST include read and write.\n" + AuthzenPDPActionSearchActionSearchWithContextTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPActionSearchActionSearchWithContextTest extends AbstractAuthzenPDPActionSearchTest {

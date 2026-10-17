@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-subject-search-x-request-id-echoed",
-	displayName = "AuthZEN Subject Search API - X-Request-ID echoed",
+	displayName = "AuthZEN Subject Search API - Section 10.1.3: X-Request-ID echoed",
 	summary = "Section 10.1.3 — when the PEP supplies an X-Request-ID on a Subject Search request, the PDP MUST return the same value in the response.\n" + AuthzenPDPSubjectSearchXRequestIdEchoedTest.payload,
 	profile = "AuthZEN"
 )
