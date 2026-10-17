@@ -12,11 +12,11 @@ import java.util.Locale;
 
 /**
  * Section 9.2.2 — the well-known discovery endpoint MUST return HTTP
- * 200 with `Content-Type: application/json`. The existing
- * {@link GetPDPDynamicServerConfiguration} relies on Spring throwing on
- * non-2xx and on the body parsing as JSON; this condition asserts the two
- * surface signals explicitly so a non-200 success status or a non-JSON
- * Content-Type is caught with a clear error.
+ * 200 with `Content-Type: application/json`.
+ * {@link GetPDPDynamicServerConfiguration} has already failed on a 3xx, 4xx or
+ * 5xx status, on an empty body and on a body that is not a JSON object; this
+ * condition catches a 2xx other than 200 whose body parsed, and a non-JSON
+ * Content-Type, with a clear error.
  */
 public class EnsureDiscoveryMetadataResponseValid extends AbstractCondition {
 

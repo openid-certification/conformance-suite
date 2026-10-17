@@ -49,7 +49,22 @@ public class GetPDPDynamicServerConfiguration extends AbstractCondition {
 
 			env.putObject("discovery_endpoint_response", responseInfo);
 
+			// The client follows no redirects and Spring throws only on 4xx and 5xx, so a 3xx arrives
+			// here, as does a 2xx without a body. Neither carries metadata to parse, and the parse
+			// error would not name the status. A 2xx other than 200 with a body is left to
+			// EnsureDiscoveryMetadataResponseValid.
+			int status = response.getStatusCode().value();
+			if (response.getStatusCode().is3xxRedirection()) {
+				throw error("Unable to fetch server configuration from " + discoveryUrl + ": the PDP answered HTTP " + status
+					+ ", a redirect, which the suite does not follow. The metadata must be served at the well-known URL "
+					+ "derived from the 'PDP Identifier' in the test configuration.",
+					args("status", status, "location", response.getHeaders().getFirst("Location")));
+			}
 			jsonString = response.getBody();
+			if (Strings.isNullOrEmpty(jsonString)) {
+				throw error("Unable to fetch server configuration from " + discoveryUrl + ": the PDP answered HTTP " + status
+					+ " with an empty body", args("status", status));
+			}
 		} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
 			throw error("Error creating HTTP client", e);
 		} catch (RestClientResponseException e) {
