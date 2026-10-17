@@ -9,6 +9,15 @@
   "comment": "Cerbos PDP bug: the last page of a paginated search has no page object, where Section 8.2 ends pagination with a page object whose next_token is an empty string (certification scenario 7.5.2)"
  },
  {
+  "test-name": "authzen-pdp-resource-search-unknown-page-fields-ignored",
+  "variant": "*",
+  "configuration-filename": "*",
+  "current-block": "*",
+  "condition": "EnsureSearchResponseHasPageAfterPageToken",
+  "expected-result": "failure",
+  "comment": "Cerbos PDP bug: the last page of a paginated search has no page object, where Section 8.2 ends pagination with a page object whose next_token is an empty string (certification scenario 7.5.2)"
+ },
+ {
   "test-name": "authzen-pdp-*",
   "variant": {
    "pdp_server_metadata": "discovery"
