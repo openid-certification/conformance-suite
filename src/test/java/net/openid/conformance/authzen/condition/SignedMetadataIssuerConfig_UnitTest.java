@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * ValidatePDPMetadataIssuer, ValidatePDPSignedMetadataIss and WarnUnusedSignedMetadataIssuer all
+ * ValidatePDPMetadataIssuer, ValidatePDPSignedMetadataIss and WarnUnusedSignedMetadataConfiguration all
  * branch on whether a 'Signed Metadata Issuer' was configured, and would contradict each other if
  * they answered that question differently. These tests pin the shared answer.
  */
@@ -68,7 +68,7 @@ class SignedMetadataIssuerConfig_UnitTest {
 	@Test
 	public void wrongType_isConfiguredButHasNoStringValue() {
 		// Counts as configured so that it is reported rather than silently ignored, and answering that
-		// must not throw: WarnUnusedSignedMetadataIssuer asks the question before anything has validated
+		// must not throw: WarnUnusedSignedMetadataConfiguration asks the question before anything has validated
 		// the field's type.
 		Environment env = envWith(42);
 		assertTrue(SignedMetadataIssuerConfig.isConfigured(env));

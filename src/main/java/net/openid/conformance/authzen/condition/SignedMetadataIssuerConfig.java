@@ -11,7 +11,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
  * <p>Three conditions have to agree on what "configured" means, and they disagree in visible ways if
  * they drift: {@link ValidatePDPSignedMetadataIss} decides whether to compare {@code iss} against it or
  * against the 'PDP Identifier', {@code ValidatePDPMetadataIssuer} validates the value, and
- * {@code WarnUnusedSignedMetadataIssuer} reports one the run cannot use. An empty string must behave
+ * {@code WarnUnusedSignedMetadataConfiguration} reports one the run cannot use. An empty string must behave
  * exactly like an absent field in all three, so that rule lives here rather than being spelled out
  * three times.
  */
