@@ -85,7 +85,6 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	 */
 	@Override
 	protected void performIdempotencyIteration() {
-		callAndContinueOnFailure(new ExtractAuthzenSearchExpectedResponse(requireExpectedSearchResponseJson()), ConditionResult.FAILURE);
 		if (fetchAllSearchPages()) {
 			throw new TestFailureException(getId(),
 				"The PDP did not answer the search with HTTP 200, so its results cannot be compared across identical requests");
@@ -117,14 +116,24 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 		JsonObject searchRequest = env.getObject("authzen_api_endpoint_request").deepCopy();
 		JsonElement resultsElement = env.getElementFromObject("authzen_search_endpoint_aggregated_results", "results");
 		if (resultsElement == null || !resultsElement.isJsonArray() || resultsElement.getAsJsonArray().isEmpty()) {
-			eventLog.log(getName(), "The search returned no results, so none were sent to the Access Evaluation API");
+			eventLog.startBlock("Evaluate the search results");
+			try {
+				eventLog.log(getName(), "The search returned no results, so none were sent to the Access Evaluation API");
+			} finally {
+				eventLog.endBlock();
+			}
 			return;
 		}
 		JsonArray results = resultsElement.getAsJsonArray();
 		int count = Math.min(results.size(), MAX_RESULTS_TO_EVALUATE);
 		if (results.size() > count) {
-			eventLog.log(getName(), "The search returned " + results.size() + " results; the first " + count
-				+ " are sent to the Access Evaluation API");
+			eventLog.startBlock("Evaluate the search results");
+			try {
+				eventLog.log(getName(), "The search returned " + results.size() + " results; the first " + count
+					+ " are sent to the Access Evaluation API");
+			} finally {
+				eventLog.endBlock();
+			}
 		}
 		for (int i = 0; i < count; i++) {
 			// Every page's results are checked to be objects, stopping the test otherwise, before
@@ -158,24 +167,15 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	 * Follows the {@code page.next_token} chain, failing on a page that repeats an earlier
 	 * page's token and results, and capped at {@code MAX_PAGES},
 	 * aggregating results across pages, and matches the accumulated results
-	 * against the expected set. Nested {@code eventLog} blocks (one outer,
-	 * one per page) are wrapped in try/finally so block scopes always close
-	 * even when a condition throws.
+	 * against the expected set. Log blocks do not nest, so each page has a block of its own,
+	 * as does the matching; each is closed in a finally, so it closes even when a condition
+	 * throws.
 	 */
 	protected void runPaginatedSearchLoop() {
-		eventLog.startBlock("Make paginated request to API endpoint");
-		try {
-			// Extract the expected response once up front so per-page conditions can use it.
-			callAndContinueOnFailure(new ExtractAuthzenSearchExpectedResponse(requireExpectedSearchResponseJson()), ConditionResult.FAILURE);
-
-			if (!fetchAllSearchPages()) {
-				matchAggregatedSearchResults();
-			}
-
-			performPostApiFlow();
-		} finally {
-			eventLog.endBlock();
+		if (!fetchAllSearchPages()) {
+			matchAggregatedSearchResults();
 		}
+		performPostApiFlow();
 	}
 
 	/**
@@ -236,11 +236,24 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 			+ " of the search with HTTP 200, so the search results cannot be checked");
 	}
 
+	/**
+	 * Matches the results of every page together against the expected results, in a log block of
+	 * its own.
+	 */
 	private void matchAggregatedSearchResults() {
-		env.mapKey("authzen_search_endpoint_response", "authzen_search_endpoint_aggregated_results");
-		// The expected entities come from the certification fixture (scenario 4.5), not from the
-		// Authorization API specification, and the scenario has no requirement link prefix.
-		callAndContinueOnFailure(EnsureAuthzenSearchResponseValsMatchExpectedVals.class, ConditionResult.FAILURE);
-		env.unmapKey("authzen_search_endpoint_response");
+		eventLog.startBlock("Match the search results");
+		try {
+			callAndContinueOnFailure(new ExtractAuthzenSearchExpectedResponse(requireExpectedSearchResponseJson()), ConditionResult.FAILURE);
+			env.mapKey("authzen_search_endpoint_response", "authzen_search_endpoint_aggregated_results");
+			try {
+				// The expected entities come from the certification fixture (scenario 4.5), not from the
+				// Authorization API specification, and the scenario has no requirement link prefix.
+				callAndContinueOnFailure(EnsureAuthzenSearchResponseValsMatchExpectedVals.class, ConditionResult.FAILURE);
+			} finally {
+				env.unmapKey("authzen_search_endpoint_response");
+			}
+		} finally {
+			eventLog.endBlock();
+		}
 	}
 }
