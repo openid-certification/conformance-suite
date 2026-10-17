@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-subject-missing-type",
 	displayName = "AuthZEN Evaluation API - Section 10.1.1: Subject missing type -- expect HTTP 400",
-	summary = "Section 10.1.1 missing required sub-field. `subject` omits `type`; PDP MUST return HTTP 400.\n" + AuthzenPDPEvaluationSubjectMissingTypeTest.payload,
+	summary = "Sections 5.1 and 10.1.1 missing required sub-field (certification scenario 5.4.2). `subject` omits `type`; PDP MUST return HTTP 400.\n" + AuthzenPDPEvaluationSubjectMissingTypeTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPEvaluationSubjectMissingTypeTest extends AbstractAuthzenPDPEvaluationTest {
@@ -32,5 +32,11 @@ public class AuthzenPDPEvaluationSubjectMissingTypeTest extends AbstractAuthzenP
 	@Override
 	protected boolean sendRawRequest() {
 		return true;
+	}
+
+	@Override
+	protected String[] additionalStatusRequirements() {
+		// Section 5.1: a Subject has two REQUIRED keys, type and id.
+		return new String[] {"AUTHZEN-5.1"};
 	}
 }
