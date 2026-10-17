@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-subject-search-subject-search-with-context",
 	displayName = "AuthZEN Subject Search API - Section 8.4.1: Subject search with context",
-	summary = "Section 8.4.1 subject search with the optional context field. The PDP MUST accept the request and return at least alice and bob.\n" + AuthzenPDPSubjectSearchSubjectSearchWithContextTest.payload,
+	summary = "Section 8.4.1 subject search with the optional context field (certification scenario 7.2.2). The PDP MUST accept the request, and as context does not affect fixture decisions (scenario 4.6), the results MUST include alice and bob.\n" + AuthzenPDPSubjectSearchSubjectSearchWithContextTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPSubjectSearchSubjectSearchWithContextTest extends AbstractAuthzenPDPSubjectSearchTest {
