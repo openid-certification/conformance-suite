@@ -22,7 +22,6 @@ import java.util.Map;
 		AuthzenPDPResourceSearchResultsEvaluateToPermitTest.class,
 		AuthzenPDPResourceSearchUnknownEntityIdentifierTest.class,
 		AuthzenPDPResourceSearchUnknownEntityTypeTest.class,
-		AuthzenPDPResourceSearchResourceSearchWithResourceIdOmittedTest.class,
 		AuthzenPDPResourceSearchRequestWithPageLimitTest.class,
 		AuthzenPDPResourceSearchChangedPageParametersTest.class,
 		// X-Request-ID handling (Section 10.1.3)

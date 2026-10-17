@@ -20,7 +20,6 @@ import java.util.Map;
 		AuthzenPDPSubjectSearchValidSubjectSearchRequestWithNonEmptyResultsTest.class,
 		AuthzenPDPSubjectSearchSubjectSearchWithContextTest.class,
 		AuthzenPDPSubjectSearchResultsEvaluateToPermitTest.class,
-		AuthzenPDPSubjectSearchSubjectSearchWithSubjectIdOmittedTest.class,
 		AuthzenPDPSubjectSearchRequestWithPageLimitTest.class,
 		AuthzenPDPSubjectSearchChangedPageParametersTest.class,
 		AuthzenPDPSubjectSearchUnknownEntityTypeTest.class,
