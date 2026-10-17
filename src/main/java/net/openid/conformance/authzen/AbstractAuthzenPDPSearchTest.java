@@ -12,18 +12,42 @@ import net.openid.conformance.authzen.condition.ExtractAuthzenApiEndpointDecisio
 import net.openid.conformance.authzen.condition.SetAuthzenApiEndpointToAccessEvaluationEndpoint;
 import net.openid.conformance.authzen.condition.AddAuthzenSearchPageTokenToRequest;
 import net.openid.conformance.authzen.condition.AggregateAuthzenSearchResults;
+import net.openid.conformance.authzen.condition.ChangeAuthzenSearchRequestPageLimit;
 import net.openid.conformance.authzen.condition.EnsureAuthzenSearchResponseValsMatchExpectedVals;
 import net.openid.conformance.authzen.condition.EnsureSearchPageTokenNotRepeated;
 import net.openid.conformance.authzen.condition.ExtractAuthzenSearchExpectedResponse;
+import net.openid.conformance.authzen.condition.WarnChangedPageRequestAccepted;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.testmodule.TestFailureException;
 
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTest {
 
 	private static final int MAX_PAGES = 100;
+
+	/**
+	 * For the request that sends a page token with a changed page.limit: a 4xx is the error
+	 * Section 8.2 asks for, and a 200 is checked by WarnChangedPageRequestAccepted; any other
+	 * status fails the status check.
+	 */
+	private static final Set<Integer> CHANGED_PAGE_REQUEST_STATUSES = IntStream.concat(IntStream.of(200), IntStream.range(400, 500))
+		.boxed().collect(Collectors.toUnmodifiableSet());
+
+	private boolean sendingChangedPageRequest;
+
+	/**
+	 * Whether the module sends the token of the first page back with a changed page.limit,
+	 * instead of following the pages (Section 8.2: the parameters of a request with a token MUST
+	 * be identical to the preceding request's, and "PDPs SHOULD return an error when any entity
+	 * or parameter has been changed"). Such a module's payload sets page.limit to 1.
+	 */
+	protected boolean sendsPageTokenWithChangedLimit() {
+		return false;
+	}
 
 	/**
 	 * Override to supply the results a successful search is matched against (e.g.
@@ -59,11 +83,61 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	 */
 	@Override
 	protected void performAuthzenApiFlow() {
-		if (getAcceptableHttpStatusCodes().contains(200)) {
+		if (sendsPageTokenWithChangedLimit()) {
+			sendPageTokenWithChangedLimit();
+		} else if (getAcceptableHttpStatusCodes().contains(200)) {
 			runPaginatedSearchLoop();
 		} else {
 			super.performAuthzenApiFlow();
 		}
+	}
+
+	/**
+	 * Requests the first page, then sends its {@code page.next_token} with page.limit changed
+	 * to 2. Pagination is optional (Section 8.2), so the test is skipped when the PDP returns
+	 * the whole result set in one response.
+	 */
+	private void sendPageTokenWithChangedLimit() {
+		eventLog.startBlock("Request the first page");
+		try {
+			createAuthzenApiRequest();
+			performSingleApiRequest();
+			if (!responseStatusIs200()) {
+				// The status check has already failed, and there is no page token to send.
+				throw new TestFailureException(getId(), "The PDP did not answer the first page with HTTP 200, so there is no page token to send with a changed limit");
+			}
+			processAuthApiEndpointResponse();
+		} finally {
+			eventLog.endBlock();
+		}
+
+		if (Strings.isNullOrEmpty(env.getString("authzen_search_endpoint_request_page_token"))) {
+			fireTestSkipped("The PDP returned the whole result set in one response, so it does not paginate this search and there is no page token to send with a changed limit. Pagination is optional (Section 8.2).");
+			return;
+		}
+
+		eventLog.startBlock("Send the page token with a changed limit");
+		try {
+			sendingChangedPageRequest = true;
+			createAuthzenApiRequest();
+			callAndStopOnFailure(new ChangeAuthzenSearchRequestPageLimit(2), "AUTHZEN-8.2");
+			performSingleApiRequest();
+			callAndContinueOnFailure(WarnChangedPageRequestAccepted.class, ConditionResult.WARNING, "AUTHZEN-8.2");
+		} finally {
+			eventLog.endBlock();
+		}
+
+		performPostApiFlow();
+	}
+
+	@Override
+	protected Set<Integer> getAcceptableHttpStatusCodes() {
+		return sendingChangedPageRequest ? CHANGED_PAGE_REQUEST_STATUSES : super.getAcceptableHttpStatusCodes();
+	}
+
+	@Override
+	protected String[] expectedStatusRequirements(Set<Integer> acceptable) {
+		return sendingChangedPageRequest ? new String[] {"AUTHZEN-8.2", "AUTHZEN-10.1.2"} : super.expectedStatusRequirements(acceptable);
 	}
 
 	/**
