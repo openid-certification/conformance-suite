@@ -65,7 +65,7 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 	protected void fetchAndValidateDiscoveryMetadata() {
 		eventLog.startBlock("Fetch the PDP metadata");
 		try {
-			callAndStopOnFailure(GetPDPDynamicServerConfiguration.class);
+			callAndStopOnFailure(GetPDPDynamicServerConfiguration.class, "AUTHZEN-9.2", "AUTHZEN-9.2.2");
 			callAndContinueOnFailure(EnsureDiscoveryMetadataResponseValid.class, ConditionResult.FAILURE, "AUTHZEN-9.2.2");
 		} finally {
 			eventLog.endBlock();
