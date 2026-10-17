@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-missing-action",
 	displayName = "AuthZEN Evaluation API - Section 10.1.1: Missing action -- expect HTTP 400",
-	summary = "Section 10.1.1 missing required field. Request omits `action`; PDP MUST return HTTP 400.\n" + AuthzenPDPEvaluationMissingActionTest.payload,
+	summary = "Sections 6.1 and 10.1.1 missing required field (certification scenario 5.4.1). Request omits `action`; PDP MUST return HTTP 400.\n" + AuthzenPDPEvaluationMissingActionTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPEvaluationMissingActionTest extends AbstractAuthzenPDPEvaluationTest {
@@ -31,5 +31,11 @@ public class AuthzenPDPEvaluationMissingActionTest extends AbstractAuthzenPDPEva
 	@Override
 	protected boolean sendRawRequest() {
 		return true;
+	}
+
+	@Override
+	protected String[] additionalStatusRequirements() {
+		// Section 6.1: action is REQUIRED.
+		return new String[] {"AUTHZEN-6.1"};
 	}
 }

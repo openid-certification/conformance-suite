@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-action-search-missing-subject",
 	displayName = "AuthZEN Action Search API - Section 10.1.1: Missing subject -- expect HTTP 400",
-	summary = "Section 10.1.1 missing required field. Action Search request omits `subject`; PDP MUST return HTTP 400.\n" + AuthzenPDPActionSearchMissingSubjectTest.payload,
+	summary = "Sections 8.6.1 and 10.1.1 missing required field (certification scenario 7.7.1). Action Search request omits `subject`; PDP MUST return HTTP 400.\n" + AuthzenPDPActionSearchMissingSubjectTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPActionSearchMissingSubjectTest extends AbstractAuthzenPDPActionSearchTest {
@@ -30,5 +30,11 @@ public class AuthzenPDPActionSearchMissingSubjectTest extends AbstractAuthzenPDP
 	@Override
 	protected boolean sendRawRequest() {
 		return true;
+	}
+
+	@Override
+	protected String[] additionalStatusRequirements() {
+		// Section 8.6.1: subject and resource are REQUIRED.
+		return new String[] {"AUTHZEN-8.6.1"};
 	}
 }
