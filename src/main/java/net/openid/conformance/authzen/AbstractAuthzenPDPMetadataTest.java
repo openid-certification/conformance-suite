@@ -18,7 +18,7 @@ import net.openid.conformance.authzen.condition.ValidatePDPMetadataIssuer;
 import net.openid.conformance.authzen.condition.WarnAuthzenCapabilitiesNotAuthzenUrns;
 import net.openid.conformance.authzen.condition.WarnAuthzenMetadataUnknownMembers;
 import net.openid.conformance.authzen.condition.WarnOnUnusableAuthzenPdpJwksKeys;
-import net.openid.conformance.authzen.condition.WarnUnusedSignedMetadataIssuer;
+import net.openid.conformance.authzen.condition.WarnUnusedSignedMetadataConfiguration;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.common.EnsureJwksHasNoPrivateAsymmetricKeyMaterial;
@@ -87,9 +87,11 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 		try {
 			checkMetadataDocument("pdp");
 			if (!hasSignedMetadata) {
-				// A 'Signed Metadata Issuer' only applies to a signed_metadata JWT. Ignoring it in
-				// silence would leave a tester who expected signed metadata reading a clean log.
-				callAndContinueOnFailure(WarnUnusedSignedMetadataIssuer.class, ConditionResult.WARNING, "AUTHZEN-9.1.3");
+				// A 'Signed Metadata Issuer' and a 'PDP JWK Set' only apply to a signed_metadata JWT.
+				// Ignoring them in silence would leave a tester who expected signed metadata reading a
+				// clean log. The check is on the test configuration, not the PDP, so it cites no
+				// requirement.
+				callAndContinueOnFailure(WarnUnusedSignedMetadataConfiguration.class, ConditionResult.WARNING);
 			}
 		} finally {
 			eventLog.endBlock();
