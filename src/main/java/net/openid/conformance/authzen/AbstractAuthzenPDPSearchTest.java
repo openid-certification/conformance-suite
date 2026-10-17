@@ -192,6 +192,17 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	 */
 	protected void evaluateSearchResultsWithAccessEvaluationApi(String searchedEntity) {
 		JsonObject searchRequest = env.getObject("authzen_api_endpoint_request").deepCopy();
+		// The results are aggregated from the first page answered with HTTP 200, so they are absent
+		// when the search itself failed, which the status check has already reported.
+		if (!env.containsObject("authzen_search_endpoint_aggregated_results")) {
+			eventLog.startBlock("Evaluate the search results");
+			try {
+				eventLog.log(getName(), "The PDP did not answer the search with HTTP 200, so no results were sent to the Access Evaluation API");
+			} finally {
+				eventLog.endBlock();
+			}
+			return;
+		}
 		JsonElement resultsElement = env.getElementFromObject("authzen_search_endpoint_aggregated_results", "results");
 		if (resultsElement == null || !resultsElement.isJsonArray() || resultsElement.getAsJsonArray().isEmpty()) {
 			eventLog.startBlock("Evaluate the search results");
