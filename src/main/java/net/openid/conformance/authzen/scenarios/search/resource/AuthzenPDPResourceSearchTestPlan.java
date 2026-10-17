@@ -48,8 +48,9 @@ import java.util.Map;
 		AuthzenPDPResourceSearchActionMissingNameTest.class,
 		// Extra resource.id ignored (Section 8.5.1)
 		AuthzenPDPResourceSearchExtraResourceIdIgnoredTest.class,
-		// Forward-compat: unknown top-level fields ignored (Section 10.1.1)
+		// Forward-compat: unknown fields ignored (Section 10.1.1)
 		AuthzenPDPResourceSearchUnknownTopLevelFieldsTest.class,
+		AuthzenPDPResourceSearchUnknownPageFieldsTest.class,
 		// Search Properties (Properties variant only)
 		AuthzenPDPResourceSearchResourceSearchWithSubjectPropertiesTest.class,
 		// Authentication (Section 11.3)
