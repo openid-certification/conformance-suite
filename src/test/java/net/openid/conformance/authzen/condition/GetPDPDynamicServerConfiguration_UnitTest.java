@@ -8,6 +8,7 @@ import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -27,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * {@code /.well-known/authzen-configuration} segment is inserted between the host
  * and any existing path, not appended after the whole URL) and the parsing of the
  * metadata response body, and the failure reported when the metadata endpoint answers
- * with an error status.
+ * with an error status, a redirect or an empty body.
  */
 class GetPDPDynamicServerConfiguration_UnitTest {
 
@@ -114,19 +115,36 @@ class GetPDPDynamicServerConfiguration_UnitTest {
 		assertThrows(ConditionError.class, () -> cond.parseServerConfiguration(""));
 	}
 
-	/** Uses the same HTTP client library as the suite, without TLS set-up. */
+	/** Uses the same HTTP client library as the suite, following no redirects as it does, without TLS set-up. */
 	private static final class LocalFetch extends GetPDPDynamicServerConfiguration {
 		@Override
 		protected RestTemplate createRestTemplate(Environment env) {
-			return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+			return new RestTemplate(new HttpComponentsClientHttpRequestFactory(
+				HttpClients.custom().disableRedirectHandling().build()));
 		}
 	}
 
 	/** Fetches the metadata from a local server that answers every request with the given status. */
 	private ConditionError fetchFromServerAnswering(int status) throws IOException {
+		return fetchFromServerAnswering(status, "{\"error\":\"not here\"}", null);
+	}
+
+	/**
+	 * Fetches the metadata from a local server that answers every request with the given status,
+	 * body (none when empty) and Location header (none when null).
+	 */
+	private ConditionError fetchFromServerAnswering(int status, String body, String location) throws IOException {
 		HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
 		server.createContext("/", exchange -> {
-			byte[] response = "{\"error\":\"not here\"}".getBytes(StandardCharsets.UTF_8);
+			byte[] response = body.getBytes(StandardCharsets.UTF_8);
+			if (location != null) {
+				exchange.getResponseHeaders().add("Location", location);
+			}
+			if (response.length == 0) {
+				exchange.sendResponseHeaders(status, -1);
+				exchange.close();
+				return;
+			}
 			exchange.getResponseHeaders().add("Content-Type", "application/json");
 			exchange.sendResponseHeaders(status, response.length);
 			try (OutputStream out = exchange.getResponseBody()) {
@@ -156,5 +174,29 @@ class GetPDPDynamicServerConfiguration_UnitTest {
 	public void serverError_failsNamingTheStatus() throws IOException {
 		ConditionError e = fetchFromServerAnswering(500);
 		assertTrue(e.getMessage().contains("the PDP answered HTTP 500"), e.getMessage());
+	}
+
+	@Test
+	public void redirect_failsNamingTheStatus() throws IOException {
+		ConditionError e = fetchFromServerAnswering(302, "", "https://elsewhere.example.com/.well-known/authzen-configuration");
+		assertTrue(e.getMessage().contains("the PDP answered HTTP 302, a redirect"), e.getMessage());
+	}
+
+	@Test
+	public void permanentRedirectWithHtmlBody_failsNamingTheStatus() throws IOException {
+		ConditionError e = fetchFromServerAnswering(308, "<html>Moved</html>", "https://elsewhere.example.com/");
+		assertTrue(e.getMessage().contains("the PDP answered HTTP 308, a redirect"), e.getMessage());
+	}
+
+	@Test
+	public void noContent_failsNamingTheStatus() throws IOException {
+		ConditionError e = fetchFromServerAnswering(204, "", null);
+		assertTrue(e.getMessage().contains("the PDP answered HTTP 204 with an empty body"), e.getMessage());
+	}
+
+	@Test
+	public void okWithEmptyBody_failsNamingTheStatus() throws IOException {
+		ConditionError e = fetchFromServerAnswering(200, "", null);
+		assertTrue(e.getMessage().contains("the PDP answered HTTP 200 with an empty body"), e.getMessage());
 	}
 }
