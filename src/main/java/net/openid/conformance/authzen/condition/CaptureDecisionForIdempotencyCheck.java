@@ -10,9 +10,9 @@ import net.openid.conformance.testmodule.OIDFJSON;
 
 /**
  * Captures the boolean decision from the current AuthZEN API response under the
- * env key `authzen_idempotency_first_decision` if not already set. Subsequent
- * iterations should call {@link EnsureDecisionMatchesIdempotencyCheck} to assert
- * that the decision did not change.
+ * env key `authzen_idempotency_first_decision`. The idempotency loop calls it on the
+ * first iteration only; later iterations call {@link EnsureDecisionMatchesIdempotencyCheck}
+ * to assert that the decision did not change.
  */
 public class CaptureDecisionForIdempotencyCheck extends AbstractCondition {
 
@@ -20,10 +20,6 @@ public class CaptureDecisionForIdempotencyCheck extends AbstractCondition {
 	@PreEnvironment(required = "authzen_api_endpoint_decision")
 	@PostEnvironment(strings = "authzen_idempotency_first_decision")
 	public Environment evaluate(Environment env) {
-		if (env.getString("authzen_idempotency_first_decision") != null) {
-			log("First-iteration decision already captured; skipping");
-			return env;
-		}
 		boolean value = readBooleanDecision(env);
 		env.putString("authzen_idempotency_first_decision", Boolean.toString(value));
 		logSuccess("Captured initial decision for idempotency check", args("decision", value));
