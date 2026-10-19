@@ -3,6 +3,7 @@ package net.openid.conformance.ekyc.test.oidccore;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.CreateTransactionId;
+import net.openid.conformance.condition.client.AddEssentialAcrClaimWithNoValuesToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddTransactionIdToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToUserInfoEndpoint;
 import net.openid.conformance.ekyc.condition.client.AddUnverifiedClaimsToAuthorizationEndpointRequest;
@@ -22,6 +23,7 @@ import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsRespon
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsResponseAgainstSchema;
 import net.openid.conformance.openid.AbstractOIDCCServerSecurityProfileTest;
 import net.openid.conformance.sequence.AbstractConditionSequence;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.EKYCProfile;
@@ -49,6 +51,8 @@ import net.openid.conformance.variant.VariantSetup;
 public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerSecurityProfileTest {
 
 	private EKYCVerifiedClaimsResponseSupport eKYCVerifiedClaimsResponseSupport;
+	protected Class <? extends ConditionSequence> profileAddUnverifiedClaimsSteps = null;
+	protected Class <? extends ConditionSequence> profileAddVerifiedClaimsSteps = null;
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
@@ -78,15 +82,22 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerSe
 	@VariantSetup(parameter = EKYCProfile.class, value = "select_id")
 	public void setupProfileAuthorizationEndpointSetupSteps() {
 		profileAuthorizationEndpointSetupSteps = SelectIdAuthorizationEndpointSetupSteps.class;
+		profileAddUnverifiedClaimsSteps = SelectIdAddUnverifiedClaimsSteps.class;
 	}
 
 	protected void addUnverifiedClaimsToAuthorizationRequest() {
 		callAndStopOnFailure(CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(AddUnverifiedClaimsToAuthorizationEndpointRequest.class, Condition.ConditionResult.WARNING, "IA-5.3", "IA-7");
+		if(profileAddUnverifiedClaimsSteps!=null) {
+			call(sequence(profileAddUnverifiedClaimsSteps));
+		}
 	}
 
 	protected void addVerifiedClaimsToAuthorizationRequest() {
 		callAndContinueOnFailure(AddVerifiedClaimsToAuthorizationEndpointRequestUsingJsonNull.class, Condition.ConditionResult.WARNING, "IA-5.3", "IA-7");
+		if(profileAddVerifiedClaimsSteps!=null) {
+			call(sequence(profileAddVerifiedClaimsSteps));
+		}
 	}
 
 	protected void validateVerifiedClaimsRequestSchema() {
@@ -156,6 +167,13 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerSe
 			callAndStopOnFailure(CreateTransactionId.class);
 			callAndStopOnFailure(AddTransactionIdToAuthorizationEndpointRequest.class);
 			call(exec().exposeEnvironmentString("transaction_id"));
+		}
+	}
+
+	public static class SelectIdAddUnverifiedClaimsSteps extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(AddEssentialAcrClaimWithNoValuesToAuthorizationEndpointRequest.class);
 		}
 	}
 
