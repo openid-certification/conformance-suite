@@ -1,7 +1,8 @@
 package net.openid.conformance.vci10issuer;
 
-import net.openid.conformance.condition.Condition;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwt;
 import net.openid.conformance.vci10issuer.condition.clientattestation.VCIInvalidateClientAttestationSignature;
 
 /**
@@ -33,10 +34,9 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.VCIInvalid
 public class VCIIssuerFailOnInvalidClientAttestationSignature extends AbstractVCIIssuerClientAttestationNegativeTest {
 
 	@Override
-	protected void afterClientAttestationGenerated() {
-		super.afterClientAttestationGenerated();
-
-		// Invalidate the client attestation signature
-		callAndContinueOnFailure(VCIInvalidateClientAttestationSignature.class, Condition.ConditionResult.INFO, "OAuth2-ATCA07-1");
+	protected ConditionSequence createClientAuthenticationSequence() {
+		return super.createClientAuthenticationSequence()
+			.insertAfter(CreateClientAttestationJwt.class,
+				condition(VCIInvalidateClientAttestationSignature.class).requirement("OAuth2-ATCA07-5.1"));
 	}
 }

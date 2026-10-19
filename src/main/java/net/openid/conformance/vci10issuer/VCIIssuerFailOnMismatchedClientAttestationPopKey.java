@@ -1,6 +1,5 @@
 package net.openid.conformance.vci10issuer;
 
-import net.openid.conformance.condition.client.AddClientAttestationClientAuthToEndpointRequest;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.vci10issuer.condition.clientattestation.ReplaceClientInstanceKeyWithNewKey;
@@ -35,22 +34,8 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.ReplaceCli
 public class VCIIssuerFailOnMismatchedClientAttestationPopKey extends AbstractVCIIssuerClientAttestationNegativeTest {
 
 	@Override
-	protected void addClientAuthenticationToPAREndpointRequest() {
-		addClientAttestationWithMismatchedPopKey("pushed_authorization_request_form_parameters",
-			"pushed_authorization_request_endpoint_request_headers");
-	}
-
-	@Override
-	protected void addClientAuthenticationToTokenEndpointRequest() {
-		addClientAttestationWithMismatchedPopKey("token_endpoint_request_form_parameters",
-			"token_endpoint_request_headers");
-	}
-
-	private void addClientAttestationWithMismatchedPopKey(String formParametersKey, String requestHeadersKey) {
-		mapClientAuthKeys(formParametersKey, requestHeadersKey);
-		ConditionSequence seq = new AddClientAttestationClientAuthToEndpointRequest();
-		seq.butFirst(condition(ReplaceClientInstanceKeyWithNewKey.class).requirement("OAuth2-ATCA07-5.2"));
-		call(seq);
-		unmapClientAuthKeys();
+	protected ConditionSequence createClientAuthenticationSequence() {
+		return super.createClientAuthenticationSequence()
+			.butFirst(condition(ReplaceClientInstanceKeyWithNewKey.class).requirement("OAuth2-ATCA07-5.2"));
 	}
 }

@@ -1,9 +1,9 @@
 package net.openid.conformance.vci10issuer;
 
+import net.openid.conformance.condition.client.CreateClientAttestationProofJwt;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.VariantSetup;
-import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientAttestationClientAuthWithWrongAudPop;
+import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationProofJwtWithWrongAud;
 
 /**
  * Negative test that verifies the authorization server rejects client attestation
@@ -27,9 +27,10 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientA
 )
 public class VCIIssuerFailOnClientAttestationPopWrongAud extends AbstractVCIIssuerClientAttestationNegativeTest {
 
-	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
 	@Override
-	public void setupClientAttestation() {
-		addClientAuthentication = AddClientAttestationClientAuthWithWrongAudPop.class;
+	protected ConditionSequence createClientAuthenticationSequence() {
+		return super.createClientAuthenticationSequence()
+			.replace(CreateClientAttestationProofJwt.class,
+				condition(CreateClientAttestationProofJwtWithWrongAud.class).requirement("OAuth2-ATCA07-5.2"));
 	}
 }

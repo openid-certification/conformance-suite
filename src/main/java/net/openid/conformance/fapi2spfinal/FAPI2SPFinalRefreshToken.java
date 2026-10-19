@@ -41,7 +41,6 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantSetup;
-import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwt;
 import net.openid.conformance.vci10issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
 
 @PublishTestModule(
@@ -149,21 +148,19 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 				// that was present in the "cnf" claim of the client attestation when the
 				// refresh_token was issued.
 
-				// Snapshot the original instance key + attestation so the test can be restored
-				// to a working state for any subsequent flow (e.g. second-client phase).
+				// Snapshot the original instance key so the test can be restored to a working
+				// state for any subsequent flow (e.g. second-client phase).
 				String origInstanceKey = env.getString("client", "client_instance_key");
 				String origInstanceKeyPublic = env.getString("client", "client_instance_key_public");
-				String origAttestation = env.getString("client", "client_attestation");
 
 				eventLog.startBlock("Attempting to use the refresh_token with a different client instance key");
 
-				// Generate a fresh instance key and re-mint the client attestation JWT with the
-				// new public key in cnf. The resulting refresh request is internally consistent
-				// (PoP signed with K2, attestation cnf=K2) but uses K2 ≠ K1, so the AS must
-				// reject it. The sender-constraint proof is kept in place so a rejection isolates
-				// the §10.3 binding failure mode rather than mixing in missing-PoP.
+				// Generate a fresh instance key; the client authentication sequence mints the
+				// attestation JWT with the new public key in cnf. The resulting refresh request is
+				// internally consistent (PoP signed with K2, attestation cnf=K2) but uses K2 ≠ K1,
+				// so the AS must reject it. The sender-constraint proof is kept in place so a
+				// rejection isolates the §10.3 binding failure mode rather than mixing in missing-PoP.
 				callAndStopOnFailure(GenerateClientAttestationClientInstanceKey.class, "OAuth2-ATCA07-10.3");
-				callAndStopOnFailure(CreateClientAttestationJwt.class, "OAuth2-ATCA07-10.3");
 
 				callAndStopOnFailure(CreateRefreshTokenRequest.class);
 				callAndStopOnFailure(AddScopeToTokenEndpointRequest.class, "RFC6749-6");
@@ -176,7 +173,6 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 
 				env.putString("client", "client_instance_key", origInstanceKey);
 				env.putString("client", "client_instance_key_public", origInstanceKeyPublic);
-				env.putString("client", "client_attestation", origAttestation);
 
 				eventLog.endBlock();
 			}
@@ -247,8 +243,8 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 					callAndContinueOnFailure(CheckTokenEndpointHttpStatus400or401.class, ConditionResult.FAILURE, "RFC6749-6");
 					callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 					if (getVariant(ClientAuthType.class) == ClientAuthType.CLIENT_ATTESTATION) {
-						// OAuth2-ATCA §6.2 lets the AS use `invalid_client_attestation` /
-						// `use_fresh_attestation` for an attestation-validation failure.
+						// OAuth2-ATCA §6.2 lets the AS use `invalid_client_attestation` for an
+						// attestation-validation failure.
 						callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidClientGrantRequestOrAttestationError.class, ConditionResult.FAILURE, "RFC6749-6", "OAuth2-ATCA07-6.2");
 					} else {
 						callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidClientGrantOrRequestError.class, ConditionResult.FAILURE, "RFC6749-6");

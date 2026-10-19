@@ -3,7 +3,9 @@ package net.openid.conformance.vci10issuer;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
+import net.openid.conformance.condition.client.CheckErrorFromParEndpointResponseErrorForExpiredClientAttestation;
 import net.openid.conformance.condition.client.CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequestOrInvalidClientAttestation;
+import net.openid.conformance.condition.client.CheckTokenEndpointReturnedExpiredClientAttestationError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidClientRequestOrAttestationError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
@@ -31,8 +33,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
  * (mirroring AbstractFAPI2SPFinalPerformTokenEndpoint) so the flow never continues to the
  * credential endpoint after the test has finished.
  *
- * Leaf modules only apply their specific attestation mutation, e.g. by overriding
- * {@link #afterClientAttestationGenerated()} or replacing the client authentication sequence.
+ * Leaf modules only apply their specific mutation to the attestation or its proof of possession,
+ * by overriding {@link #createClientAuthenticationSequence()}. That sequence runs immediately
+ * before each authenticated request, so the mutation reaches whichever request is rejected.
  */
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {"mtls", "private_key_jwt"})
 public abstract class AbstractVCIIssuerClientAttestationNegativeTest extends AbstractVCIIssuerTestModule {
@@ -56,7 +59,10 @@ public abstract class AbstractVCIIssuerClientAttestationNegativeTest extends Abs
 		env.mapKey("endpoint_response", CallPAREndpoint.RESPONSE_KEY);
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs400or401.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-6.2");
 		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-6.2");
-		callAndContinueOnFailure(CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequestOrInvalidClientAttestation.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-6.2");
+		callAndContinueOnFailure(acceptsUseFreshAttestation()
+				? CheckErrorFromParEndpointResponseErrorForExpiredClientAttestation.class
+				: CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequestOrInvalidClientAttestation.class,
+			Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-6.2");
 		env.unmapKey("endpoint_response");
 
 		fireTestFinished();
@@ -72,8 +78,20 @@ public abstract class AbstractVCIIssuerClientAttestationNegativeTest extends Abs
 		callAndContinueOnFailure(CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB.class, Condition.ConditionResult.WARNING, "RFC6749-5.2");
 		callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		callAndContinueOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-		callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidClientRequestOrAttestationError.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-6.2");
+		callAndContinueOnFailure(acceptsUseFreshAttestation()
+				? CheckTokenEndpointReturnedExpiredClientAttestationError.class
+				: CheckTokenEndpointReturnedInvalidClientRequestOrAttestationError.class,
+			Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-6.2");
 
 		fireTestFinished();
+	}
+
+	/**
+	 * Whether use_fresh_attestation is an acceptable rejection. The attestation is minted
+	 * immediately before the request, so staleness is never a legitimate reason to reject it;
+	 * only the expired-attestation module returns true.
+	 */
+	protected boolean acceptsUseFreshAttestation() {
+		return false;
 	}
 }

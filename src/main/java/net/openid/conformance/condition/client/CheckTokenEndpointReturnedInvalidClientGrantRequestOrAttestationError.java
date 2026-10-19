@@ -15,8 +15,7 @@ public class CheckTokenEndpointReturnedInvalidClientGrantRequestOrAttestationErr
 			"invalid_request", ImmutableSet.of(HttpStatus.SC_BAD_REQUEST),
 			"invalid_grant", ImmutableSet.of(HttpStatus.SC_BAD_REQUEST),
 			"invalid_client", ImmutableSet.of(HttpStatus.SC_BAD_REQUEST, HttpStatus.SC_UNAUTHORIZED),
-			"invalid_client_attestation", ImmutableSet.of(HttpStatus.SC_BAD_REQUEST, HttpStatus.SC_UNAUTHORIZED),
-			"use_fresh_attestation", ImmutableSet.of(HttpStatus.SC_BAD_REQUEST, HttpStatus.SC_UNAUTHORIZED)
+			"invalid_client_attestation", ImmutableSet.of(HttpStatus.SC_BAD_REQUEST, HttpStatus.SC_UNAUTHORIZED)
 		);
 	}
 
