@@ -617,9 +617,11 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			return authorizationEndpoint(requestId);
 		} else if (path.equals("token")) {
 			refuseIfStartingShutdown(path);
-			if (profileRequiresMtlsEverywhere) {
-				throw new TestFailureException(getId(), "This ecosystems requires that the token endpoint is called over an mTLS secured connection " +
-					"using the token_endpoint found in mtls_endpoint_aliases.");
+			// the token endpoint checks the client certificate in these cases (see tokenEndpoint()), and none is
+			// presented on the non-mTLS hostname
+			if (clientAuthType == ClientAuthType.MTLS || isMTLSConstrain() || profileRequiresMtlsEverywhere) {
+				throw new TestFailureException(getId(), "invalid_client",
+					"The token endpoint must be called over an mTLS secured connection using the token_endpoint found in mtls_endpoint_aliases.");
 			} else {
 				return tokenEndpoint(requestId);
 			}
