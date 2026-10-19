@@ -1823,7 +1823,7 @@ def run_tests():
     # the suite's lists of trusted entities are public too: implementations under test fetch them
     # as they would a scheme operator's, and the sealing certificate in each header is the one above
     import base64 as _b64
-    for slug in ("pid-providers", "wallet-providers", "wrpac-providers", "wrprc-providers"):
+    for slug in ("pid-providers", "mdl-providers", "wallet-providers", "wrpac-providers", "wrprc-providers"):
         for prefix, empty in (("lote/", False), ("lote/empty/", True)):
             resp = unauthenticated_get(base_url, f"{prefix}{slug}.jwt", verify_ssl)
             ok = resp.status_code == 200 and resp.headers.get("content-type", "").startswith("application/jwt")
