@@ -9,6 +9,8 @@ import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.MdocIacaCrl;
 import net.openid.conformance.util.TestKeysAndCerts;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.BERSequence;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
 import org.bouncycastle.asn1.x509.Extension;
@@ -22,9 +24,12 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.multipaz.documenttype.knowntypes.DrivingLicense;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -208,6 +213,43 @@ public class ValidateMdocDsCertificateCrl_UnitTest {
 	public void failsWhenTheCrlDoesNotParse() {
 		MdocCrlTestFixtures.putCrl(env, new byte[] { 0x30, 0x03, 0x02, 0x01, 0x01 });
 		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void failsOnAPemEncodedCrl() {
+		String pem = "-----BEGIN X509 CRL-----\n"
+			+ Base64.getMimeEncoder(64, new byte[] { '\n' }).encodeToString(MdocIacaCrl.generate())
+			+ "\n-----END X509 CRL-----\n";
+		MdocCrlTestFixtures.putCrl(env, pem.getBytes(StandardCharsets.US_ASCII));
+		assertViolation("PEM");
+	}
+
+	@Test
+	public void failsOnTwoConcatenatedCrls() throws Exception {
+		ByteArrayOutputStream body = new ByteArrayOutputStream();
+		body.write(MdocIacaCrl.generate());
+		body.write(MdocCrlTestFixtures.iacaCrl().build());
+		MdocCrlTestFixtures.putCrl(env, body.toByteArray());
+		assertViolation("single DER encoded CRL");
+	}
+
+	@Test
+	public void failsOnDataAfterTheCrl() throws Exception {
+		ByteArrayOutputStream body = new ByteArrayOutputStream();
+		body.write(MdocIacaCrl.generate());
+		body.write('\n');
+		MdocCrlTestFixtures.putCrl(env, body.toByteArray());
+		assertViolation("single DER encoded CRL");
+	}
+
+	@Test
+	public void failsOnACrlThatIsBerButNotDerEncoded() throws Exception {
+		// the same CRL with the outer SEQUENCE in indefinite-length form, which DER forbids
+		ASN1Sequence der = ASN1Sequence.getInstance(MdocIacaCrl.generate());
+		byte[] ber = new BERSequence(der.toArray()).getEncoded();
+		assertEquals((byte) 0x80, ber[1], "the fixture is not indefinite-length encoded");
+		MdocCrlTestFixtures.putCrl(env, ber);
+		assertViolation("not DER encoded");
 	}
 
 	private void assertViolation(String expectedWording) {
