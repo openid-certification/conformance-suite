@@ -10,9 +10,9 @@ import java.util.List;
  * per EU profile of ETSI TS 119 602 (Annexes D to G), each listing the suite CA whose leaves sign
  * what the list is about under the service types the profile defines. Each CA appears under both an
  * issuance and a revocation service, as the eIDAS Dashboard asks of every notified provider; the
- * same certificate serves both, which the Dashboard allows for services of different types. An mDL providers list is added once the
- * organisers of an event publish the list and service type URIs for it, which the specification
- * does not define.
+ * same certificate serves both, which the Dashboard allows for services of different types. ETSI TS
+ * 119 602 defines no mDL providers profile: that list follows the European Commission's mDL Providers
+ * List Specification (https://eidas.ec.europa.eu/efda/wallet/lists-of-trusted-entities/mdl-providers).
  */
 public enum LoteList {
 
@@ -27,6 +27,14 @@ public enum LoteList {
 				TestKeysAndCerts.SuiteCa.PID_PROVIDER),
 			new Service("http://uri.etsi.org/19602/SvcType/PID/Revocation", "OpenID Foundation conformance suite PID revocation (SD-JWT VC)",
 				TestKeysAndCerts.SuiteCa.PID_PROVIDER))),
+
+	MDL_PROVIDERS("mdl-providers", "http://trust.ec.europa.eu/lists/mDL/mDLProvidersListType",
+		"http://trust.ec.europa.eu/lists/mDL/mDLProvidersListStatusDetn", "http://trust.ec.europa.eu/lists/mDL/schemerules",
+		"EU mDL Providers List", List.of(
+			new Service("http://trust.ec.europa.eu/lists/mDL/SvcType/Issuance", "OpenID Foundation conformance suite mDL issuer",
+				TestKeysAndCerts.SuiteCa.MDOC_IACA_ROOT),
+			new Service("http://trust.ec.europa.eu/lists/mDL/SvcType/Revocation", "OpenID Foundation conformance suite mDL revocation",
+				TestKeysAndCerts.SuiteCa.MDOC_IACA_ROOT))),
 
 	WALLET_PROVIDERS("wallet-providers", "http://uri.etsi.org/19602/LoTEType/EUWalletProvidersList",
 		"http://uri.etsi.org/19602/WalletProvidersList/StatusDetn/EU", "http://uri.etsi.org/19602/WalletProvidersList/schemerules/EU",
