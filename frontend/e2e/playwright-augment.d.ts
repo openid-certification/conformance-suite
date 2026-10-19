@@ -17,5 +17,8 @@ declare global {
     // Set by the scrollIntoView spy in the scroll-to-entry tests so the
     // assertion can verify the scroll handler ran on the right element.
     __scrolledEntryIds?: string[];
+    // Set by the window.open stub in the plan-detail download tests so the
+    // assertion can verify which export URL the button opens.
+    __openedUrls?: string[];
   }
 }

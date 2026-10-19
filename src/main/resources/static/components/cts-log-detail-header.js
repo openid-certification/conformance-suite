@@ -903,6 +903,9 @@ function ensureStylesInjected() {
  *   Reflects the `is-admin` attribute.
  * @property {boolean} isPublic - Public (read-only) view hides repeat /
  *   upload / publish actions. Reflects the `is-public` attribute.
+ * @property {boolean} hideDownload - Hides the Download Logs action, for
+ *   viewers the log export endpoint would reject (anonymous visitors to a
+ *   published test). Reflects the `hide-download` attribute.
  * @property {Array<object>} planModules - Plan modules (in plan order, each
  *   with its full `instances` array + resolved status) sourced by
  *   `log-detail.js` from `/api/plan`, forwarded to the nav row's
@@ -952,6 +955,7 @@ class CtsLogDetailHeader extends LitElement {
     references: { type: Object, attribute: false },
     isAdmin: { type: Boolean, attribute: "is-admin" },
     isPublic: { type: Boolean, attribute: "is-public" },
+    hideDownload: { type: Boolean, attribute: "hide-download" },
     planModules: { type: Array, attribute: false },
     exposed: { type: Object, attribute: false },
     uploadsRequired: { type: Number, attribute: false },
@@ -967,6 +971,7 @@ class CtsLogDetailHeader extends LitElement {
     this.references = {};
     this.isAdmin = false;
     this.isPublic = false;
+    this.hideDownload = false;
     this.planModules = [];
     this.exposed = null;
     this.uploadsRequired = 0;
@@ -1532,7 +1537,7 @@ class CtsLogDetailHeader extends LitElement {
         id: "download-log",
         label: "Download Logs",
         icon: "save",
-        hidden: readonly && test.publish !== "everything",
+        hidden: this.hideDownload || (readonly && test.publish !== "everything"),
       },
     ];
     if (!readonly && this.isAdmin && !test.publish) {
