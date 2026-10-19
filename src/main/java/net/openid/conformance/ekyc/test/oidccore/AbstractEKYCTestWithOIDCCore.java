@@ -5,9 +5,20 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.CreateTransactionId;
 import net.openid.conformance.condition.client.AddEssentialAcrClaimWithNoValuesToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddTransactionIdToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.CheckForAccessTokenValue;
+import net.openid.conformance.condition.client.CheckForRefreshTokenValue;
+import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
+import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
+import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
+import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToUserInfoEndpoint;
+import net.openid.conformance.condition.client.ValidateExpiresIn;
+import net.openid.conformance.condition.client.ValidateIdTokenFromTokenResponseEncryption;
+import net.openid.conformance.condition.client.VerifyIdTokenSubConsistentHybridFlow;
 import net.openid.conformance.ekyc.condition.client.AddUnverifiedClaimsToAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.AddVerifiedClaimsToAuthorizationEndpointRequestUsingJsonNull;
+import net.openid.conformance.ekyc.condition.client.CheckForUnexpectedPropertiesInVerifiedClaimsRequest;
+import net.openid.conformance.ekyc.condition.client.CheckForUnexpectedPropertiesInVerifiedClaimsResponse;
 import net.openid.conformance.ekyc.condition.client.CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.ExtractVerifiedClaimsFromIdToken;
 import net.openid.conformance.ekyc.condition.client.ExtractVerifiedClaimsFromUserinfoResponse;
@@ -15,8 +26,6 @@ import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInIdTo
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInIdTokenAgainstRequest;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInUserinfoAgainstOPMetadata;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInUserinfoResponseAgainstRequest;
-import net.openid.conformance.ekyc.condition.client.CheckForUnexpectedPropertiesInVerifiedClaimsRequest;
-import net.openid.conformance.ekyc.condition.client.CheckForUnexpectedPropertiesInVerifiedClaimsResponse;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsRequestAgainstCustomSchemas;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsRequestAgainstSchema;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsResponseAgainstCustomSchemas;
@@ -104,6 +113,40 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerSe
 		callAndContinueOnFailure(ValidateVerifiedClaimsRequestAgainstSchema.class, Condition.ConditionResult.FAILURE, "IA-5.1");
 		callAndContinueOnFailure(CheckForUnexpectedPropertiesInVerifiedClaimsRequest.class, Condition.ConditionResult.WARNING, "IA-5.1");
 		callAndContinueOnFailure(ValidateVerifiedClaimsRequestAgainstCustomSchemas.class, Condition.ConditionResult.FAILURE);
+	}
+
+	@Override
+	protected void requestAuthorizationCode() {
+		callTokenEndpoint();
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+
+		if(!getVariant(EKYCProfile.class).equals(EKYCProfile.SELECT_ID) || (eKYCVerifiedClaimsResponseSupport != EKYCVerifiedClaimsResponseSupport.ID_TOKEN)) {
+			callAndStopOnFailure(CheckForAccessTokenValue.class);
+			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+
+			callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, Condition.ConditionResult.INFO, "RFC6749-5.1"); // this is 'recommended' by the RFC, but we don't want to raise a warning on every test
+			skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
+				ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
+
+			callAndContinueOnFailure(CheckForRefreshTokenValue.class, Condition.ConditionResult.INFO);
+		} else {
+			// SelectID or ID Token only support for Verified Claims skips Access Token checks
+			// NOT Standard OAuth/OIDC
+			eventLog.log(getName(), "Skipping Access Token Checks due to ID Token only support");
+		}
+
+		skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
+			ValidateIdTokenFromTokenResponseEncryption.class, Condition.ConditionResult.WARNING, "OIDCC-10.2");
+		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "OIDCC-3.1.3.3", "OIDCC-3.3.3.3");
+
+		// save the id_token returned from the token endpoint
+		env.putObject("token_endpoint_id_token", env.getObject("id_token"));
+
+		additionalTokenEndpointResponseValidation();
+
+		if (responseType.includesIdToken()) {
+			callAndContinueOnFailure(VerifyIdTokenSubConsistentHybridFlow.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
+		}
 	}
 
 	@Override
