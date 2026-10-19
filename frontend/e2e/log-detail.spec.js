@@ -3826,11 +3826,11 @@ test.describe("log-detail.html — new Lit-triad page", () => {
   });
 
   // ──────────── URI input (VP verifier paste box) ────────────
-  // Port of the legacy uriInputRequests block (static-legacy/templates/
-  // browser.html + log-detail.html submitUriBtn/scanQrBtn handlers). The
-  // runner's browser.uriInputRequests entries render a textarea + Submit
-  // button (+ feature-detected Scan QR); submit GETs the pasted URI's
-  // query string to the entry's submitUrl.
+  // Port of the pre-redesign UI's uriInputRequests block (its
+  // templates/browser.html + log-detail.html submitUriBtn/scanQrBtn
+  // handlers). The runner's browser.uriInputRequests entries render a
+  // textarea + Submit button (+ feature-detected Scan QR); submit GETs the
+  // pasted URI's query string to the entry's submitUrl.
 
   /**
    * Register the /api/info, /api/log and /api/runner routes shared by every
