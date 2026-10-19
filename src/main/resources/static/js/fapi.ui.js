@@ -58,6 +58,14 @@ var FAPI_UI = {
 
 		availablePlans : {},
 
+		// Set by getUserInfo: the signed-in user, or null until it resolves or
+		// when the lookup fails.
+		currentUser : null,
+
+		// Set by getUserInfo when /api/currentuser answers 401. Any other
+		// failure leaves it false, since it says nothing about who the viewer is.
+		isAnonymous : false,
+
 		getUserInfo : function() {
 			// get the current user info
 			return fetch("/api/currentuser")
@@ -85,7 +93,9 @@ var FAPI_UI = {
 					// 401 is the expected "not logged in" path — stay quiet.
 					// Anything else (network error, 5xx) should log so operators
 					// can diagnose silent breakage.
-					if (error && error.status !== 401) {
+					if (error && error.status === 401) {
+						this.isAnonymous = true;
+					} else {
 						console.warn("[fapi.ui.js getUserInfo] /api/currentuser failed:", error);
 					}
 				});

@@ -87,6 +87,8 @@ let isPublic = false;
 let isAdmin = false;
 /** @type {boolean} */
 let isGuest = false;
+/** @type {boolean} */
+let isAnonymous = false;
 
 /**
  * Runner-poll lifecycle.
@@ -194,7 +196,10 @@ function hideBusy() {
 async function fetchCurrentUser() {
   try {
     const response = await fetch("/api/currentuser");
-    if (!response.ok) return;
+    if (!response.ok) {
+      isAnonymous = response.status === 401;
+      return;
+    }
     const user = await response.json();
     isAdmin = !!(user && user.isAdmin);
     // `isGuest` marks a private-link (share-JWT) viewer. They never signed
@@ -1953,6 +1958,9 @@ async function bootstrap() {
   if (header) {
     header.isAdmin = isAdmin;
     header.isPublic = isPublic;
+    // /api/log/exporthtml is not in the anonymous public matcher, so a
+    // visitor who is not signed in would only get a 401 from Download Logs.
+    header.hideDownload = isAnonymous;
     // The instance being viewed drives the plan-status "you are here"
     // marker + "Module N of M" label in the nav row's progress bar (R14/
     // R17). Set it before /api/plan resolves so the marker lands as soon

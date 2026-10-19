@@ -323,6 +323,9 @@ function ensureStylesInjected() {
  *   plans. Reflects the `is-immutable` attribute.
  * @property {boolean} isPublic - Appends `&public=true` to log-detail links.
  *   Reflects the `is-public` attribute.
+ * @property {boolean} hideDownload - Hides the per-module Download Logs
+ *   button, for viewers the log export endpoint would reject (anonymous
+ *   visitors to a published plan). Reflects the `hide-download` attribute.
  * @property {Set<string>|null} resultFilter - Active "Filter by result"
  *   selection (result tokens plus the `NOT_RUN_FILTER_VALUE` sentinel) the
  *   plan-detail coordinator pushes in (R9). Non-matching rows are removed from
@@ -348,6 +351,7 @@ class CtsPlanModules extends LitElement {
     isReadonly: { type: Boolean, attribute: "is-readonly" },
     isImmutable: { type: Boolean, attribute: "is-immutable" },
     isPublic: { type: Boolean, attribute: "is-public" },
+    hideDownload: { type: Boolean, attribute: "hide-download" },
     resultFilter: { attribute: false },
   };
 
@@ -358,6 +362,7 @@ class CtsPlanModules extends LitElement {
     this.isReadonly = false;
     this.isImmutable = false;
     this.isPublic = false;
+    this.hideDownload = false;
     this.resultFilter = null;
   }
 
@@ -565,15 +570,17 @@ class CtsPlanModules extends LitElement {
                   icon="file-blank"
                   label="View Logs"
                 ></cts-link-button>
-                <cts-button
-                  class="downloadBtn"
-                  data-instance-id="${lastInstance}"
-                  variant="ghost"
-                  size="sm"
-                  icon="save"
-                  label="Download Logs"
-                  @cts-click=${this._handleDownloadLog}
-                ></cts-button>`
+                ${this.hideDownload
+                  ? nothing
+                  : html`<cts-button
+                      class="downloadBtn"
+                      data-instance-id="${lastInstance}"
+                      variant="ghost"
+                      size="sm"
+                      icon="save"
+                      label="Download Logs"
+                      @cts-click=${this._handleDownloadLog}
+                    ></cts-button>`}`
             : nothing}
         </div>
       </div>

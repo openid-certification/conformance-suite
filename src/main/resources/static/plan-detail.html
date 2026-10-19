@@ -600,6 +600,10 @@
                     modulesEl.isReadonly = readonly;
                     modulesEl.isImmutable = !!data.immutable;
                     modulesEl.isPublic = isPublic;
+                    // /api/log/exporthtml is not in the anonymous public
+                    // matcher, so a visitor who is not signed in would only
+                    // get a 401 from Download Logs.
+                    modulesEl.hideDownload = !!FAPI_UI.isAnonymous;
 
                     // Whole-plan status overview (detail mode): seed with the
                     // same modules so segments render immediately. Each
@@ -701,7 +705,7 @@
                     });
 
                     modulesEl.addEventListener('cts-download-log', function (evt) {
-                        window.open('/api/log/export/' + encodeURIComponent(evt.detail.testId)
+                        window.open('/api/log/exporthtml/' + encodeURIComponent(evt.detail.testId)
                             + (isPublic ? '?public=true' : ''));
                     });
 
