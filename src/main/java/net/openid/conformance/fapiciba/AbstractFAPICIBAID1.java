@@ -288,6 +288,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	protected FAPICIBAServerProfileBehavior profileBehavior;
 
 	private final Set<String> resourceEndpointRequestedConsents = new HashSet<>();
+	private final Set<String> processedPingNotifications = new HashSet<>();
 
 	// this is also used to control if the test does the ping or poll behaviours for waiting for the user to
 	// authenticate
@@ -1113,17 +1114,18 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	protected Object handlePingCallback(JsonObject requestParts) {
-		getTestExecutionManager().runInBackground(() -> {
+		scheduleNotificationCallback(requestParts, 0);
+		return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
+	}
 
-			// process the callback
-			setStatus(Status.RUNNING);
-
-			processNotificationCallback(requestParts);
-
+	protected void scheduleNotificationCallback(JsonObject requestParts, long delaySeconds) {
+		getTestExecutionManager().tryRunInBackground(() -> {
+			TimeUnit.SECONDS.sleep(delaySeconds);
+			if (setStatusRunningIfWaiting()) {
+				processNotificationCallback(requestParts);
+			}
 			return "done";
 		});
-
-		return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
 	}
 
 	protected void performProfileIdTokenValidation() {
@@ -1236,13 +1238,21 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		eventLog.endBlock();
 	}
 
-	protected void processPingNotificationCallback(JsonObject requestParts){
-
+	protected boolean processPingNotificationCallback(JsonObject requestParts) {
 		verifyNotificationCallback(requestParts);
+
+		// Claim the transaction while holding the test lock, before token I/O releases it.
+		String authReqId = env.getString("backchannel_authentication_endpoint_response", "auth_req_id");
+		if (!processedPingNotifications.add(authReqId)) {
+			eventLog.log(getName(), "Duplicate ping notification: the authentication request is already being processed");
+			setStatus(Status.WAITING);
+			return false;
+		}
 
 		eventLog.startBlock(currentClientString() + "Calling token endpoint after ping notification");
 		callTokenEndpointForCibaGrant();
 		eventLog.endBlock();
+		return true;
 	}
 
 	protected void multipleCallToTokenEndpointAndVerifyResponse(){
@@ -1289,7 +1299,9 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	protected void processNotificationCallback(JsonObject requestParts) {
 		switch (testType) {
 			case PING:
-				processPingNotificationCallback(requestParts);
+				if (!processPingNotificationCallback(requestParts)) {
+					return;
+				}
 				handleSuccessfulTokenEndpointResponse();
 				break;
 			case POLL:

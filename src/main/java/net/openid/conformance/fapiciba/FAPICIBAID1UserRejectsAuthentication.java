@@ -77,7 +77,9 @@ public class FAPICIBAID1UserRejectsAuthentication extends AbstractFAPICIBAID1 {
 	@Override
 	protected void processNotificationCallback(JsonObject requestParts) {
 		if (testType == CIBAMode.PING) {
-			processPingNotificationCallback(requestParts);
+			if (!processPingNotificationCallback(requestParts)) {
+				return;
+			}
 
 			eventLog.startBlock(currentClientString() + "Verify token endpoint response is access_denied");
 
