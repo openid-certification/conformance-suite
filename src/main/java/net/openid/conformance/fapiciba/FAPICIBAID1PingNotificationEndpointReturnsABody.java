@@ -28,7 +28,9 @@ public class FAPICIBAID1PingNotificationEndpointReturnsABody extends AbstractFAP
 	@Override
 	protected void processNotificationCallback(JsonObject requestParts) {
 
-		processPingNotificationCallback(requestParts);
+		if (!processPingNotificationCallback(requestParts)) {
+			return;
+		}
 
 		int httpStatus = env.getInteger("token_endpoint_response_http_status");
 		if (httpStatus == 200) {
