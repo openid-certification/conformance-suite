@@ -61,7 +61,6 @@
         }
     ],
     "credential": {
-        "status_list_trust_anchor_pem": "{vci-test-root.crt}",
         "pid_lote_url": "{BASEURL}lote/pid-providers.jwt"
     },
     "options": {
