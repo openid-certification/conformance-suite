@@ -862,14 +862,14 @@
         {
           "key": "ekyc.unverified_claims_names",
           "label": "eKYC Request Unverified Claims",
-          "type": "string",
+          "type": "array",
           "placeholder": "Ex: nickname or [\"nickname\", \"picture\"]",
           "tooltip": "List of unverified claims to request in each test. Must be a single claim name or a JSON array of claim names."
         },
         {
           "key": "ekyc.verified_claims_names",
           "label": "eKYC Request Verified Claims",
-          "type": "string",
+          "type": "array",
           "placeholder": "Ex: email or [\"name\", \"email\"]",
           "tooltip": "List of verified claims to request in each test. Must be a single claim name or a JSON array of claim names."
         },
@@ -883,28 +883,28 @@
         {
           "key": "ekyc.userinfo",
           "label": "eKYC UserInfo",
-          "type": "object",
+          "type": "array",
           "placeholder": "Ex:\n{\n    \"claims\": {\n        \"birthdate\": \"1990-01-01\",\n        \"given_name\": \"John\",\n        \"family_name\": \"Joe\",\n        \"work_phone\": \"12345968845\"\n    },\n    \"verification\": {\n        \"trust_framework\": \"nist_800_63A\",\n        \"evidence\": [\n            {\n                \"type\": \"document\",\n                \"check_details\": [\n                    {\n                        \"check_method\": \"vpiruv\"\n                    }\n                ]\n            }\n        ]\n    }\n}",
           "tooltip": "A complete set of end-user data as held by the OpenID Provider in the form it would be returned via the userinfo endpoint. Enter the entire userinfo json. Must be a single JSON object or a JSON array of objects."
         },
         {
           "key": "ekyc.expected_verified_claims",
           "label": "eKYC Expected Response",
-          "type": "object",
+          "type": "array",
           "placeholder": "\n{\n    \"sub_id1\": {\n        \"verification\": {\n            \"trust_framework\": \"trust_framework_example1\"\n        },\n        \"claims\": {\n            \"given_name\": \"John\",\n            \"family_name\": \"Joe\"\n        }\n    },\n    \"sub_id2\": {\n        \"verification\": {\n            \"trust_framework\": \"trust_framework_example2\"\n        },\n        \"claims\": {\n            \"given_name\": \"Jane\",\n            \"family_name\": \"Doe\"\n        }\n    }\n}\n",
           "tooltip": "JSON obect containing expected verified_claims values for end-user data keyed by the sub identifier in the ID Token or UserInfo responses. Response claim values will be compared to this list when no explicit value is requested."
         },
         {
           "key": "ekyc.request_schemas",
           "label": "eKYC Additional Request Validation Schemas",
-          "type": "object",
+          "type": "array",
           "placeholder": "See https://bitbucket.org/openid/ekyc-ida/raw/master/schema/verified_claims_request.json",
           "tooltip": "Additional schemas to validate eKYC requests. Must be a single JSON object or a JSON array of object, each of which is a valid JSON schema object."
         },
         {
           "key": "ekyc.response_schemas",
           "label": "eKYC Additional Response Validation Schemas",
-          "type": "object",
+          "type": "array",
           "placeholder": "See https://bitbucket.org/openid/ekyc-ida/raw/master/schema/claims_schema.json",
           "tooltip": "Additional schemas to validate eKYC responses. Must be a single JSON object or a JSON array of object, each of which is a valid JSON schema object"
         }
