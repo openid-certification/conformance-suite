@@ -58,6 +58,7 @@ import java.util.Map;
 		// Negative tests for token endpoint
 		FAPI1AdvancedFinalEnsureClientIdInTokenEndpoint.class,
 		FAPI1AdvancedFinalEnsureMTLSHolderOfKeyRequired.class,
+		FAPI1AdvancedFinalEnsureMTLSHolderOfKeyRequiredAtNonAliasTokenEndpoint.class,
 		FAPI1AdvancedFinalEnsureAuthorizationCodeIsBoundToClient.class,
 		FAPI1AdvancedFinalAttemptReuseAuthorizationCodeAfterOneSecond.class,
 

@@ -17,6 +17,7 @@ import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureClientAssertionWith
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureClientAssertionWithNoSubFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureClientAssertionWithWrongAudFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureDifferentNonceInsideAndOutsideRequestObject;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureHolderOfKeyRequiredAtNonAliasTokenEndpoint;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureInvalidClientAssertionsFail;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureOtherScopeOrderSucceeds;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureSignedClientAssertionWithRS256Fails;
@@ -172,6 +173,9 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 
 		// Discovery test is in its own ModuleListEntry (no VCI variant parameters)
 		fapiTestModules.remove(FAPI2SPFinalDiscoveryEndpointVerification.class);
+
+		// non-alias token endpoint test needs a TLS certificate (VCI HAIP uses DPoP with client_attestation)
+		fapiTestModules.remove(FAPI2SPFinalEnsureHolderOfKeyRequiredAtNonAliasTokenEndpoint.class);
 
 		// Nonce / OpenID-Connect-only tests (VCI HAIP is plain_oauth)
 		fapiTestModules.remove(FAPI2SPFinalEnsureAuthorizationRequestWithoutNonceSuccess.class);

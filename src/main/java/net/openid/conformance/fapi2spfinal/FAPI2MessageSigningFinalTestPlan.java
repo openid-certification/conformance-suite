@@ -84,6 +84,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		// Negative tests for token endpoint
 		FAPI2SPFinalEnsureClientIdInTokenEndpoint.class,
 		FAPI2SPFinalEnsureHolderOfKeyRequired.class,
+		FAPI2SPFinalEnsureHolderOfKeyRequiredAtNonAliasTokenEndpoint.class,
 		FAPI2SPFinalEnsureAuthorizationCodeIsBoundToClient.class,
 		FAPI2SPFinalAttemptReuseAuthorizationCodeAfterOneSecond.class,
 		FAPI2SPFinalAttemptToUseExpiredAuthCode.class,

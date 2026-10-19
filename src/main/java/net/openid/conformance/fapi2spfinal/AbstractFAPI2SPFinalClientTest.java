@@ -797,8 +797,8 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		} else if (path.equals("token")) {
 			refuseIfStartingShutdown(path);
 			if (tokenEndpointRequiresMtls()) {
-				throw new TestFailureException(getId(), "The token endpoint must be called over an mTLS secured connection " +
-					"using the token_endpoint found in mtls_endpoint_aliases.");
+				throw new TestFailureException(getId(), "invalid_client",
+					"The token endpoint must be called over an mTLS secured connection using the token_endpoint found in mtls_endpoint_aliases.");
 			}
 			if (clientMustUseMtlsAlias("token_endpoint")) {
 				throw new TestFailureException(getId(), "invalid_client",
