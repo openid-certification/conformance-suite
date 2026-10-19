@@ -43,6 +43,7 @@ public class LoteBuilder_UnitTest {
 	private static LoteSlot slotFor(LoteList list) {
 		return switch (list) {
 			case PID_PROVIDERS -> LoteSlot.PID;
+			case MDL_PROVIDERS -> LoteSlot.MDL;
 			case WALLET_PROVIDERS -> LoteSlot.WALLET;
 			case WRPAC_PROVIDERS -> LoteSlot.WRPAC;
 			case WRPRC_PROVIDERS -> throw new IllegalArgumentException("no slot consumes the WRPRC providers list");
@@ -134,7 +135,7 @@ public class LoteBuilder_UnitTest {
 	}
 
 	@ParameterizedTest
-	@EnumSource(value = LoteList.class, names = {"PID_PROVIDERS", "WALLET_PROVIDERS", "WRPAC_PROVIDERS"})
+	@EnumSource(value = LoteList.class, names = {"PID_PROVIDERS", "MDL_PROVIDERS", "WALLET_PROVIDERS", "WRPAC_PROVIDERS"})
 	public void everyListedCaHasAnIssuanceAndARevocationServiceAndNoTwoServicesOfATypeShareACa(LoteList list) {
 		// the eIDAS Dashboard's notification rules for the Launchpad event
 		for (LoteList.Service service : list.services) {
@@ -148,6 +149,7 @@ public class LoteBuilder_UnitTest {
 	public void theListsNameTheRightCas() {
 		List<TestKeysAndCerts.SuiteCa> pidCas = LoteList.PID_PROVIDERS.services.stream().map(LoteList.Service::ca).toList();
 		assertThat(pidCas).contains(TestKeysAndCerts.SuiteCa.MDOC_IACA_ROOT, TestKeysAndCerts.SuiteCa.PID_PROVIDER);
+		assertThat(LoteList.MDL_PROVIDERS.services).extracting(LoteList.Service::ca).containsOnly(TestKeysAndCerts.SuiteCa.MDOC_IACA_ROOT);
 		assertThat(LoteList.WALLET_PROVIDERS.services).extracting(LoteList.Service::ca).containsOnly(TestKeysAndCerts.SuiteCa.WALLET_PROVIDER);
 		assertThat(LoteList.WRPAC_PROVIDERS.services).extracting(LoteList.Service::ca).containsOnly(TestKeysAndCerts.SuiteCa.ACCESS);
 		assertThat(LoteList.WRPRC_PROVIDERS.services).extracting(LoteList.Service::ca).containsOnly(TestKeysAndCerts.SuiteCa.WRPRC_PROVIDER);

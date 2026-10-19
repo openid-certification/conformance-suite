@@ -439,7 +439,7 @@ export interface paths {
     };
     /**
      * Returns one of the suite's lists of trusted entities
-     * @description Returns the ETSI TS 119 602 list of trusted entities (a compact JWS) that lists the suite's CA for the named role: pid-providers, wallet-providers, wrpac-providers or wrprc-providers. The sealing certificate is served at /trust-anchors/lote-signer.pem.
+     * @description Returns the ETSI TS 119 602 list of trusted entities (a compact JWS) that lists the suite's CA for the named role: pid-providers, mdl-providers, wallet-providers, wrpac-providers or wrprc-providers. The sealing certificate is served at /trust-anchors/lote-signer.pem.
      */
     get: operations["lote"];
     put?: never;
