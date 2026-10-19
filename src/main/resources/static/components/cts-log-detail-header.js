@@ -112,9 +112,9 @@ const HERO_MODES = {
  * leaving "Test needs review" etc. with no explanation of what it means or
  * what happens next. Text is copied from the legacy/pre-redesign
  * `FAPI_UI.getResultHelp`/`getStatusHelp` (static/js/fapi.ui.js:95-128, an
- * exact carry-over of static-legacy/js/fapi.ui.js:478-511) rather than
- * reworded, so the explanation matches what the old UI's tooltip already
- * said — with one deliberate deviation: "behaviour" → "behavior" in the
+ * exact carry-over of static/js/fapi.ui.js:478-511 at tag release-v5.1.45)
+ * rather than reworded, so the explanation matches what the old UI's tooltip
+ * already said — with one deliberate deviation: "behaviour" → "behavior" in the
  * finished-warn entry, to match this codebase's American-English convention
  * (the legacy source uses British spelling). Optional per phase (guarded in
  * `_renderTerminalBanner`) so a future phase can omit it without a second

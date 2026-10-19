@@ -203,7 +203,7 @@ in
       name = "Frontend checks (npm run test:ci)";
       entry = "bash -c 'cd frontend && npm run test:ci'";
       pass_filenames = false;
-      files = "^(frontend/|src/main/resources/(static|static-legacy|templates|templates-legacy)/)";
+      files = "^(frontend/|src/main/resources/(static|templates)/)";
     };
 
   # See full reference at https://devenv.sh/reference/options/
