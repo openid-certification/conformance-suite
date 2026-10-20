@@ -296,7 +296,7 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 				addAuthenticationToAuthzenApiEndpoint();
 				call(sequence(CallAuthzenApiEndpointAndVerifySuccessfulResponse.class));
 				callAndStopOnFailure(ExtractAuthzenApiEndpointDecisionResponse.class, "AUTHZEN-6.2");
-				callAndStopOnFailure(EnsureValidDecisionResponse.class, "AUTHZEN-6.2");
+				callAndStopOnFailure(EnsureValidDecisionResponse.class, "AUTHZEN-6.2", "AUTHZEN-5.5");
 				callAndContinueOnFailure(EnsureSearchResultIsPermitted.class, ConditionResult.WARNING, "AUTHZEN-8.1");
 			} finally {
 				eventLog.endBlock();

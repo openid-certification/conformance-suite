@@ -22,7 +22,7 @@ public abstract class AbstractAuthzenPDPEvaluationsBackwardCompatTest extends Ab
 	@Override
 	protected void processAuthApiEndpointResponse() {
 		callAndStopOnFailure(ExtractAuthzenApiEndpointDecisionResponse.class, "AUTHZEN-6.2");
-		callAndStopOnFailure(EnsureValidDecisionResponse.class, "AUTHZEN-6.2");
+		callAndStopOnFailure(EnsureValidDecisionResponse.class, "AUTHZEN-6.2", "AUTHZEN-5.5");
 		// The request behaved like the single Access Evaluation request, so the response is an
 		// Access Evaluation response; an `evaluations` member is one a Decision does not define.
 		callAndContinueOnFailure(WarnAuthzenDecisionUnknownMembers.class, ConditionResult.WARNING, "AUTHZEN-5.5", "AUTHZEN-7.1");
