@@ -29,6 +29,7 @@ import org.multipaz.crypto.X509Cert
 import org.multipaz.crypto.X509CertChain
 import java.math.BigInteger
 import java.security.KeyFactory
+import java.security.PrivateKey
 import java.security.SecureRandom
 import java.security.spec.PKCS8EncodedKeySpec
 import java.util.Base64
@@ -96,6 +97,25 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 	@JvmStatic
 	val iacaRootCert: X509Cert by lazy { X509Cert.fromPem(IACA_ROOT_CERT_PEM) }
 
+	/** The IACA root as BouncyCastle sees it: the issuer of the certificates and CRLs minted here. */
+	@JvmStatic
+	val iacaRootCertHolder: X509CertificateHolder by lazy { X509CertificateHolder(iacaRootCert.encoded.toByteArray()) }
+
+	/** The IACA root's subject key identifier: the authority key identifier of everything it issues. */
+	@JvmStatic
+	val iacaRootSubjectKeyIdentifier: ByteArray by lazy {
+		SubjectKeyIdentifier.fromExtensions(iacaRootCertHolder.extensions).keyIdentifier
+	}
+
+	/**
+	 * The IACA's signing key: it issues the leaf certificates minted here and signs the CRL the
+	 * suite serves for them (see MdocIacaCrl).
+	 */
+	@JvmStatic
+	val iacaRootPrivateKey: PrivateKey by lazy {
+		KeyFactory.getInstance("EC").generatePrivate(PKCS8EncodedKeySpec(decodePemBody(IACA_ROOT_KEY_PEM)))
+	}
+
 	@JvmStatic
 	val documentSignerKey: AsymmetricKey.X509CertifiedExplicit
 		get() = rotatingDocumentSignerKey.get()
@@ -132,6 +152,13 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 		private var cached: AsymmetricKey.X509CertifiedExplicit? = null
 		private var mintedAt: kotlin.time.Instant? = null
 
+		/** Drops the cached key so the next [get] mints afresh. */
+		@Synchronized
+		fun reset() {
+			cached = null
+			mintedAt = null
+		}
+
 		@Synchronized
 		fun get(): AsymmetricKey.X509CertifiedExplicit {
 			val current = cached
@@ -150,6 +177,23 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 	private val rotatingStatusListSignerKey = DailyRotatedKey { mintStatusListSignerKey() }
 
 	/**
+	 * The URI the document signer certificate's CRL distribution point names: where the suite
+	 * serves [MdocIacaCrl]. It is a plain-http URL, as CRL distribution points are by PKI
+	 * convention, except behind a TLS-only tunnel.
+	 * [MdocIacaCrlEndpoint][net.openid.conformance.security.MdocIacaCrlEndpoint] sets it from the
+	 * deployment's URLs at startup; the default only serves code that mints before then, such as
+	 * unit tests. Setting it re-mints the document signer, so no certificate minted
+	 * under the previous value stays in use.
+	 */
+	@JvmStatic
+	var crlDistributionPointUri: String = "http://localhost:8080" + MdocIacaCrl.PATH
+		set(value) {
+			require(value.isNotBlank()) { "The document signer certificate needs a CRL distribution point URI" }
+			field = value
+			rotatingDocumentSignerKey.reset()
+		}
+
+	/**
 	 * Mints an EC leaf certificate under the IACA root, with the parts ISO/IEC 18013-5 Annex B
 	 * requires of every leaf it issues: a CSPRNG serial, the subject naming rules of Table B.3
 	 * (countryName and stateOrProvinceName equal to the IACA's, plus a common name), a subject
@@ -162,11 +206,6 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 		commonName: String,
 		addProfileExtensions: (X509v3CertificateBuilder) -> Unit
 	): AsymmetricKey.X509CertifiedExplicit {
-		val iacaHolder = X509CertificateHolder(iacaRootCert.encoded.toByteArray())
-		val iacaPrivateKey = KeyFactory.getInstance("EC").generatePrivate(
-			PKCS8EncodedKeySpec(decodePemBody(IACA_ROOT_KEY_PEM))
-		)
-
 		val leafEcKey = ECKeyGenerator(Curve.P_256).generate()
 
 		// uniform on [0, 2^159); max(ONE) only guards the astronomically improbable zero
@@ -190,7 +229,7 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 		val notAfter = Date(now + 400L * 24 * 60 * 60 * 1000)
 
 		val builder = X509v3CertificateBuilder(
-			iacaHolder.subject,
+			iacaRootCertHolder.subject,
 			serial,
 			notBefore,
 			notAfter,
@@ -199,20 +238,19 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 		)
 
 		val extensionUtils = JcaX509ExtensionUtils()
-		val iacaSki = SubjectKeyIdentifier.fromExtensions(iacaHolder.extensions)
 		builder.addExtension(
 			Extension.subjectKeyIdentifier, false,
 			extensionUtils.createSubjectKeyIdentifier(leafEcKey.toECPublicKey())
 		)
 		builder.addExtension(
 			Extension.authorityKeyIdentifier, false,
-			AuthorityKeyIdentifier(iacaSki.keyIdentifier)
+			AuthorityKeyIdentifier(iacaRootSubjectKeyIdentifier)
 		)
 		builder.addExtension(Extension.keyUsage, true, KeyUsage(KeyUsage.digitalSignature))
 
 		addProfileExtensions(builder)
 
-		val signer = JcaContentSignerBuilder("SHA256withECDSA").build(iacaPrivateKey)
+		val signer = JcaContentSignerBuilder("SHA256withECDSA").build(iacaRootPrivateKey)
 		val leafCert = X509Cert(ByteString(builder.build(signer).encoded))
 
 		val leafPrivateKey = EcPrivateKeyDoubleCoordinate(
@@ -236,7 +274,7 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 	/**
 	 * Document signer certificate, ISO/IEC 18013-5 Table B.3. Beyond what every leaf gets: the
 	 * critical mdlDS extended key usage, the issuer alternative name and a CRL distribution
-	 * point (mandatory in Table B.3, though the suite does not operate a CRL).
+	 * point naming [crlDistributionPointUri], where the suite serves the IACA's CRL.
 	 */
 	private fun mintDocumentSignerKey(): AsymmetricKey.X509CertifiedExplicit =
 		mintLeafUnderIaca("certification.openid.net mdoc DS") { builder ->
@@ -248,17 +286,14 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 				Extension.issuerAlternativeName, false,
 				GeneralNames(GeneralName(GeneralName.rfc822Name, "certification@oidf.org"))
 			)
-			// Placeholder URI carried over from the previous certificate; Table B.3 makes the
-			// extension mandatory but the suite does not operate a CRL.
+			// One distribution point with one URI; Table B.3 forbids the reasons and cRLIssuer fields.
 			builder.addExtension(
 				Extension.cRLDistributionPoints, false,
 				CRLDistPoint(
 					arrayOf(
 						DistributionPoint(
 							DistributionPointName(
-								GeneralNames(
-									GeneralName(GeneralName.uniformResourceIdentifier, "http://example.com/myca.crl")
-								)
+								GeneralNames(GeneralName(GeneralName.uniformResourceIdentifier, crlDistributionPointUri))
 							),
 							null,
 							null

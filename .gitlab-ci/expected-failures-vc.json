@@ -348,5 +348,185 @@
         "condition": "EnsureVerifierFetchedRevocationList",
         "expected-result": "warning",
         "comment": "The paired wallet-side module deliberately rejects the request over the unknown transaction_data type, so no credential is validated and the status list is never fetched"
+    },
+    {
+        "test-name": "oid4vci-1_0-issuer-happy-flow*",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-access-token-type-header-case-sensitivity",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-attempt-reuse-authorization-code-after-one-second",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-check-dpop-proof-nbf-exp",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-dpop-negative-tests",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-authorization-request-with-long-state",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-authorization-request-without-state-success",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-different-state-inside-and-outside-request-object",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-dpop-auth-code-binding-success",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-dpopproof-at-par-endpoint-binding-success",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-dpopproof-with-iat-10seconds-after-succeeds",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-dpopproof-with-iat-10seconds-before-succeeds",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-happy-flow",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-attempt-reuse-request_uri",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-ensure-reused-request-uri-prior-to-auth-completion-succeeds",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-without-duplicate-parameters",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-refresh-token",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-state-only-outside-request-object-not-used",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "oid4vci-1_0-issuer-batch-issuance",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "oid4vci-1_0-issuer-fail-on-access-token-in-query",
+        "variant": "*",
+        "configuration-filename": "*authlete-vci-haip-mdoc.json",
+        "current-block": "*",
+        "condition": "FetchMdocDsCertificateCrl",
+        "expected-result": "failure",
+        "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
     }
 ]

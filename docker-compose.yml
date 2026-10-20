@@ -13,6 +13,9 @@ services:
   server:
     build:
       context: ./server-dev
+    ports:
+     # plain http, for the mdoc IACA CRL only
+     - "8080:8080"
     volumes:
      - ./target/:/server/
     command: >
@@ -20,6 +23,7 @@ services:
       -jar /server/fapi-test-suite.jar
       -Djdk.tls.maxHandshakeMessageSize=65536
       --fintechlabs.base_url=https://localhost.emobix.co.uk:8443
+      --fintechlabs.base_http_url=http://localhost.emobix.co.uk:8080
       --fintechlabs.devmode=true
       --fintechlabs.startredir=true
     links:
