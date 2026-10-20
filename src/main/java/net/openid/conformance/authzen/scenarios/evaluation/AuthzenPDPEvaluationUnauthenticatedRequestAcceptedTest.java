@@ -1,0 +1,45 @@
+package net.openid.conformance.authzen.scenarios.evaluation;
+
+import net.openid.conformance.authzen.AbstractAuthzenPDPEvaluationTest;
+import net.openid.conformance.authzen.condition.WarnPDPAcceptsUnauthenticatedRequests;
+import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.PDPAuthType;
+import net.openid.conformance.variant.VariantApplicableOnly;
+
+@PublishTestModule(
+	testName = "authzen-pdp-evaluation-unauthenticated-request-accepted",
+	displayName = "AuthZEN Evaluation API - Section 11.2: PDP answers a request without PEP authentication",
+	summary = "Per Section 11.2, \"the PDP SHOULD authenticate the calling PEP\". This module runs only when the test configuration selects no PEP authentication (pdp_auth_type none): it sends a valid fixture request without credentials, checks the fixture result, and reports a warning that the PDP answered an unauthenticated request. Select client_secret_basic, api_key or mtls to test a PDP that authenticates the PEP.\n" + AuthzenPDPEvaluationUnauthenticatedRequestAcceptedTest.payload,
+	profile = "AuthZEN"
+)
+@VariantApplicableOnly(parameter = PDPAuthType.class, values = {"none"})
+public class AuthzenPDPEvaluationUnauthenticatedRequestAcceptedTest extends AbstractAuthzenPDPEvaluationTest {
+
+	public static final String payload = """
+		{
+			"subject": { "type": "user", "id": "alice" },
+			"action": { "name": "read" },
+			"resource": { "type": "record", "id": "record-1" }
+		}
+		""";
+
+	@Override
+	protected String getPayload() {
+		return payload;
+	}
+
+	@Override
+	protected String getExpectedDecisionResponseJson() {
+		return """
+			{ "decision": true }
+			""";
+	}
+
+	@Override
+	protected void onPostAuthorizationFlowComplete() {
+		// This hook runs inside the API request block, and log blocks do not nest.
+		callAndContinueOnFailure(WarnPDPAcceptsUnauthenticatedRequests.class, ConditionResult.WARNING, "AUTHZEN-11.2");
+		super.onPostAuthorizationFlowComplete();
+	}
+}
