@@ -13,16 +13,23 @@ import net.openid.conformance.testmodule.Environment;
  */
 public class WarnChangedPageRequestAccepted extends AbstractCondition {
 
+	private final String changed;
+
+	/** For a request in which {@code changed}, a parameter such as "page.limit" or an entity such as "action", was changed. */
+	public WarnChangedPageRequestAccepted(String changed) {
+		this.changed = changed;
+	}
+
 	@Override
 	@PreEnvironment(required = "authzen_api_endpoint_response")
 	public Environment evaluate(Environment env) {
 		Integer status = env.getInteger("authzen_api_endpoint_response", "status");
 		if (status != null && status == 200) {
-			throw error("The PDP returned a page for a request whose page.limit differs from the preceding request "
-				+ "that returned the page token. Section 8.2 says the PDP SHOULD return an error when a parameter "
-				+ "has been changed", args("status", status));
+			throw error("The PDP returned a page for a request whose " + changed + " differs from the preceding request "
+				+ "that returned the page token. Section 8.2 says the PDP SHOULD return an error when any entity or "
+				+ "parameter has been changed", args("status", status, "changed", changed));
 		}
-		logSuccess("The PDP did not return a page for the request with a changed page.limit", args("status", status));
+		logSuccess("The PDP did not return a page for the request with a changed " + changed, args("status", status));
 		return env;
 	}
 }

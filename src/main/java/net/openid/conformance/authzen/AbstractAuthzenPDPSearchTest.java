@@ -11,8 +11,8 @@ import net.openid.conformance.authzen.condition.EnsureValidDecisionResponse;
 import net.openid.conformance.authzen.condition.ExtractAuthzenApiEndpointDecisionResponse;
 import net.openid.conformance.authzen.condition.SetAuthzenApiEndpointToAccessEvaluationEndpoint;
 import net.openid.conformance.authzen.condition.AddAuthzenSearchPageTokenToRequest;
+import net.openid.conformance.authzen.condition.AbstractChangeAuthzenSearchRequest;
 import net.openid.conformance.authzen.condition.AggregateAuthzenSearchResults;
-import net.openid.conformance.authzen.condition.ChangeAuthzenSearchRequestPageLimit;
 import net.openid.conformance.authzen.condition.EnsureAuthzenSearchResponseValsMatchExpectedVals;
 import net.openid.conformance.authzen.condition.EnsureSearchFixtureEntitiesMatchBaseSearch;
 import net.openid.conformance.authzen.condition.EnsureSearchPageTokenNotRepeated;
@@ -46,13 +46,15 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	private boolean sendingBaseSearch;
 
 	/**
-	 * Whether the module sends the token of the first page back with a changed page.limit,
-	 * instead of following the pages (Section 8.2: the parameters of a request with a token MUST
-	 * be identical to the preceding request's, and "PDPs SHOULD return an error when any entity
-	 * or parameter has been changed"). Such a module's payload sets page.limit to 1.
+	 * For a module that sends the first page's token back with one member of the request changed,
+	 * instead of following the pages: the condition that changes it, such as page.limit or an
+	 * entity. Section 8.2 says the entities and pagination parameters of a request with a token
+	 * MUST be identical to the preceding request's, and "PDPs SHOULD return an error when any
+	 * entity or parameter has been changed". Such a module's payload sets page.limit to 1. Null,
+	 * the default, follows the pages.
 	 */
-	protected boolean sendsPageTokenWithChangedLimit() {
-		return false;
+	protected AbstractChangeAuthzenSearchRequest changeRequestWithPageToken() {
+		return null;
 	}
 
 	/**
@@ -118,8 +120,9 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	 */
 	@Override
 	protected void performAuthzenApiFlow() {
-		if (sendsPageTokenWithChangedLimit()) {
-			sendPageTokenWithChangedLimit();
+		AbstractChangeAuthzenSearchRequest change = changeRequestWithPageToken();
+		if (change != null) {
+			sendPageTokenWithChangedRequest(change);
 		} else if (getAcceptableHttpStatusCodes().contains(200)) {
 			runPaginatedSearchLoop();
 		} else {
@@ -128,18 +131,20 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	}
 
 	/**
-	 * Requests the first page, then sends its {@code page.next_token} with page.limit changed
-	 * to 2. Pagination is optional (Section 8.2), so the test is skipped when the PDP returns
-	 * the whole result set in one response.
+	 * Requests the first page, then sends its {@code page.next_token} with the member
+	 * {@code change} changes. Pagination is optional (Section 8.2), so the test is skipped when
+	 * the PDP returns the whole result set in one response.
 	 */
-	private void sendPageTokenWithChangedLimit() {
+	private void sendPageTokenWithChangedRequest(AbstractChangeAuthzenSearchRequest change) {
+		String changed = change.getChangedMember();
+		String withChange = "a changed " + changed;
 		eventLog.startBlock("Request the first page");
 		try {
 			createAuthzenApiRequest();
 			performSingleApiRequest();
 			if (!responseStatusIs200()) {
 				// The status check has already failed, and there is no page token to send.
-				throw new TestFailureException(getId(), "The PDP did not answer the first page with HTTP 200, so there is no page token to send with a changed limit");
+				throw new TestFailureException(getId(), "The PDP did not answer the first page with HTTP 200, so there is no page token to send with " + withChange);
 			}
 			processAuthApiEndpointResponse();
 		} finally {
@@ -147,11 +152,11 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 		}
 
 		if (Strings.isNullOrEmpty(env.getString("authzen_search_endpoint_request_page_token"))) {
-			fireTestSkipped("The PDP returned the whole result set in one response, so it does not paginate this search and there is no page token to send with a changed limit. Pagination is optional (Section 8.2).");
+			fireTestSkipped("The PDP returned the whole result set in one response, so it does not paginate this search and there is no page token to send with " + withChange + ". Pagination is optional (Section 8.2).");
 			return;
 		}
 
-		eventLog.startBlock("Send the page token with a changed limit");
+		eventLog.startBlock("Send the page token with " + withChange);
 		try {
 			sendingChangedPageRequest = true;
 			createAuthzenApiRequest();
@@ -159,9 +164,9 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 				// The request builders add the page token; a raw request carries only the payload.
 				callAndStopOnFailure(AddAuthzenSearchPageTokenToRequest.class, "AUTHZEN-8.2");
 			}
-			callAndStopOnFailure(new ChangeAuthzenSearchRequestPageLimit(2), "AUTHZEN-8.2", "AUTHZEN-8.2.1");
+			callAndStopOnFailure(change, "AUTHZEN-8.2", "AUTHZEN-8.2.1");
 			performSingleApiRequest();
-			callAndContinueOnFailure(WarnChangedPageRequestAccepted.class, ConditionResult.WARNING, "AUTHZEN-8.2", "AUTHZEN-8.2.1");
+			callAndContinueOnFailure(new WarnChangedPageRequestAccepted(changed), ConditionResult.WARNING, "AUTHZEN-8.2", "AUTHZEN-8.2.1");
 		} finally {
 			sendingChangedPageRequest = false;
 			eventLog.endBlock();
