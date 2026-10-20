@@ -16,7 +16,9 @@ public class CheckCallbackContentTypeIsFormUrlEncoded extends AbstractCondition 
 			throw error("content-type header to redirect_uri is missing", args("expected", expected));
 		}
 
-		if (!contentType.equals(expected)) {
+		// parameters such as charset are not part of the media type, whose name is case-insensitive (RFC 9110 Section 8.3.1)
+		String mimeType = AbstractCheckEndpointContentTypeReturned.getMimeTypeFromContentType(contentType);
+		if (!expected.equalsIgnoreCase(mimeType)) {
 			throw error("content-type header to redirect_uri does not have the expected value", args("content_type", contentType, "expected", expected));
 		}
 
