@@ -59,7 +59,7 @@ public abstract class AbstractAuthzenPDPEvaluationTest extends AbstractAuthzenPD
 	@Override
 	protected void processAuthApiEndpointResponse() {
 		callAndStopOnFailure(ExtractAuthzenApiEndpointDecisionResponse.class, "AUTHZEN-6.2");
-		callAndStopOnFailure(EnsureValidDecisionResponse.class, "AUTHZEN-6.2");
+		callAndStopOnFailure(EnsureValidDecisionResponse.class, "AUTHZEN-6.2", "AUTHZEN-5.5");
 		callAndContinueOnFailure(WarnAuthzenDecisionUnknownMembers.class, ConditionResult.WARNING, "AUTHZEN-5.5", "AUTHZEN-6.2");
 	}
 
