@@ -2,7 +2,6 @@ package net.openid.conformance.authzen.condition;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -11,12 +10,17 @@ import net.openid.conformance.testmodule.OIDFJSON;
  * Sets page.limit in the search request to a different value, so a request carrying a page
  * token no longer repeats the preceding request's parameters (Section 8.2).
  */
-public class ChangeAuthzenSearchRequestPageLimit extends AbstractCondition {
+public class ChangeAuthzenSearchRequestPageLimit extends AbstractChangeAuthzenSearchRequest {
 
 	private final int limit;
 
 	public ChangeAuthzenSearchRequestPageLimit(int limit) {
 		this.limit = limit;
+	}
+
+	@Override
+	public String getChangedMember() {
+		return "page.limit";
 	}
 
 	@Override

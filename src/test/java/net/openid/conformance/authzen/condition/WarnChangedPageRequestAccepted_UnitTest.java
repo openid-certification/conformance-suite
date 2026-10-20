@@ -24,7 +24,7 @@ class WarnChangedPageRequestAccepted_UnitTest {
 
 	@BeforeEach
 	public void setUp() {
-		cond = new WarnChangedPageRequestAccepted();
+		cond = new WarnChangedPageRequestAccepted("page.limit");
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
@@ -37,6 +37,15 @@ class WarnChangedPageRequestAccepted_UnitTest {
 		respond(200);
 		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
 		assertTrue(e.getMessage().contains("returned a page for a request whose page.limit differs"), e.getMessage());
+	}
+
+	@Test
+	public void pageReturnedForChangedEntity_namesTheEntity() {
+		respond(200);
+		cond = new WarnChangedPageRequestAccepted("action");
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("returned a page for a request whose action differs"), e.getMessage());
 	}
 
 	@ParameterizedTest
