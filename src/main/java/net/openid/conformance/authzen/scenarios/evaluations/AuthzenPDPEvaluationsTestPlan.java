@@ -33,6 +33,12 @@ import java.util.Map;
 		AuthzenPDPEvaluationsPerEvalOverridesDefaultTest.class,
 		// No subject at any level: 400, or a decision-false evaluation (Section 7.1, 7.1.2.1)
 		AuthzenPDPEvaluationsMissingSubjectTest.class,
+		// Error handling at every level (certification scenario 3.1 with 5.4.2 and 5.4.6)
+		AuthzenPDPEvaluationsSubjectMissingTypeTest.class,
+		AuthzenPDPEvaluationsSubjectIsStringTest.class,
+		AuthzenPDPEvaluationsContextIsStringTest.class,
+		AuthzenPDPEvaluationsEvaluationsIsObjectTest.class,
+		AuthzenPDPEvaluationsEvaluationIsStringTest.class,
 		// Backward compatibility (Section 7.1)
 		AuthzenPDPEvaluationsMissingEvaluationsArrayBackwardCompatTest.class,
 		AuthzenPDPEvaluationsEmptyEvaluationsArrayBackwardCompatTest.class,
