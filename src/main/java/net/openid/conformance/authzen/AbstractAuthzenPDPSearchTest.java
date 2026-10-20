@@ -152,7 +152,9 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 		}
 
 		if (Strings.isNullOrEmpty(env.getString("authzen_search_endpoint_request_page_token"))) {
-			fireTestSkipped("The PDP returned the whole result set in one response, so it does not paginate this search and there is no page token to send with " + withChange + ". Pagination is optional (Section 8.2).");
+			fireTestSkipped("The PDP returned the whole result set in one response, either because it does not paginate this search "
+				+ "or because the results fit in one page, so there is no page token to send with " + withChange
+				+ ". Pagination is optional (Section 8.2).");
 			return;
 		}
 
