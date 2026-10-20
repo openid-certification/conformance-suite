@@ -2,13 +2,11 @@ package net.openid.conformance.authzen.condition;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 
 public class EnsureAuthzenSearchResponseValsMatchExpectedVals extends AbstractCondition {
@@ -49,28 +47,7 @@ public class EnsureAuthzenSearchResponseValsMatchExpectedVals extends AbstractCo
 	}
 
 	private static boolean containsEntity(JsonArray results, JsonElement expectedEntity) {
-		for (JsonElement result : results) {
-			if (identifiesSameEntity(expectedEntity, result)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private static boolean identifiesSameEntity(JsonElement expectedEntity, JsonElement result) {
-		if (!expectedEntity.isJsonObject() || !result.isJsonObject()) {
-			return expectedEntity.equals(result);
-		}
-		JsonObject resultObject = result.getAsJsonObject();
-		for (Map.Entry<String, JsonElement> member : expectedEntity.getAsJsonObject().entrySet()) {
-			if ("properties".equals(member.getKey())) {
-				continue;
-			}
-			if (!member.getValue().equals(resultObject.get(member.getKey()))) {
-				return false;
-			}
-		}
-		return true;
+		return SearchResultMultiset.countIdentifying(results, expectedEntity) > 0;
 	}
 
 	private JsonArray readResultsArray(Environment env, String objectKey, String role) {
