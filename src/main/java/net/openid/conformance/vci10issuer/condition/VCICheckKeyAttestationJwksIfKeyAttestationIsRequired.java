@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.TestKeysAndCerts;
 
 public class VCICheckKeyAttestationJwksIfKeyAttestationIsRequired extends AbstractCondition {
 
@@ -34,7 +35,14 @@ public class VCICheckKeyAttestationJwksIfKeyAttestationIsRequired extends Abstra
 				? env.getElementFromObject("config", "vci.key_attestation_jwks").getAsJsonObject()
 				: null);
 		if (keyAttestationJwksObj == null) {
-			throw error("Required key_attestation_jwks is missing", args("proof_type", proofType));
+			// the built-in wallet provider certificate; its CA is published at /trust-anchors
+			keyAttestationJwksObj = TestKeysAndCerts.getWalletAttestationSigner().jwksJson();
+			env.putObject("vci_key_attestation_jwks", keyAttestationJwksObj);
+			log("No 'Key Attestation JWKS' in the 'Client Attestation' section of the test configuration; signing key"
+					+ " attestations with the suite's built-in wallet provider certificate",
+				args("attester_certificate_subject", TestKeysAndCerts.getWalletAttestationSigner().getCert().getSubject().getName(),
+					"wallet_provider_ca_url", TestKeysAndCerts.SuiteCa.WALLET_PROVIDER.getTrustAnchorUrl()));
+			return env;
 		}
 
 		env.putObject("vci_key_attestation_jwks", keyAttestationJwksObj);

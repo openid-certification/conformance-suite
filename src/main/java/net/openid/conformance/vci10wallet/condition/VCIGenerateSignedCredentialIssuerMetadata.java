@@ -10,6 +10,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractSignJWT;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JWKUtil;
+import net.openid.conformance.util.TestKeysAndCerts;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -31,9 +32,19 @@ public class VCIGenerateSignedCredentialIssuerMetadata extends AbstractSignJWT {
 	@PreEnvironment(required = {"config", "credential_issuer_metadata" })
 	public Environment evaluate(Environment env) {
 
+		// ETSI TS 119 472-3 ISS-MDATA-4.2.1-02: the issuer metadata is signed with the issuer's access
+		// certificate, so the built-in WRPAC signs it unless the tester supplied a 'Signing JWK', which
+		// then signs both the credentials and the metadata as before
 		JsonElement credentialSigningJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
+		JsonObject jwks;
 		if (credentialSigningJwkEl == null) {
-			throw error("'Signing JWK' field is missing from the 'Credential Issuer' section in the test configuration");
+			jwks = TestKeysAndCerts.getWrpac().jwksJson();
+			log("No 'Signing JWK' in the 'Credential Issuer' section of the test configuration; signing the issuer metadata"
+					+ " with the suite's built-in wallet-relying-party access certificate",
+				args("signing_certificate_subject", TestKeysAndCerts.getWrpac().getCert().getSubject().getName(),
+					"access_ca_url", TestKeysAndCerts.SuiteCa.ACCESS.getTrustAnchorUrl()));
+		} else {
+			jwks = JWKUtil.createJwksObjectFromJwkObjects(credentialSigningJwkEl.getAsJsonObject());
 		}
 
 		String issuer = env.getString("credential_issuer_metadata", "credential_issuer");
@@ -52,8 +63,6 @@ public class VCIGenerateSignedCredentialIssuerMetadata extends AbstractSignJWT {
 		for (String key : credentialIssuerMetadata.keySet()) {
 			claims.add(key, credentialIssuerMetadata.get(key));
 		}
-
-		JsonObject jwks = JWKUtil.createJwksObjectFromJwkObjects(credentialSigningJwkEl.getAsJsonObject());
 
 		signJWT(env, claims, jwks, true, false, true, true);
 

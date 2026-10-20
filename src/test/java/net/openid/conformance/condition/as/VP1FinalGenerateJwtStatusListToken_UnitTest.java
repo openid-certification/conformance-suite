@@ -9,12 +9,12 @@ import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.oauth.statuslists.TokenStatusList;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.TestKeysAndCerts;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;
@@ -37,7 +37,6 @@ import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 public class VP1FinalGenerateJwtStatusListToken_UnitTest {
@@ -119,10 +118,16 @@ public class VP1FinalGenerateJwtStatusListToken_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_failsWithoutACredentialSigningJwk() {
+	public void testEvaluate_signsWithTheBuiltInPidProviderCertificateWithoutACredentialSigningJwk() throws Exception {
 		env.putObject("config", new JsonObject());
 
-		assertThrows(ConditionError.class, () -> cond.execute(env));
+		cond.execute(env);
+
+		// the same key the SD-JWT credentials are signed with when no 'Signing JWK' is configured
+		SignedJWT token = servedToken();
+		ECKey builtIn = TestKeysAndCerts.getSdJwtPidSigner().getJwk();
+		assertThat(token.getHeader().getX509CertChain()).isEqualTo(builtIn.getX509CertChain());
+		assertThat(token.verify(new ECDSAVerifier(builtIn.toECPublicKey()))).isTrue();
 	}
 
 	private SignedJWT servedToken() throws ParseException {

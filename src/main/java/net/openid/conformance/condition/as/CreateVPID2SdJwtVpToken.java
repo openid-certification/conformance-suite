@@ -19,6 +19,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.TestKeysAndCerts;
 import net.openid.conformance.util.PreGeneratedJwks;
 
 import java.security.NoSuchAlgorithmException;
@@ -72,14 +73,20 @@ public class CreateVPID2SdJwtVpToken extends AbstractCondition {
 		ECKey privateKey = PreGeneratedJwks.nextEcKey(env, Curve.P_256);
 
 		JsonElement credentialSigningJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
+		JWK credentialSigningJwk;
 		if (credentialSigningJwkEl == null) {
-			throw error("'Signing JWK' field is missing from the 'Credential Issuer' section in the test configuration");
-		}
-		JWK credentialSigningJwk = null;
-		try {
-			credentialSigningJwk = JWK.parse(credentialSigningJwkEl.toString());
-		} catch (ParseException e) {
-			throw error("Failed to parse the 'Signing JWK' field in the 'Credential Issuer' section of the test configuration", e, args("signing_jwk", credentialSigningJwkEl));
+			// the built-in PID provider certificate; its CA is published at /trust-anchors
+			credentialSigningJwk = TestKeysAndCerts.getSdJwtPidSigner().getJwk();
+			log("No 'Signing JWK' in the 'Credential Issuer' section of the test configuration; signing the SD-JWT with the"
+					+ " suite's built-in PID provider certificate",
+				args("signing_certificate_subject", TestKeysAndCerts.getSdJwtPidSigner().getCert().getSubject().getName(),
+					"pid_provider_ca_url", TestKeysAndCerts.SuiteCa.PID_PROVIDER.getTrustAnchorUrl()));
+		} else {
+			try {
+				credentialSigningJwk = JWK.parse(credentialSigningJwkEl.toString());
+			} catch (ParseException e) {
+				throw error("Failed to parse the 'Signing JWK' field in the 'Credential Issuer' section of the test configuration", e, args("signing_jwk", credentialSigningJwkEl));
+			}
 		}
 
 		// tries to generate a credential that's valid as per https://bmi.usercontent.opencode.de/eudi-wallet/eidas-2.0-architekturkonzept/functions/00-pid-issuance-and-presentation/#pid-contents

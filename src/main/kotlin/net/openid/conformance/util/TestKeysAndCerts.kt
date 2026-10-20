@@ -2,6 +2,7 @@ package net.openid.conformance.util
 
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator
@@ -621,6 +622,7 @@ JAIgWnI3xptHc6CENKJTTvGa23uRogXwpt5z7YZaXwwpO+4=
 			leafEcKey.y.decode()
 		)
 		val jwk = ECKey.Builder(leafEcKey)
+			.algorithm(JWSAlgorithm.ES256)
 			.x509CertChain(listOf(com.nimbusds.jose.util.Base64.encode(leafDer)))
 			.build()
 		return MintedLeaf(jwk, AsymmetricKey.X509CertifiedExplicit(X509CertChain(listOf(leafCert)), leafPrivateKey))
