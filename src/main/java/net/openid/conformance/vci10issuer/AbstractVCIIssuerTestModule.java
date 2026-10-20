@@ -27,6 +27,7 @@ import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
+import net.openid.conformance.condition.client.EnsureClientAttestationIssuerConfigured;
 import net.openid.conformance.condition.client.EnsureCredentialTrustAnchorConfigured;
 import net.openid.conformance.condition.client.EnsureStatusListTrustAnchorConfigured;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
@@ -294,20 +295,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		// The client attestation JWT is minted by the client authentication sequence immediately
 		// before each authenticated request; check its configuration here so the tester sees a
 		// problem before the first of those requests rather than after waiting for a credential
-		// offer or login.
+		// offer or login. Without 'Client Attester Keys JWKS' the suite signs with its built-in
+		// wallet provider certificate.
 		if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
-			if (env.getString("config", "client_attestation.issuer") == null
-				&& env.getString("config", "vci.client_attestation_issuer") == null) {
-				throw new TestFailureException(getId(),
-					"'Client Attestation Issuer' must be configured in the 'Client Attestation' section "
-						+ "in the test configuration when client_attestation is the client authentication method.");
-			}
-			if (env.getElementFromObject("config", "client_attestation.attester_jwks") == null
-				&& env.getElementFromObject("config", "vci.client_attester_keys_jwks") == null) {
-				throw new TestFailureException(getId(),
-					"'Client Attester Keys JWKS' must be configured in the 'Client Attestation' section "
-						+ "in the test configuration when client_attestation is the client authentication method.");
-			}
+			callAndStopOnFailure(EnsureClientAttestationIssuerConfigured.class);
 		}
 	}
 

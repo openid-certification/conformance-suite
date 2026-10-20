@@ -1,37 +1,24 @@
 package net.openid.conformance.vci10wallet.condition;
 
-import com.google.gson.JsonElement;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jose.util.X509CertUtils;
-import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.as.AbstractCredentialSigningJwkCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.X509CertificateUtil;
 
 import java.security.cert.X509Certificate;
-import java.text.ParseException;
 import java.util.List;
 
-public class VCIEnsureCredentialSigningCertificateIsNotSelfSigned extends AbstractCondition {
+public class VCIEnsureCredentialSigningCertificateIsNotSelfSigned extends AbstractCredentialSigningJwkCondition {
 
 	@Override
 	@PreEnvironment(required = "config")
 	public Environment evaluate(Environment env) {
 
-		JsonElement credentialSigningJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
-		if (credentialSigningJwkEl == null) {
-			throw error("'Signing JWK' field is missing from the 'Credential Issuer' section in the test configuration");
-		}
-		String credentialSigningJwkString = credentialSigningJwkEl.toString();
-
-		JWK credentialSigningJwk;
-		try {
-			credentialSigningJwk = JWK.parse(credentialSigningJwkString);
-		} catch (ParseException e) {
-			throw error("Failed to parse the 'Signing JWK' field in the 'Credential Issuer' section of the test configuration: " + e.getMessage(),
-				args("signing_jwk", credentialSigningJwkString));
-		}
+		JWK credentialSigningJwk = credentialSigningJwk(env);
+		String credentialSigningJwkString = credentialSigningJwk.toJSONString();
 
 		List<Base64> x5c = credentialSigningJwk.getX509CertChain();
 		if (x5c == null || x5c.isEmpty()) {
