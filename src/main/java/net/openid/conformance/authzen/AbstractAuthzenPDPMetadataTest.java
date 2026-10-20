@@ -4,6 +4,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.authzen.condition.ApplySignedMetadataPrecedence;
 import net.openid.conformance.authzen.condition.CheckPDPServerConfiguration;
+import net.openid.conformance.authzen.condition.CheckPublishedPDPMetadataEndpoints;
+import net.openid.conformance.authzen.condition.CheckSignedPDPServerConfiguration;
 import net.openid.conformance.authzen.condition.CheckStaticPDPServerConfiguration;
 import net.openid.conformance.authzen.condition.EnsureDiscoveryMetadataParamsNotEmpty;
 import net.openid.conformance.authzen.condition.EnsureDiscoveryMetadataResponseValid;
@@ -18,6 +20,7 @@ import net.openid.conformance.authzen.condition.ValidatePDPMetadataIssuer;
 import net.openid.conformance.authzen.condition.WarnAuthzenCapabilitiesNotAuthzenUrns;
 import net.openid.conformance.authzen.condition.WarnAuthzenMetadataUnknownMembers;
 import net.openid.conformance.authzen.condition.WarnOnUnusableAuthzenPdpJwksKeys;
+import net.openid.conformance.authzen.condition.WarnPublishedMetadataOmitsAccessEvaluationEndpoint;
 import net.openid.conformance.authzen.condition.WarnUnusedSignedMetadataConfiguration;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
@@ -86,7 +89,9 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 		eventLog.startBlock("Check the published PDP metadata");
 		try {
 			checkMetadataDocument("pdp");
-			if (!hasSignedMetadata) {
+			if (hasSignedMetadata) {
+				checkPublishedEndpointsAndCapabilities();
+			} else {
 				// A 'Signed Metadata Issuer' and a 'PDP JWK Set' only apply to a signed_metadata JWT.
 				// Ignoring them in silence would leave a tester who expected signed metadata reading a
 				// clean log. The check is on the test configuration, not the PDP, so it cites no
@@ -140,6 +145,24 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 	}
 
 	/**
+	 * Checks the endpoints and capabilities of the metadata document as published, before
+	 * signed_metadata values replace them. A PEP that ignores signed metadata (Section 9.1.3) uses
+	 * these values. Without signed_metadata the published values are the ones
+	 * {@link #checkPDPServerConfiguration} checks, so this runs only when the document carries it.
+	 */
+	private void checkPublishedEndpointsAndCapabilities() {
+		env.mapKey("server", "pdp");
+		try {
+			callAndContinueOnFailure(CheckPublishedPDPMetadataEndpoints.class, ConditionResult.FAILURE, "AUTHZEN-9.1.1", "AUTHZEN-10.1");
+			callAndContinueOnFailure(WarnPublishedMetadataOmitsAccessEvaluationEndpoint.class, ConditionResult.WARNING, "AUTHZEN-9.1.1", "AUTHZEN-9.1.3");
+			callAndContinueOnFailure(EnsureMetadataCapabilitiesValid.class, ConditionResult.FAILURE, "AUTHZEN-9.1.2");
+			callAndContinueOnFailure(WarnAuthzenCapabilitiesNotAuthzenUrns.class, ConditionResult.WARNING, "AUTHZEN-9.1.2", "AUTHZEN-12.4");
+		} finally {
+			env.unmapKey("server");
+		}
+	}
+
+	/**
 	 * Checks a set of PDP metadata values, the published document or the values carried in
 	 * signed_metadata, against Section 9.2: a policy_decision_point identical to the PDP
 	 * Identifier, no parameters without values, and only registered parameters. Signed metadata
@@ -173,22 +196,31 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 	/**
 	 * Checks the endpoints and capabilities in the {@code pdp} environment object, the values the
 	 * test uses: from the test configuration, or the discovered metadata with any signed values
-	 * applied.
+	 * applied. Endpoints and capabilities that signed_metadata does not override are the published
+	 * ones, which {@link #checkPublishedEndpointsAndCapabilities} has already checked, so they are
+	 * not checked again.
 	 */
 	protected void checkPDPServerConfiguration(boolean fromDiscovery) {
 		eventLog.startBlock("Check PDP Server Configuration");
 		// make sure the server configuration passes some basic sanity checks
 		env.mapKey("server", "pdp");
 		try {
-			if (fromDiscovery) {
+			boolean signedValuesApplied = fromDiscovery && env.containsObject("pdp_signed_metadata_values");
+			if (signedValuesApplied) {
+				callAndContinueOnFailure(CheckSignedPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-9.1.1", "AUTHZEN-10.1");
+			} else if (fromDiscovery) {
 				callAndContinueOnFailure(CheckPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-9.1.1", "AUTHZEN-10.1");
 			} else {
 				// No metadata is fetched, so Section 9.1.1 does not apply; Section 10.1 requires the
 				// endpoints the test configuration names to be https.
 				callAndContinueOnFailure(CheckStaticPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-10.1");
 			}
-			callAndContinueOnFailure(EnsureMetadataCapabilitiesValid.class, ConditionResult.FAILURE, "AUTHZEN-9.1.2");
-			callAndContinueOnFailure(WarnAuthzenCapabilitiesNotAuthzenUrns.class, ConditionResult.WARNING, "AUTHZEN-9.1.2", "AUTHZEN-12.4");
+			boolean publishedCapabilitiesInEffect = signedValuesApplied
+				&& env.getElementFromObject("pdp_signed_metadata_values", "capabilities") == null;
+			if (!publishedCapabilitiesInEffect) {
+				callAndContinueOnFailure(EnsureMetadataCapabilitiesValid.class, ConditionResult.FAILURE, "AUTHZEN-9.1.2");
+				callAndContinueOnFailure(WarnAuthzenCapabilitiesNotAuthzenUrns.class, ConditionResult.WARNING, "AUTHZEN-9.1.2", "AUTHZEN-12.4");
+			}
 		} finally {
 			env.unmapKey("server");
 			eventLog.endBlock();
