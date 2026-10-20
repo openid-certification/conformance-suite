@@ -1,5 +1,14 @@
 [
  {
+  "test-name": "authzen-pdp-evaluations-batch-override-replaces-default-entity",
+  "variant": "*",
+  "configuration-filename": "*",
+  "current-block": "*",
+  "condition": "EnsureAuthzenEvaluationsResponseValsMatchExpectedVals",
+  "expected-result": "failure",
+  "comment": "Cerbos PDP bug: it merges an evaluation's subject with the top-level default instead of replacing it, so alice inherits the default's role admin and is permitted, where Section 7.1.1 says the evaluation's key overrides the default and certification scenario 6.2.7 says there is no sub-field merging"
+ },
+ {
   "test-name": "authzen-pdp-*-search-request-with-page-limit",
   "variant": "*",
   "configuration-filename": "*",
