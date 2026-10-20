@@ -168,6 +168,12 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 			callAndStopOnFailure(change, "AUTHZEN-8.2", "AUTHZEN-8.2.1");
 			performSingleApiRequest();
 			callAndContinueOnFailure(new WarnChangedPageRequestAccepted(changed), ConditionResult.WARNING, "AUTHZEN-8.2", "AUTHZEN-8.2.1");
+			if (responseStatusIs200()) {
+				// The PDP SHOULD have refused the request, but a page it returns is still a search
+				// response. Section 8.2 does not say which search's results it holds, so only its
+				// structure is checked, not the fixture results.
+				processAuthApiEndpointResponse();
+			}
 		} finally {
 			sendingChangedPageRequest = false;
 			eventLog.endBlock();
@@ -179,6 +185,17 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	@Override
 	protected Set<Integer> getAcceptableHttpStatusCodes() {
 		return sendingChangedPageRequest ? CHANGED_PAGE_REQUEST_STATUSES : super.getAcceptableHttpStatusCodes();
+	}
+
+	/**
+	 * Section 8.2 has a paginated search end with a page object whose next_token is empty, so the
+	 * response to a request that continues a search with a token MUST carry one. A page returned
+	 * for a changed request is no such continuation: the PEP broke "MUST be identical to the
+	 * preceding request", and a PDP that answers it as a new search may leave out the page object
+	 * of a complete result set (Section 8.2.2). Its absence is then a warning.
+	 */
+	protected ConditionResult getPageAfterPageTokenSeverity() {
+		return sendingChangedPageRequest ? ConditionResult.WARNING : ConditionResult.FAILURE;
 	}
 
 	@Override
