@@ -14,14 +14,18 @@ import net.openid.conformance.authzen.condition.AddAuthzenSearchPageTokenToReque
 import net.openid.conformance.authzen.condition.AggregateAuthzenSearchResults;
 import net.openid.conformance.authzen.condition.ChangeAuthzenSearchRequestPageLimit;
 import net.openid.conformance.authzen.condition.EnsureAuthzenSearchResponseValsMatchExpectedVals;
+import net.openid.conformance.authzen.condition.EnsureSearchFixtureEntitiesMatchBaseSearch;
 import net.openid.conformance.authzen.condition.EnsureSearchPageTokenNotRepeated;
+import net.openid.conformance.authzen.condition.EnsureSearchResultsMatchBaseSearch;
 import net.openid.conformance.authzen.condition.ExtractAuthzenSearchExpectedResponse;
 import net.openid.conformance.authzen.condition.WarnChangedPageRequestAccepted;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.testmodule.TestFailureException;
 
+import java.util.List;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -39,6 +43,8 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 
 	private boolean sendingChangedPageRequest;
 
+	private boolean sendingBaseSearch;
+
 	/**
 	 * Whether the module sends the token of the first page back with a changed page.limit,
 	 * instead of following the pages (Section 8.2: the parameters of a request with a token MUST
@@ -47,6 +53,35 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	 */
 	protected boolean sendsPageTokenWithChangedLimit() {
 		return false;
+	}
+
+	/**
+	 * The base search of a module whose search adds one member to it, as certification scenario
+	 * 7.2.2, 7.2.3, 7.3.2, 7.3.3 and 7.4.2 name it.
+	 *
+	 * @param change the member the module's search adds, as named in messages
+	 * @param removeChange removes that member from a copy of the module's request
+	 * @param fixtureEntitiesOnly whether only the fixture entities, the expected results, are
+	 *        compared instead of the whole result sets
+	 * @param requirements the sections the comparison cites; the scenario has no requirement prefix
+	 */
+	public record BaseSearch(String change, UnaryOperator<JsonObject> removeChange, boolean fixtureEntitiesOnly,
+		List<String> requirements) {
+	}
+
+	/**
+	 * The base search to send and compare results with, or null, the default, to send none. The
+	 * module then first sends the base search, following every page, and compares the two
+	 * result sets at WARNING.
+	 */
+	protected BaseSearch getBaseSearch() {
+		return null;
+	}
+
+	@Override
+	protected JsonObject parseRequest() {
+		JsonObject request = super.parseRequest();
+		return sendingBaseSearch ? getBaseSearch().removeChange().apply(request) : request;
 	}
 
 	/**
@@ -261,10 +296,53 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	 * throws.
 	 */
 	protected void runPaginatedSearchLoop() {
+		BaseSearch baseSearch = getBaseSearch();
+		boolean compareWithBaseSearch = baseSearch != null && fetchBaseSearchResults();
 		if (!fetchAllSearchPages()) {
 			matchAggregatedSearchResults();
+			if (compareWithBaseSearch) {
+				compareWithBaseSearch(baseSearch);
+			}
 		}
 		performPostApiFlow();
+	}
+
+	/**
+	 * Sends the base search, following every page, and keeps its results in
+	 * {@code authzen_search_base_results}. Its status is checked like any search's.
+	 *
+	 * @return false when the PDP did not answer the base search with HTTP 200, so there is nothing to compare
+	 */
+	private boolean fetchBaseSearchResults() {
+		sendingBaseSearch = true;
+		try {
+			if (fetchAllSearchPages()) {
+				return false;
+			}
+			env.putObject("authzen_search_base_results", env.getObject("authzen_search_endpoint_aggregated_results").deepCopy());
+			return true;
+		} finally {
+			sendingBaseSearch = false;
+			resetStateBetweenIdenticalRequests();
+		}
+	}
+
+	/**
+	 * Certification scenario 4.6 fixes only the fixture decisions and lets a PDP have other
+	 * policies, which may depend on variables such as time, so a difference is a warning. The
+	 * module's expected results, the fixture entities, are matched at FAILURE.
+	 */
+	private void compareWithBaseSearch(BaseSearch baseSearch) {
+		eventLog.startBlock("Compare with the base search");
+		try {
+			env.putString("authzen_search_base_change", baseSearch.change());
+			callAndContinueOnFailure(baseSearch.fixtureEntitiesOnly()
+					? EnsureSearchFixtureEntitiesMatchBaseSearch.class
+					: EnsureSearchResultsMatchBaseSearch.class,
+				ConditionResult.WARNING, baseSearch.requirements().toArray(new String[0]));
+		} finally {
+			eventLog.endBlock();
+		}
 	}
 
 	/**
@@ -282,7 +360,7 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 				throw new TestFailureException(getId(),
 					"Pagination cap of " + MAX_PAGES + " pages exceeded — server may be returning unbounded pages");
 			}
-			eventLog.startBlock("Page " + pageNum);
+			eventLog.startBlock((sendingBaseSearch ? "Base search, page " : "Page ") + pageNum);
 			try {
 				createAuthzenApiRequest();
 				if (pageNum > 1 && sendRawRequest()) {
