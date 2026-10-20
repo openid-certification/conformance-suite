@@ -56,6 +56,15 @@
   "comment": "Cerbos PDP behavior: it returns the next page when a page token arrives with a changed page.limit, where Section 8.2 says the PDP SHOULD return an error"
  },
  {
+  "test-name": "authzen-pdp-*-search-changed-page-entity",
+  "variant": "*",
+  "configuration-filename": "*",
+  "current-block": "*",
+  "condition": "WarnChangedPageRequestAccepted",
+  "expected-result": "warning",
+  "comment": "Cerbos PDP behavior: it returns the next page when a page token arrives with a changed subject, resource or action, where Section 8.2 says the PDP SHOULD return an error when any entity or parameter has been changed"
+ },
+ {
   "test-name": "authzen-pdp-*-reject-*-method",
   "variant": "*",
   "configuration-filename": "*",

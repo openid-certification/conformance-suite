@@ -1,6 +1,8 @@
 package net.openid.conformance.authzen.scenarios.search.action;
 
 import net.openid.conformance.authzen.AbstractAuthzenPDPActionSearchTest;
+import net.openid.conformance.authzen.condition.AbstractChangeAuthzenSearchRequest;
+import net.openid.conformance.authzen.condition.ChangeAuthzenSearchRequestPageLimit;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -29,7 +31,7 @@ public class AuthzenPDPActionSearchChangedPageParametersTest extends AbstractAut
 	}
 
 	@Override
-	protected boolean sendsPageTokenWithChangedLimit() {
-		return true;
+	protected AbstractChangeAuthzenSearchRequest changeRequestWithPageToken() {
+		return new ChangeAuthzenSearchRequestPageLimit(2);
 	}
 }
