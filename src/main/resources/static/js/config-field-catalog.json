@@ -222,43 +222,43 @@
           "key": "pdp.policy_decision_point",
           "label": "PDP Identifier",
           "type": "string",
-          "tooltip": "Polic Decision Point Identifier"
+          "tooltip": "The base HTTPS URL of the PDP (Section 9.1.1), with no query or fragment. The suite builds the metadata URL from it by inserting /.well-known/authzen-configuration after the host, and the default endpoint paths by appending /access/v1/ paths to it."
         },
         {
           "key": "pdp.access_evaluation_endpoint",
           "label": "Access Evaluation API Endpoint",
           "type": "string",
-          "tooltip": "Access Evaluation API Endpoint"
+          "tooltip": "URL of the Access Evaluation API. Optional: when empty, the suite uses the PDP Identifier followed by /access/v1/evaluation (Section 10.1). The search plans also call it, to check that search results are permitted."
         },
         {
           "key": "pdp.access_evaluations_endpoint",
           "label": "Access Evaluations API Endpoint",
           "type": "string",
-          "tooltip": "Access Evaluations API Endpoint"
+          "tooltip": "URL of the Access Evaluations (batch) API. Optional: when empty, the suite uses the PDP Identifier followed by /access/v1/evaluations (Section 10.1)."
         },
         {
           "key": "pdp.search_subject_endpoint",
           "label": "Subject Entity Search API Endpoint",
           "type": "string",
-          "tooltip": "Subject Entity Search API Endpoint"
+          "tooltip": "URL of the Subject Search API. Optional: when empty, the suite uses the PDP Identifier followed by /access/v1/search/subject (Section 10.1)."
         },
         {
           "key": "pdp.search_action_endpoint",
           "label": "Action Entity Search API Endpoint",
           "type": "string",
-          "tooltip": "Action Entity Search API Endpoint"
+          "tooltip": "URL of the Action Search API. Optional: when empty, the suite uses the PDP Identifier followed by /access/v1/search/action (Section 10.1)."
         },
         {
           "key": "pdp.search_resource_endpoint",
           "label": "Resource Entity Search API Endpoint",
           "type": "string",
-          "tooltip": "Resource Entity Search API Endpoint"
+          "tooltip": "URL of the Resource Search API. Optional: when empty, the suite uses the PDP Identifier followed by /access/v1/search/resource (Section 10.1)."
         },
         {
           "key": "pdp.jwks",
           "label": "PDP JWK Set",
           "type": "object",
-          "tooltip": "PDP's public signing key(s) in JSON Web Key Set format (must begin with { &quot;keys&quot;: [ ). Used to verify the signature of the discovery metadata 'signed_metadata' JWT. REQUIRED when the PDP's discovery metadata contains 'signed_metadata' — the test fails without it; leave blank otherwise."
+          "tooltip": "PDP's public signing key(s) in JSON Web Key Set format (must begin with { &quot;keys&quot;: [ ), or, for an HMAC-signed 'signed_metadata', the shared secret as an 'oct' key. Used to verify the signature of the discovery metadata 'signed_metadata' JWT. REQUIRED when the PDP's discovery metadata contains 'signed_metadata' — the test fails without it; leave blank otherwise."
         },
         {
           "key": "pdp.metadata_issuer",
@@ -276,7 +276,7 @@
           "key": "client.client_id",
           "label": "client_id",
           "type": "string",
-          "tooltip": "OAuth client id used with the authorization server. For OID4VP tests this can be left blank if using x509_san_dns or redirect_uri client id schemes."
+          "tooltip": "OAuth client id used with the authorization server. For OID4VP tests this can be left blank if using x509_san_dns or redirect_uri client id schemes. For AuthZEN client_secret_basic, the client id the PDP issued to the PEP."
         },
         {
           "key": "client.client_secret",
