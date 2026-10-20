@@ -173,7 +173,7 @@ public class PidMdocDataElements_UnitTest {
 		LoadBuiltInDcqlQuery load = new LoadBuiltInDcqlQuery();
 		load.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.FAILURE);
 		env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, VP1FinalWalletCredentialType.EUDI_PID
-			.getAllMandatoryClaimsDcqlResource(VP1FinalWalletCredentialFormat.ISO_MDL));
+			.getDcqlResource(VP1FinalWalletCredentialFormat.ISO_MDL, VP1FinalWalletCredentialType.BuiltInDcqlQuery.ALL_MANDATORY));
 		load.execute(env);
 		MdocCredentialTestUtil.putPresentedCredential(env, eventLog);
 

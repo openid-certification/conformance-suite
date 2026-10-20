@@ -81,6 +81,8 @@ import net.openid.conformance.condition.client.EnsureMdocMdlElementValuesAreVali
 import net.openid.conformance.condition.client.ValidateMdocMsoValidityInfoTimestamps;
 import net.openid.conformance.condition.client.EnsureMdocPhotoIdElementValuesAreValid;
 import net.openid.conformance.condition.client.EnsureMdocPidElementValuesAreValid;
+import net.openid.conformance.condition.client.EnsureMostPreferredDcqlClaimSetReturned;
+import net.openid.conformance.condition.client.EnsureMostPreferredMdocDcqlClaimSetReturned;
 import net.openid.conformance.condition.client.EnsurePresentedMdocMdlElementsAreDefined;
 import net.openid.conformance.condition.client.EnsurePresentedMdocPhotoIdElementsAreDefined;
 import net.openid.conformance.condition.client.EnsurePresentedMdocPidElementsAreDefined;
@@ -130,6 +132,7 @@ import net.openid.conformance.condition.client.ValidateJWEHeaderCtyJson;
 import net.openid.conformance.condition.client.ValidateJWEHeaderEncMatchesRequestedAlgorithm;
 import net.openid.conformance.condition.client.ValidateJWEHeaderKidIsInClientMetadataJWKs;
 import net.openid.conformance.condition.client.ValidateMdocDocTypeMatchesDcqlQuery;
+import net.openid.conformance.vp1finalwallet.VP1FinalWalletCredentialType.BuiltInDcqlQuery;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.condition.client.ValidateSdJwtKeyBindingSignature;
 import net.openid.conformance.condition.client.ValidateVerifierInfo;
@@ -307,7 +310,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		credentialFormat = getVariant(VP1FinalWalletCredentialFormat.class);
 		env.putString("credential_format", credentialFormat.toString());
 		credentialType = getVariant(VP1FinalWalletCredentialType.class);
-		String builtInDcqlResource = builtInDcqlResource();
+		String builtInDcqlResource = credentialType.getDcqlResource(credentialFormat, builtInDcqlQuery());
 		if (builtInDcqlResource != null) {
 			// the presence of this string is what makes the authorization request sequence use the
 			// suite's built-in query instead of the one from the test configuration
@@ -472,21 +475,22 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	}
 
 	/**
-	 * The built-in DCQL query resource for the selected credential type, or null to use the
-	 * query from the test configuration. Overridden by modules that use a different built-in
-	 * query, e.g. the one requesting every mandatory data element.
+	 * The built-in DCQL query to send for the selected credential type: the minimal query unless
+	 * a module overrides this, e.g. to request every mandatory data element. A custom credential
+	 * type has no built-in queries and sends the query from the test configuration instead.
 	 */
-	protected String builtInDcqlResource() {
-		return credentialType.getDcqlResource(credentialFormat);
+	protected BuiltInDcqlQuery builtInDcqlQuery() {
+		return BuiltInDcqlQuery.DEFAULT;
 	}
 
 	/**
-	 * Checks that the disclosed claims satisfy the DCQL query. Overridden by modules that need to
-	 * check some claims at a different severity, e.g. the PID picture (portrait) claim in the
-	 * all-mandatory-claims module.
+	 * Checks that the disclosed claims satisfy the DCQL query. Overridden by modules that report
+	 * a less preferred claim_sets option in their own terms, e.g. the PID picture (portrait) claim
+	 * in the all-mandatory-claims module.
 	 */
 	protected void validateDisclosedClaimsMatchDcqlQuery() {
 		callAndContinueOnFailure(ValidateDisclosedClaimsMatchDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
+		callAndContinueOnFailure(EnsureMostPreferredDcqlClaimSetReturned.class, ConditionResult.WARNING, "OID4VP-1FINAL-6.4.1");
 	}
 
 	protected void completeClientConfiguration() {
@@ -814,6 +818,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				eventLog.startBlock(currentClientString() + "Verify credential matches DCQL query");
 				callAndContinueOnFailure(ValidateMdocDocTypeMatchesDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
 				callAndContinueOnFailure(ValidateDisclosedMdocClaimsMatchDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
+				callAndContinueOnFailure(EnsureMostPreferredMdocDcqlClaimSetReturned.class, ConditionResult.WARNING, "OID4VP-1FINAL-6.4.1");
 				callAndContinueOnFailure(CheckOnlyRequestedMdocElementsDisclosed.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
 				break;
 

@@ -40,22 +40,45 @@ public enum VP1FinalWalletCredentialType {
 	}
 
 	/**
-	 * The suite's built-in DCQL query for this credential type in the given format, or null when
-	 * the tester supplies one.
+	 * The suite's built-in DCQL queries. Each is a resource beside the credential type's minimal
+	 * query, named by appending its suffix to that query's stem.
 	 */
-	public String getDcqlResource(VP1FinalWalletCredentialFormat format) {
-		String stem = dcqlResourceStem(format);
-		return stem == null ? null : stem + ".json";
+	public enum BuiltInDcqlQuery {
+		/** The minimal query the happy flow sends. */
+		DEFAULT(""),
+		/** Every mandatory data element of the credential type. */
+		ALL_MANDATORY("-all-mandatory"),
+		/**
+		 * Whether the holder is aged 18 or over, offering the data elements that reveal the least
+		 * first. Only the credential types with age data elements have this query; the module that
+		 * uses it excludes the others.
+		 */
+		AGE_OVER_18("-age-over-18"),
+		/** The first element of the PID 'nationalities' array. Only the SD-JWT VC PID has this query. */
+		NATIONALITIES_FIRST("-nationalities-first"),
+		/** Every element of the PID 'nationalities' array. Only the SD-JWT VC PID has this query. */
+		NATIONALITIES_ALL("-nationalities-all"),
+		/**
+		 * One member of the PID 'place_of_birth' object, offering 'locality', 'region' and 'country'
+		 * in that order. Only the SD-JWT VC PID has this query.
+		 */
+		PLACE_OF_BIRTH_MEMBER("-place-of-birth-member");
+
+		private final String resourceSuffix;
+
+		BuiltInDcqlQuery(String resourceSuffix) {
+			this.resourceSuffix = resourceSuffix;
+		}
 	}
 
 	/**
-	 * The suite's built-in DCQL query requesting every mandatory data element of this credential
-	 * type in the given format, or null when the tester supplies the query (there is no known
-	 * mandatory set for a custom credential).
+	 * The resource holding the given built-in DCQL query for this credential type in the given
+	 * format, or null when the tester supplies the query (a custom credential has no built-in
+	 * queries).
 	 */
-	public String getAllMandatoryClaimsDcqlResource(VP1FinalWalletCredentialFormat format) {
+	public String getDcqlResource(VP1FinalWalletCredentialFormat format, BuiltInDcqlQuery query) {
 		String stem = dcqlResourceStem(format);
-		return stem == null ? null : stem + "-all-mandatory.json";
+		return stem == null ? null : stem + query.resourceSuffix + ".json";
 	}
 
 	@Override

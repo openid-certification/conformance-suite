@@ -9,6 +9,7 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -29,6 +31,24 @@ public class CheckOnlyRequestedClaimsDisclosed_UnitTest {
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
 	private CheckOnlyRequestedClaimsDisclosed cond;
+
+	private static final String PLACE_OF_BIRTH_MEMBER_DCQL = """
+		{
+		  "credentials": [
+		    {
+		      "id": "my_credential",
+		      "format": "dc+sd-jwt",
+		      "meta": { "vct_values": [ "urn:eudi:pid:1" ] },
+		      "claims": [
+		        { "id": "pob_locality", "path": [ "place_of_birth", "locality" ] },
+		        { "id": "pob_region", "path": [ "place_of_birth", "region" ] },
+		        { "id": "pob_country", "path": [ "place_of_birth", "country" ] }
+		      ],
+		      "claim_sets": [ [ "pob_locality" ], [ "pob_region" ], [ "pob_country" ] ]
+		    }
+		  ]
+		}
+		""";
 
 	@BeforeEach
 	public void setUp() throws Exception {
@@ -608,5 +628,104 @@ public class CheckOnlyRequestedClaimsDisclosed_UnitTest {
 		setupNationalitiesCredential("\"_sd_alg\":\"not-a-hash\",", "sha-256");
 
 		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	private void setupAgeEnvironment(String decodedJson, String... disclosureJsons) {
+		setupEnvironment(DcqlTestFixtures.AGE_OVER_18_SD_JWT_DCQL, "my_credential", decodedJson,
+			OIDFJSON.convertListToJsonArray(List.of(disclosureJsons)));
+	}
+
+	@Test
+	public void testEvaluate_claimSetsSingleOptionDisclosedPasses() {
+		setupAgeEnvironment("{\"age_equal_or_over\": {\"18\": true}}",
+			"[\"salt1\", \"age_equal_or_over\", {\"_sd\": [\"digest1\", \"digest2\"]}]",
+			"[\"salt2\", \"18\", true]");
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsLastOptionDisclosedPasses() {
+		setupAgeEnvironment("{\"birthdate\": \"1980-05-23\"}",
+			"[\"salt1\", \"birthdate\", \"1980-05-23\"]");
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsTwoOptionsDisclosedThrowsError() {
+		setupAgeEnvironment("{\"age_equal_or_over\": {\"18\": true}, \"birthdate\": \"1980-05-23\"}",
+			"[\"salt1\", \"age_equal_or_over\", {\"_sd\": [\"digest1\", \"digest2\"]}]",
+			"[\"salt2\", \"18\", true]",
+			"[\"salt3\", \"birthdate\", \"1980-05-23\"]");
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_claimSetsOtherThresholdDisclosedThrowsError() {
+		setupAgeEnvironment("{\"age_equal_or_over\": {\"18\": true, \"21\": true}}",
+			"[\"salt1\", \"age_equal_or_over\", {\"_sd\": [\"digest1\", \"digest2\"]}]",
+			"[\"salt2\", \"18\", true]",
+			"[\"salt3\", \"21\", true]");
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_claimSetsSupersetOptionDisclosedPasses() {
+		String dcql = """
+			{
+			  "credentials": [
+			    {
+			      "id": "my_credential",
+			      "format": "dc+sd-jwt",
+			      "claims": [
+			        {"id": "a", "path": ["given_name"]},
+			        {"id": "b", "path": ["picture"]}
+			      ],
+			      "claim_sets": [["a", "b"], ["a"]]
+			    }
+			  ]
+			}
+			""";
+		setupEnvironment(dcql, "my_credential", "given_name", "picture");
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsNestedMemberSingleOptionDisclosedPasses() {
+		JsonArray disclosures = new JsonArray();
+		disclosures.add("[\"s1\",\"place_of_birth\",{\"_sd\":[\"d1\"]}]");
+		disclosures.add("[\"s2\",\"country\",\"DE\"]");
+		// a PID whose place_of_birth has only a country: the last option is the only one satisfiable
+		setupEnvironment(PLACE_OF_BIRTH_MEMBER_DCQL, "my_credential",
+			"{\"place_of_birth\":{\"country\":\"DE\"}}", disclosures);
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsNestedMembersOfTwoOptionsDisclosedThrowsError() {
+		JsonArray disclosures = new JsonArray();
+		disclosures.add("[\"s1\",\"place_of_birth\",{\"_sd\":[\"d1\",\"d2\"]}]");
+		disclosures.add("[\"s2\",\"locality\",\"Berlin\"]");
+		disclosures.add("[\"s3\",\"country\",\"DE\"]");
+		setupEnvironment(PLACE_OF_BIRTH_MEMBER_DCQL, "my_credential",
+			"{\"place_of_birth\":{\"locality\":\"Berlin\",\"country\":\"DE\"}}", disclosures);
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_claimSetsNestedObjectDisclosedAsAWholePasses() {
+		// the issuer made the object, not its members, selectively disclosable: the wallet cannot split it
+		JsonArray disclosures = new JsonArray();
+		disclosures.add("[\"s1\",\"place_of_birth\",{\"locality\":\"Berlin\",\"country\":\"DE\"}]");
+		setupEnvironment(PLACE_OF_BIRTH_MEMBER_DCQL, "my_credential",
+			"{\"place_of_birth\":{\"locality\":\"Berlin\",\"country\":\"DE\"}}", disclosures);
+
+		cond.execute(env);
 	}
 }

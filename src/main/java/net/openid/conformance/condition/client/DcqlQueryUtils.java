@@ -3,13 +3,18 @@ package net.openid.conformance.condition.client;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Shared utilities for DCQL query processing.
@@ -49,10 +54,9 @@ public class DcqlQueryUtils {
 	 * so the structural location of a disclosed claim cannot be reliably verified here. Use this for
 	 * over-approximating the set of acceptable claim names; do not rely on it for strict containment.
 	 *
-	 * TODO: This currently flattens the credential entry's entire claims array and does not
-	 * implement DCQL claim_sets semantics. Where claim_sets are present, callers should ideally
-	 * derive the effective requested claims from a satisfiable set instead of treating every
-	 * declared claim as simultaneously required/requested.
+	 * This flattens every claim listed under claims regardless of claim_sets, so the emulated
+	 * SD-JWT wallet (the only caller) presents the union of the options. Use
+	 * {@link #extractClaimSetOptions} where claim_sets semantics matter.
 	 */
 	public static Set<String> extractRequestedClaimNames(JsonObject dcqlQuery) {
 		Set<String> claims = new HashSet<>();
@@ -92,15 +96,151 @@ public class DcqlQueryUtils {
 	}
 
 	/**
-	 * Extract the set of full claim paths requested for a specific credential entry.
-	 *
-	 * TODO: This currently models "all claims listed under claims". It does not yet account for
-	 * claim_sets, which can make only a subset of those claim ids effectively required.
+	 * Extract the set of full claim paths listed under claims for a specific credential entry,
+	 * regardless of claim_sets. Use {@link #extractClaimSetOptions} for the combinations the
+	 * Verifier actually requests.
 	 */
 	public static Set<List<String>> extractClaimPathsFromCredential(JsonObject credential) {
 		Set<List<String>> claimPaths = new HashSet<>();
 		extractClaimPathsFromCredential(credential, claimPaths);
 		return claimPaths;
+	}
+
+	/**
+	 * The combinations of claim paths that satisfy a credential entry, in the Verifier's order of
+	 * preference (OID4VP 1.0 section 6.4.1). With claim_sets, each option holds the paths of the
+	 * claims that option references; without, the single option is every path listed in claims.
+	 * Empty when the entry requests no claims.
+	 *
+	 * A claim_sets option referencing an unknown claim id is omitted, as it cannot be satisfied;
+	 * ValidateDCQLQuery reports such queries.
+	 */
+	public static List<Set<List<String>>> extractClaimSetOptions(JsonObject credential) {
+		JsonArray claims = credential.getAsJsonArray("claims");
+		if (claims == null) {
+			return List.of();
+		}
+		Set<List<String>> allPaths = new LinkedHashSet<>();
+		Map<String, List<String>> pathsById = new HashMap<>();
+		for (JsonElement claimEl : claims) {
+			JsonObject claim = claimEl.getAsJsonObject();
+			List<String> path = List.copyOf(extractPathSegments(claim.getAsJsonArray("path")));
+			if (path.isEmpty()) {
+				continue;
+			}
+			allPaths.add(path);
+			if (OIDFJSON.isString(claim.get("id"))) {
+				pathsById.put(OIDFJSON.getString(claim.get("id")), path);
+			}
+		}
+		if (allPaths.isEmpty()) {
+			return List.of();
+		}
+		JsonElement claimSetsEl = credential.get("claim_sets");
+		if (claimSetsEl == null || !claimSetsEl.isJsonArray()) {
+			return List.of(allPaths);
+		}
+
+		List<Set<List<String>>> options = new ArrayList<>();
+		for (JsonElement optionEl : claimSetsEl.getAsJsonArray()) {
+			if (!optionEl.isJsonArray()) {
+				continue;
+			}
+			Set<List<String>> option = new LinkedHashSet<>();
+			boolean resolvable = true;
+			for (JsonElement idEl : optionEl.getAsJsonArray()) {
+				List<String> path = OIDFJSON.isString(idEl) ? pathsById.get(OIDFJSON.getString(idEl)) : null;
+				if (path == null) {
+					resolvable = false;
+					break;
+				}
+				option.add(path);
+			}
+			if (resolvable && !option.isEmpty()) {
+				options.add(option);
+			}
+		}
+		return options;
+	}
+
+	/**
+	 * The claim paths a data minimization check judges a presentation against. With claim_sets the
+	 * Verifier requests one combination of claims, so the disclosures must fit within a single
+	 * option that the presentation satisfies: the first such option is returned. Where no satisfied
+	 * option fits, the most preferred satisfied option is returned so that the disclosures outside
+	 * it are reported; where no option is satisfied at all (which the presence check reports), every
+	 * listed path is returned so that only disclosures outside every listed claim are reported.
+	 *
+	 * @param isSatisfied whether the presentation contains every claim path of an option
+	 * @param fitsWithin  whether every disclosure in the presentation is requested by an option
+	 */
+	public static Set<List<String>> selectRequestedClaimPaths(List<Set<List<String>>> options,
+			Set<List<String>> allClaimPaths, Predicate<Set<List<String>>> isSatisfied,
+			Predicate<Set<List<String>>> fitsWithin) {
+		Set<List<String>> firstSatisfied = null;
+		for (Set<List<String>> option : options) {
+			if (!isSatisfied.test(option)) {
+				continue;
+			}
+			if (fitsWithin.test(option)) {
+				return option;
+			}
+			if (firstSatisfied == null) {
+				firstSatisfied = option;
+			}
+		}
+		return firstSatisfied != null ? firstSatisfied : allClaimPaths;
+	}
+
+	/** An object property disclosure and the decoded claim paths its name and value match. */
+	public record DisclosedClaim(String name, Set<List<String>> matchingPaths) {}
+
+	/**
+	 * The object property disclosures in <code>sdjwt.disclosures</code>, each with the decoded claim
+	 * paths it matches. Array element disclosures carry no name and are left out.
+	 */
+	public static List<DisclosedClaim> extractDisclosedSdJwtClaims(Environment env, JsonObject decoded) {
+		List<DisclosedClaim> disclosedClaims = new ArrayList<>();
+		JsonElement disclosuresEl = env.getElementFromObject("sdjwt", "disclosures");
+		if (disclosuresEl == null || !disclosuresEl.isJsonArray()) {
+			return disclosedClaims;
+		}
+		for (JsonElement disclosureEl : disclosuresEl.getAsJsonArray()) {
+			JsonArray disclosure = JsonParser.parseString(OIDFJSON.getString(disclosureEl)).getAsJsonArray();
+			if (disclosure.size() >= 3) {
+				String name = OIDFJSON.getString(disclosure.get(1));
+				disclosedClaims.add(new DisclosedClaim(name, findMatchingClaimPaths(decoded, name, disclosure.get(2))));
+			}
+		}
+		return disclosedClaims;
+	}
+
+	/**
+	 * The names of the disclosures that match no requested claim path, nor an ancestor or descendant of one.
+	 */
+	public static List<String> findUnrequestedDisclosures(List<DisclosedClaim> disclosedClaims,
+			Set<List<String>> requestedClaimPaths) {
+		List<String> unrequestedDisclosures = new ArrayList<>();
+		for (DisclosedClaim disclosed : disclosedClaims) {
+			boolean requested = disclosed.matchingPaths().stream()
+				.anyMatch(path -> isRequestedPathAncestorOrDescendant(requestedClaimPaths, path));
+			if (!requested) {
+				unrequestedDisclosures.add(disclosed.name());
+			}
+		}
+		return unrequestedDisclosures;
+	}
+
+	/**
+	 * Whether every claim path of a claim set option is present in the decoded credential payload.
+	 */
+	public static boolean isClaimSetOptionPresent(JsonObject decoded, Set<List<String>> option) {
+		for (List<String> claimPath : option) {
+			if (!isClaimPathPresent(decoded, claimPath)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
