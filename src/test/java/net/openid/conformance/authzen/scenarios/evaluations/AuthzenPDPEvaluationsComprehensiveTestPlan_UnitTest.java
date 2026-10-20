@@ -26,6 +26,8 @@ class AuthzenPDPEvaluationsComprehensiveTestPlan_UnitTest {
 	private static final Set<Class<? extends TestModule>> OPTIONAL_SEMANTIC_MODULES = Set.of(
 		AuthzenPDPEvaluationsDenyOnFirstDenyTest.class,
 		AuthzenPDPEvaluationsPermitOnFirstPermitTest.class,
+		AuthzenPDPEvaluationsDenyOnFirstDenyWithoutDenialTest.class,
+		AuthzenPDPEvaluationsPermitOnFirstPermitWithoutPermitTest.class,
 		AuthzenPDPEvaluationsUnknownSemanticValueTest.class
 	);
 
