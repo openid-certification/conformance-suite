@@ -11,6 +11,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.as.clientattestation.ValidateClientAttestationTyp;
 import net.openid.conformance.condition.client.AbstractSignJWT;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.TestKeysAndCerts;
 
 import java.time.Instant;
 
@@ -41,8 +42,16 @@ public class CreateClientAttestationJwt extends AbstractSignJWT {
 		if (clientAttesterKeysJwksEl == null) {
 			clientAttesterKeysJwksEl = env.getElementFromObject("config", "vci.client_attester_keys_jwks");
 		}
+		JsonObject jwks;
 		if (clientAttesterKeysJwksEl == null) {
-			throw error("'Client Attester Keys JWKS' field is missing from the 'Client Attestation' section in the test configuration");
+			// the built-in wallet provider certificate; its CA is published at /trust-anchors
+			jwks = TestKeysAndCerts.getWalletAttestationSigner().jwksJson();
+			log("No 'Client Attester Keys JWKS' in the 'Client Attestation' section of the test configuration; signing the"
+					+ " client attestation with the suite's built-in wallet provider certificate",
+				args("attester_certificate_subject", TestKeysAndCerts.getWalletAttestationSigner().getCert().getSubject().getName(),
+					"wallet_provider_ca_url", TestKeysAndCerts.SuiteCa.WALLET_PROVIDER.getTrustAnchorUrl()));
+		} else {
+			jwks = clientAttesterKeysJwksEl.getAsJsonObject();
 		}
 
 		String clientInstanceKeyPublicString = env.getString("client", "client_instance_key_public");
@@ -65,8 +74,6 @@ public class CreateClientAttestationJwt extends AbstractSignJWT {
 		claims.add("cnf", cnf);
 
 		customizeClaims(claims);
-
-		JsonObject jwks = clientAttesterKeysJwksEl.getAsJsonObject();
 
 		signJWT(env, claims, jwks, true, false,
 			true, // see: https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0-03.html#section-4.3.1-2

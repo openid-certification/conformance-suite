@@ -3,7 +3,6 @@ package net.openid.conformance.condition.as;
 import com.authlete.sd.Disclosure;
 import com.authlete.sd.SDJWT;
 import com.authlete.sd.SDObjectBuilder;
-import com.google.gson.JsonElement;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -15,7 +14,6 @@ import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.testmodule.Environment;
@@ -29,7 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CreateVPID2SdJwtVpToken extends AbstractCondition {
+public class CreateVPID2SdJwtVpToken extends AbstractCredentialSigningJwkCondition {
 
 	public String keyBindingJwt(ECKey privateKey, String aud, String nonce, String sdHash) {
 		// as per https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-14.html#section-4.3
@@ -71,16 +69,7 @@ public class CreateVPID2SdJwtVpToken extends AbstractCondition {
 		// Create a private key for the credential key binding
 		ECKey privateKey = PreGeneratedJwks.nextEcKey(env, Curve.P_256);
 
-		JsonElement credentialSigningJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
-		if (credentialSigningJwkEl == null) {
-			throw error("'Signing JWK' field is missing from the 'Credential Issuer' section in the test configuration");
-		}
-		JWK credentialSigningJwk = null;
-		try {
-			credentialSigningJwk = JWK.parse(credentialSigningJwkEl.toString());
-		} catch (ParseException e) {
-			throw error("Failed to parse the 'Signing JWK' field in the 'Credential Issuer' section of the test configuration", e, args("signing_jwk", credentialSigningJwkEl));
-		}
+		JWK credentialSigningJwk = credentialSigningJwk(env);
 
 		// tries to generate a credential that's valid as per https://bmi.usercontent.opencode.de/eudi-wallet/eidas-2.0-architekturkonzept/functions/00-pid-issuance-and-presentation/#pid-contents
 

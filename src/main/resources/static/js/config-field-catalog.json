@@ -83,7 +83,7 @@
           "key": "credential.signing_jwk",
           "label": "Signing JWK",
           "type": "object",
-          "tooltip": "Signing key to be used for issuing SD-JWT VC credentials, in JWK format. Note that the JWK must also contain the signing certificate chain in the x5c claim. It is not used for mdoc credentials — the test suite always signs those with its own document signer certificate, issued under its mdoc IACA root certificate (served at /mdoc-iaca-root.pem)."
+          "tooltip": "Optional. Signing key to be used for issuing SD-JWT VC credentials, in JWK format, which must also contain the signing certificate chain in the x5c claim. When omitted the suite signs SD-JWT VC credentials with its built-in PID provider certificate (issued under the PID provider CA served at /trust-anchors/pid-provider-ca.pem) and signed issuer metadata with its built-in wallet-relying-party access certificate (issued under the access CA served at /trust-anchors/access-ca.pem); see /trust-anchors for all of the suite's CA certificates. It is not used for mdoc credentials — the test suite always signs those with its own document signer certificate, issued under its mdoc IACA root certificate (served at /mdoc-iaca-root.pem)."
         },
         {
           "key": "credential.trust_anchor_pem",
@@ -372,7 +372,7 @@
           "key": "client.jwks",
           "label": "jwks",
           "type": "object",
-          "tooltip": "Client's private signing key in JSON Web Key Set format, must begin with { \"keys\": [ { PEM/DER format private keys MUST be correctly converted to a JWKS, e.g. using 'pem-jwk'. The JWKS should normally contain exactly one JWK, which will be used for client assertions / signing requests, and must contain an 'alg' field indicating what algorithm to use. If the OP issues encrypted id tokens a key with 'use': 'enc' must be provided, which must be the second entry in the JWKS."
+          "tooltip": "Client's private signing key in JSON Web Key Set format, must begin with { \"keys\": [ { PEM/DER format private keys MUST be correctly converted to a JWKS, e.g. using 'pem-jwk'. The JWKS should normally contain exactly one JWK, which will be used for client assertions / signing requests, and must contain an 'alg' field indicating what algorithm to use. If the OP issues encrypted id tokens a key with 'use': 'enc' must be provided, which must be the second entry in the JWKS. In the OpenID4VP wallet tests with the x509_san_dns or x509_hash client identifier prefix it may be omitted, in which case the suite signs requests with its built-in wallet-relying-party access certificate, issued under the access CA served at /trust-anchors/access-ca.pem. That certificate is re-minted daily, so with x509_hash the client identifier the suite uses changes daily; supply a jwks if the wallet pins it."
         },
         {
           "key": "client.org_jwks",
@@ -1033,8 +1033,7 @@
           "key": "client_attestation.attester_jwks",
           "label": "Client Attester Keys JWKS",
           "type": "string",
-          "placeholder": "REQUIRED",
-          "tooltip": "Pre-configured keys of the client attester in JWKS format. Note the Client Attester Certificate must be provided in the x5c JWK claim as a JSON array with the encoded certificate"
+          "tooltip": "Optional. Keys of the client attester in JWKS format, with the client attester certificate chain in the x5c JWK claim. When omitted the suite signs its client attestations with its built-in wallet provider certificate, issued under the wallet provider CA served at /trust-anchors/wallet-provider-ca.pem."
         },
         {
           "key": "client_attestation.issuer",
@@ -1060,8 +1059,7 @@
           "key": "client_attestation.key_attestation_jwks",
           "label": "Key Attestation JWKS",
           "type": "string",
-          "placeholder": "REQUIRED if Key Attestation is used",
-          "tooltip": "Pre-configured keys of the key attestation JWKS format. Leave empty if Key attestation is not used. Note the Client Attester Certificate must be provided in the x5c JWK claim as a JSON array with the encoded certificate."
+          "tooltip": "Optional. Keys for signing key attestations in JWKS format, with the attester certificate chain in the x5c JWK claim. When omitted the suite signs its key attestations with its built-in wallet provider certificate, issued under the wallet provider CA served at /trust-anchors/wallet-provider-ca.pem."
         },
         {
           "key": "client_attestation.key_attestation_trust_anchor_pem",
