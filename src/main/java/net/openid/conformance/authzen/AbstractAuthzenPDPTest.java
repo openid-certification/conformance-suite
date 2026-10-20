@@ -568,9 +568,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 			}
 		}
 		if (addPDPEndpointClientAuthentication != null) {
-			mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 			call(sequence(addPDPEndpointClientAuthentication));
-			unmapClientAuthKeys();
 		}
 	}
 
