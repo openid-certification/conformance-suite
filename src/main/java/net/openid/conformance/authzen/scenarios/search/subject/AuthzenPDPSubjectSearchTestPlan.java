@@ -42,6 +42,7 @@ import java.util.Map;
 		AuthzenPDPSubjectSearchMissingActionTest.class,
 		AuthzenPDPSubjectSearchActionMissingNameTest.class,
 		AuthzenPDPSubjectSearchActionIsStringTest.class,
+		AuthzenPDPSubjectSearchActionNameIsNumberTest.class,
 		AuthzenPDPSubjectSearchMissingResourceTest.class,
 		AuthzenPDPSubjectSearchResourceMissingIdTest.class,
 		AuthzenPDPSubjectSearchResourceMissingTypeTest.class,
