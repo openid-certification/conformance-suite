@@ -188,6 +188,17 @@
         "comment": "Wallet receives credential with iat in the future from the verifier negative test"
     },
     {
+        "test-name": "oid4vp-1final-wallet-happy-flow",
+        "variant": {
+            "credential_format": "sd_jwt_vc"
+        },
+        "configuration-filename": "*vp-wallet-test-config-dcql-sdjwt-negative-vct.json",
+        "current-block": "Verify credential matches DCQL query",
+        "condition": "ValidateCredentialVctMatchesDcqlQuery",
+        "expected-result": "failure",
+        "comment": "Wallet receives credential with an unrequested vct from the verifier negative test"
+    },
+    {
         "test-name": "fapi2-security-profile-final-attempt-reuse-authorization-code-after-one-second",
         "variant": "*",
         "configuration-filename": "authlete-vci-haip*.json",
