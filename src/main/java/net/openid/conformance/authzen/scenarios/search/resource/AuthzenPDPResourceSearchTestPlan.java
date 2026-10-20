@@ -54,8 +54,9 @@ import java.util.Map;
 		AuthzenPDPResourceSearchUnknownPageFieldsTest.class,
 		// Search Properties (Properties variant only)
 		AuthzenPDPResourceSearchResourceSearchWithSubjectPropertiesTest.class,
-		// Authentication (Section 11.3)
+		// Authentication (Sections 11.2 and 11.3)
 		AuthzenPDPResourceSearchMissingCredentialsReturns401Test.class,
+		AuthzenPDPResourceSearchUnauthenticatedRequestAcceptedTest.class,
 		AuthzenPDPResourceSearchInvalidCredentialsReturns401Test.class,
 	}
 )

@@ -57,8 +57,9 @@ import java.util.Map;
 		AuthzenPDPEvaluationAcceptContentTypeWithCharsetTest.class,
 		AuthzenPDPEvaluationRejectMalformedJsonTest.class,
 		AuthzenPDPEvaluationRejectEmptyBodyTest.class,
-		// Authentication (Section 11.3)
+		// Authentication (Sections 11.2 and 11.3)
 		AuthzenPDPEvaluationMissingCredentialsReturns401Test.class,
+		AuthzenPDPEvaluationUnauthenticatedRequestAcceptedTest.class,
 		AuthzenPDPEvaluationInvalidCredentialsReturns401Test.class,
 	}
 )

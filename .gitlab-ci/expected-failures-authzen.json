@@ -1,5 +1,14 @@
 [
  {
+  "test-name": "authzen-pdp-*-unauthenticated-request-accepted",
+  "variant": "*",
+  "configuration-filename": "*",
+  "current-block": "*",
+  "condition": "WarnPDPAcceptsUnauthenticatedRequests",
+  "expected-result": "warning",
+  "comment": "The pdp_auth_type=none runs reach Cerbos through the authzen-auth-proxy pass-through port 9446, which checks no credentials, and Cerbos does not authenticate the PEP; Section 11.2 says the PDP SHOULD"
+ },
+ {
   "test-name": "authzen-pdp-evaluations-batch-override-replaces-default-entity",
   "variant": "*",
   "configuration-filename": "*",

@@ -54,8 +54,9 @@ import java.util.Map;
 		AuthzenPDPSubjectSearchExtraSubjectIdIgnoredTest.class,
 		// Search Properties (Properties variant only)
 		AuthzenPDPSubjectSearchSubjectSearchWithResourcePropertiesTest.class,
-		// Authentication (Section 11.3)
+		// Authentication (Sections 11.2 and 11.3)
 		AuthzenPDPSubjectSearchMissingCredentialsReturns401Test.class,
+		AuthzenPDPSubjectSearchUnauthenticatedRequestAcceptedTest.class,
 		AuthzenPDPSubjectSearchInvalidCredentialsReturns401Test.class,
 	}
 )
