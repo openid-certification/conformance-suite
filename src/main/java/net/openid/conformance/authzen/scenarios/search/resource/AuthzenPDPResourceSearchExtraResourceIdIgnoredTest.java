@@ -3,10 +3,12 @@ package net.openid.conformance.authzen.scenarios.search.resource;
 import net.openid.conformance.authzen.AbstractAuthzenPDPResourceSearchTest;
 import net.openid.conformance.testmodule.PublishTestModule;
 
+import java.util.List;
+
 @PublishTestModule(
 	testName = "authzen-pdp-resource-search-extra-resource-id-ignored",
 	displayName = "AuthZEN Resource Search API - Section 8.5.1: Extra resource.id ignored",
-	summary = "Section 8.5.1 says resource.id SHOULD be omitted from Resource Search and, if present, MUST be ignored. This test sends a stray `resource.id` alongside the required `resource.type`; PDP MUST still return the expected results.\n" + AuthzenPDPResourceSearchExtraResourceIdIgnoredTest.payload,
+	summary = "Section 8.5.1 says resource.id SHOULD be omitted from Resource Search and, if present, MUST be ignored. This test sends a stray `resource.id` alongside the required `resource.type`; PDP MUST still return the expected results. The harness first sends the same search without resource.id, following every page, and warns if the two result sets differ: scenario 7.3.3 requires them to be identical, but search results may depend on other variables such as time (Section 8.1), as in the search idempotency modules.\n" + AuthzenPDPResourceSearchExtraResourceIdIgnoredTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPResourceSearchExtraResourceIdIgnoredTest extends AbstractAuthzenPDPResourceSearchTest {
@@ -38,5 +40,14 @@ public class AuthzenPDPResourceSearchExtraResourceIdIgnoredTest extends Abstract
 				]
 			}
 			""";
+	}
+
+	@Override
+	protected BaseSearch getBaseSearch() {
+		// Section 8.5.1: the id, "if present, MUST be ignored".
+		return new BaseSearch("resource.id", request -> {
+			request.getAsJsonObject("resource").remove("id");
+			return request;
+		}, false, List.of("AUTHZEN-8.5.1"));
 	}
 }
