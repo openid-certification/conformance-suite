@@ -66,6 +66,7 @@ import java.util.Map;
 		AuthzenPDPEvaluationsBatchWithPropertiesValidatedTest.class,
 		AuthzenPDPEvaluationsBatchWithSubjectPropertiesValidatedTest.class,
 		AuthzenPDPEvaluationsBatchWithTopLevelDefaultInheritanceTest.class,
+		AuthzenPDPEvaluationsBatchOverrideReplacesDefaultEntityTest.class,
 		// Authentication (Section 11.3)
 		AuthzenPDPEvaluationsMissingCredentialsReturns401Test.class,
 		AuthzenPDPEvaluationsInvalidCredentialsReturns401Test.class,
