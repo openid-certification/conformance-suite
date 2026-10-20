@@ -17,6 +17,11 @@ import net.openid.conformance.plan.TestPlan;
  *       {@link AuthzenPDPEvaluationsPermitOnFirstPermitTest} require the short circuit to be
  *       observable on the wire (a truncated {@code evaluations} array), which a PDP that does
  *       not implement the option cannot produce;</li>
+ *   <li>{@link AuthzenPDPEvaluationsDenyOnFirstDenyWithoutDenialTest} and
+ *       {@link AuthzenPDPEvaluationsPermitOnFirstPermitWithoutPermitTest} send a batch that never
+ *       reaches the trigger, so every decision must come back. A PDP that ignores the option
+ *       passes them too; they catch one that implements it but drops results it should
+ *       return;</li>
  *   <li>{@link AuthzenPDPEvaluationsUnknownSemanticValueTest} requires HTTP 400 for an
  *       unrecognized {@code evaluations_semantic} value, which presupposes the option is
  *       implemented at all — a PDP that ignores {@code options} answers 200.</li>
@@ -52,6 +57,8 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsExecuteAllExplicitTest.class,
 		AuthzenPDPEvaluationsDenyOnFirstDenyTest.class,
 		AuthzenPDPEvaluationsPermitOnFirstPermitTest.class,
+		AuthzenPDPEvaluationsDenyOnFirstDenyWithoutDenialTest.class,
+		AuthzenPDPEvaluationsPermitOnFirstPermitWithoutPermitTest.class,
 		AuthzenPDPEvaluationsUnknownSemanticValueTest.class,
 		// Per-eval overrides top-level defaults (Section 7.1.1)
 		AuthzenPDPEvaluationsPerEvalOverridesDefaultTest.class,
