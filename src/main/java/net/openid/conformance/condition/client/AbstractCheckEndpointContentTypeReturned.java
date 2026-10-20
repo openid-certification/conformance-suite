@@ -12,7 +12,8 @@ public abstract class AbstractCheckEndpointContentTypeReturned extends AbstractC
 
 		String mimeType = getMimeTypeFromContentType(contentType);
 
-		if (expected.equals(mimeType)) {
+		// Media type names are case-insensitive (RFC 9110 Section 8.3.1).
+		if (expected.equalsIgnoreCase(mimeType)) {
 			logSuccess(headersEnvKey + " Content-Type: header is " + expected);
 			return env;
 		}
