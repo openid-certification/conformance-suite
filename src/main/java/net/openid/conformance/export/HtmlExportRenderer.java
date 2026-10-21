@@ -10,6 +10,7 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.io.StringWriter;
+import java.io.Writer;
 import java.util.Locale;
 
 @Service
@@ -55,7 +56,7 @@ public class HtmlExportRenderer {
 		return writer.toString();
 	}
 
-	public String createHtmlForTestLogs(TestExportInfo export) {
+	public void writeHtmlForTestLogs(TestExportInfo export, Writer writer) {
 		Context thymleafContext = new Context();
 		thymleafContext.setLocale(Locale.ENGLISH);
 		TestHelper helper = new TestHelper(export, suiteBaseUrl);
@@ -65,8 +66,12 @@ public class HtmlExportRenderer {
 			LogEntryHelper logEntryHelper = new LogEntryHelper(testResult, gson);
 			helper.addLogEntryHelper(logEntryHelper);
 		}
-		StringWriter writer = new StringWriter();
 		exportRenderingTemplateEngine.process(testTemplateName, thymleafContext, writer);
+	}
+
+	public String createHtmlForTestLogs(TestExportInfo export) {
+		StringWriter writer = new StringWriter();
+		writeHtmlForTestLogs(export, writer);
 		return writer.toString();
 	}
 
