@@ -7,5 +7,245 @@
                 "fapi_response_mode": "plain_response"
         },
         "configuration-filename": "authlete-fapi1-adv-final-ob-privatekey.json"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "fapi_profile": "consumerdataright_au",
+            "fapi_response_mode": "jarm",
+            "fapi_auth_request_method": "by_value"
+        },
+        "configuration-filename": "authlete-au-cdr-fapi1-adv-final-privatekey-jarm.json"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "fapi_profile": "openbanking_brazil",
+            "fapi_response_mode": "plain_response",
+            "fapi_auth_request_method": "pushed"
+        },
+        "configuration-filename": "authlete-fapi-brazil-privatekey-encryptedidtoken.json"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "client_auth_type": "mtls",
+            "fapi_profile": "plain_fapi",
+            "fapi_response_mode": "jarm",
+            "fapi_auth_request_method": "by_value"
+        },
+        "configuration-filename": "authlete-fapi1-adv-final-mtls-jarm.json"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "client_auth_type": "mtls",
+            "fapi_profile": "plain_fapi",
+            "fapi_response_mode": "plain_response",
+            "fapi_auth_request_method": "by_value"
+        },
+        "configuration-filename": "authlete-fapi1-adv-final-mtls.json"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "client_auth_type": "mtls",
+            "fapi_profile": "plain_fapi",
+            "fapi_response_mode": "plain_response",
+            "fapi_auth_request_method": "pushed"
+        },
+        "configuration-filename": "authlete-fapi1-adv-final-mtls.json"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "client_auth_type": "mtls",
+            "fapi_profile": "openbanking_uk",
+            "fapi_response_mode": "plain_response",
+            "fapi_auth_request_method": "by_value"
+        },
+        "configuration-filename": "authlete-fapi1-adv-final-ob-mtls.json"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "fapi_profile": "openbanking_uk",
+            "fapi_response_mode": "plain_response",
+            "fapi_auth_request_method": "by_value"
+        },
+        "configuration-filename": "authlete-fapi1-adv-final-ob-privatekey.json"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "fapi_profile": "plain_fapi",
+            "fapi_response_mode": "plain_response",
+            "fapi_auth_request_method": "by_value"
+        },
+        "configuration-filename": "authlete-fapi1-adv-final-privatekey-for-instructions.json"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "fapi_profile": "plain_fapi",
+            "fapi_response_mode": "jarm",
+            "fapi_auth_request_method": "by_value"
+        },
+        "configuration-filename": "authlete-fapi1-adv-final-privatekey-jarm.json"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "fapi_profile": "plain_fapi",
+            "fapi_response_mode": "plain_response",
+            "fapi_auth_request_method": "by_value"
+        },
+        "configuration-filename": "authlete-fapi1-adv-final-privatekey.json"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "client_auth_type": "mtls",
+            "fapi_profile": "openbanking_ksa",
+            "fapi_response_mode": "plain_response",
+            "fapi_auth_request_method": "pushed"
+        },
+        "configuration-filename": "authlete-fapi1-final-mtls-sama.json"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "fapi_profile": "plain_fapi",
+            "fapi_response_mode": "jarm",
+            "fapi_auth_request_method": "pushed"
+        },
+        "configuration-filename": "authlete-fapi1-final-privatekey-jarm-encrypted.json"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "openid": "openid_connect",
+            "client_auth_type": "private_key_jwt",
+            "fapi_request_method": "unsigned",
+            "sender_constrain": "mtls",
+            "fapi_response_mode": "jarm",
+            "fapi_profile": "openbanking_brazil"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-brazil-privatekey-jarm.json"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "openid": "openid_connect",
+            "client_auth_type": "private_key_jwt",
+            "fapi_request_method": "signed_non_repudiation",
+            "sender_constrain": "mtls",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "openid": "openid_connect",
+            "client_auth_type": "mtls",
+            "fapi_request_method": "signed_non_repudiation",
+            "sender_constrain": "mtls",
+            "fapi_profile": "openbanking_chile",
+            "fapi_response_mode": "plain_response",
+            "authorization_request_type": "rar",
+            "grant_management": "enabled"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-mtls-jar-chile.json"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "openid": "openid_connect",
+            "client_auth_type": "private_key_jwt",
+            "fapi_request_method": "signed_non_repudiation",
+            "sender_constrain": "mtls",
+            "fapi_profile": "cbuae",
+            "fapi_response_mode": "plain_response",
+            "authorization_request_type": "rar"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-privatekey-jar-cbuae.json"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "openid": "openid_connect",
+            "client_auth_type": "private_key_jwt",
+            "fapi_request_method": "signed_non_repudiation",
+            "sender_constrain": "mtls",
+            "fapi_profile": "plain_fapi",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-privatekey-jar.json"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "openid": "openid_connect",
+            "client_auth_type": "private_key_jwt",
+            "fapi_request_method": "unsigned",
+            "sender_constrain": "mtls",
+            "fapi_response_mode": "jarm",
+            "fapi_profile": "plain_fapi"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-privatekey-jarm.json"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "openid": "plain_oauth",
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "dpop",
+            "fapi_profile": "fapi_client_credentials_grant"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-client-credentials-privatekey-dpop.json"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "openid": "plain_oauth",
+            "client_auth_type": "mtls",
+            "sender_constrain": "mtls",
+            "fapi_profile": "fapi_client_credentials_grant"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-mtls-plainoauth.json"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "openid": "plain_oauth",
+            "client_auth_type": "mtls",
+            "sender_constrain": "mtls",
+            "fapi_profile": "plain_fapi"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-mtls-plainoauth.json"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": {
+            "openid": "openid_connect",
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "fapi_profile": "plain_fapi"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-privatekey.json"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi2securityprofile-brazil-privatekey-dpop.json"
     }
 ]

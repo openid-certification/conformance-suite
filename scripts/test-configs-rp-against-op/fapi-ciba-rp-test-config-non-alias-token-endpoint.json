@@ -1,0 +1,56 @@
+{
+    "alias": "oidf-fapi-ciba-rp-test",
+    "description": "FAPI-CIBA RP test config for running against OP tests",
+    "server": {
+        "jwks": {
+            "keys": [
+                {
+                    "p": "7Oc2Fp62nJngn-4LeptdKfH8JuuOWR_mvr2nNAMvm1-KOOWvJeHdKlKS8HThWEBamVZ-wHLbJF1LMikku3Zht7a8_If3T4JLoRl-iBIEOOtsxXx6H7XLXDMEyqSrpZGhR0KchdkH_imW8NpnY9Ic-W5lFJUqPQmWdC__IBJ5c-0",
+                    "kty": "RSA",
+                    "q": "tjY9uzvuSnkx9NzsL37Xlp5SGBgb8ocu2XzFdEc2NI756cvY3ryh9ArPiEBsW_xYSyWgYEzhS931upz3F2W5Gk2tw_PBRC6cI-4uhXuZNlWEMFiP6F88yoEeKimDeU_oraXmJvll3iZxQrHYE4bWDkPnwAKRSPjZs_5esHrmeQE",
+                    "d": "gx6by4bdepWhxpDX2eNiEJPNvx5yuKjOJi7jD8r8qMKS1zzd8igtpMbpHsyzpXBGaGfIe_y3MxL7Ae4XZ7xd69T33S0S4Z-H3vFSg_hdhVR3V3riFSX4L6StDS9RauZBGrno9eemm-DlPATtOtG0JAAh0RwbqOeQb19i3W3sDWHmz8eGZiE3tVuaP-U2SIMiWZ3g1CWEB-1cErp1qygfLA_MFipwj8_ud2oevh--PYlblN5Exv4dCkivlbXYzPqSNa8rzoNXMywKx5WzC0-fC_cwQNYBdu9kATAjvX3CS2fHCfrYw9kojGRg-0ngLewYAY6Iak00er31gwEWO6DYAQ",
+                    "e": "AQAB",
+                    "use": "sig",
+                    "kid": "sig-2021-09-25T08:32:40Z",
+                    "qi": "GkvaKRWKHtgMKEL1FB3bLDGZEirbBuNeiYsO2KYs5c6GAnrQg99SfTb2EqdXtVeVdl55RBB7BlquNCxv_oKMFu1ZlquHp3WdXiKEJlXIGjWflEVgBSKL3PSY9v4WLmsaDJZZ7A16aLQ0KmhA3UWy6y86A0q2PmbvE6MdDEnScJQ",
+                    "dp": "XEzhOALyZyVU7TrT4hsyOyt68LcKKRNS1bISuSMco06gDfb_PKU5hEnT0jfXrIi2Q9P9YoHde9eVep-pHhjLjcZ273USGDpNuSCzudQ7LOoc4PzUoBI2f1-pWEK8Va_dxGPhlAyxHoeZtZGCgtPUUiJ-43wSjuFzayVgI2DPTSk",
+                    "alg": "PS256",
+                    "dq": "i31striDjNnJB7ZUzWtiKbkcCbvzMTCSCgc9te2KLqRB59yZMrLfnM7l313KVoURJr4wT2irlQPfyTO-6VeDZAKRgxBJJSQ1fkAptyBOw0ymPMifqnm2NSSxbf-H2cf1zXHShoWomW9-h1tUmmY_2n3bnZ-Zj26KYwPZg2siowE",
+                    "n": "qJ6SWdnZAYhdnbx_kQ97UrQrS745M5E9OsSzWNpwCh-LbVtcUHHO2zjIj5OWmctlCwhAuD4QfuF1XC8bC3tzv8F85ry81M0e92A5fmRVdzvzuQBHc8na4CBLKJ7kQInSF2yIbuss_y8IwVl-A7ZAgiV2lmOBoz61TCSfFWS0nbq1W7apTcmXpe6Kru83UUJR0Ah0NjOszS2qolw5FO2YVYzJVoLG_nHtvtnET5VHUTO8rlL_TL76-niaYgKzDlrvMbRU1M-VGaNuhqidjsDr3F_8y2-TOUEmnbuuS7miKDUvUYxS23XzPzqDGJCADpMxuFdE0Yyjsn-rm1sokzJ47Q"
+                }
+            ]
+        }
+    },
+    "client": {
+        "client_id": "52480754053",
+        "scope": "openid accounts",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "RSA",
+                    "e": "AQAB",
+                    "kid": "fapi-jwt-assertion-20180817-1",
+                    "alg": "PS256",
+                    "n": "9sLLHll-BiuwIvupyiAOaTR-ChAjuwQhThxtSD5wgL9AG2YJlamxo52ZEhTdNKomGRw3woihBRk8okPSd1YZCkFuOc7iF1sUsxDA0APbdeAzZdwGcqvPlEqoz8HsnormZFTP9tG451Z_cMd20_cCufGqi6XBpE2fOMGhn9CNEo-_3TPyrFZwmP-rqsQ3TKp5Zkb42AACsT9GuxB-Qrrpp1hkCJdSvXhAwIvX2jOxXQORJZkW2ST0DpCTbtAoPEW0aoCIkwWjV08qTSBduA14eIl9xPACfElosTDEbL1bR6BGxoILSJTe4U5Lz4Us7l8TWhO_OaQsyxSLFxXOy13KMQ"
+                }
+            ]
+        },
+        "certificate": "-----BEGIN CERTIFICATE-----\nMIIDlTCCAn2gAwIBAgIJAKRJoaX7BlZbMA0GCSqGSIb3DQEBCwUAMGAxCzAJBgNV\nBAYTAlVTMRMwEQYDVQQIDApTb21lLVN0YXRlMR0wGwYDVQQKDBRBdXRobGV0ZSBU\nZXN0IENsaWVudDEdMBsGA1UEAwwUQXV0aGxldGUgVGVzdCBDbGllbnQwIBcNMTgw\nNTI1MjA1NzU0WhgPMjEwNjAxMDQyMDU3NTRaMGAxCzAJBgNVBAYTAlVTMRMwEQYD\nVQQIDApTb21lLVN0YXRlMR0wGwYDVQQKDBRBdXRobGV0ZSBUZXN0IENsaWVudDEd\nMBsGA1UEAwwUQXV0aGxldGUgVGVzdCBDbGllbnQwggEiMA0GCSqGSIb3DQEBAQUA\nA4IBDwAwggEKAoIBAQDEWwl/Q+nuL8KXbObpVzww1VkHwLF4W9QxrPI1V0Uh6V9r\nxUjrfSbtWNEQVDwQmoW8M1XjnRnGvdNRd0m6gNEQLKsqRN2xIvPdR0IO+2b+y7WJ\n9XlwdqHAFSWQJtoHzBAmkRirRMJrQSW5sB/NIBmyVqUdTV/FghNjc+IiPF4X1kxw\nwOzm7y2zlHZUpiPQknwPbWNeyunj/XQRrqWPg+RXzAKIjbVprxGaT8CexKu6oEae\nd8BCTO0rJIOkmjXZMl+SDhXQn9GHKFh60UlJddxVngxhX63MAQ1GsO8HsjrLgO3q\n4LmTDVHkprLy/wgBRDfo0IHb3gWhbOuRGMLLMKKvAgMBAAGjUDBOMB0GA1UdDgQW\nBBRuwpA4lqWaOkwmPcTQR8CH0Iv3vjAfBgNVHSMEGDAWgBRuwpA4lqWaOkwmPcTQ\nR8CH0Iv3vjAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQBiCmvQmmKq\nI/8sB312HTEFlvtpbYp429eNCGXWloOOqVQkJaBnvy9YUS/wCgusyKeMBgbgpV0s\n8bp/gEW2/MnlWW9+fbFuhzRRwvuV/7je1Avv9Y06RH8GKJYwk2j6qcO7Mn9kVhln\nlKxGdFxm/i0OBuZnUe/KDxKPjVEdUJbxAFfxdq4cUjfewMuoxsYruIDnLXjTBcj2\nPbJ6vcPzq/6TYwxRmnrXIAO6Nxe8ZNXn2x2+njwrUKW4WPQ7u3dyHlD+M3iTpm3T\nwSgg0FSYiBcXhWJLQCJVEb0kbKJ/PDmcvomusQWTL/0epS62azWG8PUUs4v9Xeae\nmAbHqPGh+5Bo\n-----END CERTIFICATE-----\n"
+    },
+    "client2": {
+        "client_id": "61732691006",
+        "scope": "openid accounts",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "RSA",
+                    "e": "AQAB",
+                    "kid": "fapi-jwt-assertion-20180817-2",
+                    "alg": "PS256",
+                    "n": "kne7a8IYQR6jweqpHAplq-XRGOuiVyF5Siy6_647OhOC8ppRIMV2O_wP6qK1AKCFb78Bb8qbRI3Mz-Tr9hCWm1BZQkD-HGbNowjVsOj7oB2nbNbGfqciTyT3kTG1f5PmeX2N4-f9zZM-J4Jmi9PdMjn2fkNl9oMCW9XaLHHzCU6f-vYftxdCnVQD7ZKr40HjoAeXjwdGhgzvuWSZHkhEqx_QMh8JskqP46PjsMykFWiryju9balCdS5yASf-Fno8pXMFEV1wgipy-FPlhB5FZtLwVvH9F2jAxRaWkRQzhM5hWugIUi8YobjoIwhrmJ04JTK-DGOlThJsNvS4QANDZw"
+                }
+            ]
+        },
+        "certificate": "-----BEGIN CERTIFICATE-----\nMIIDhTCCAm2gAwIBAgIJAKAe4HusBvwoMA0GCSqGSIb3DQEBCwUAMFgxCzAJBgNV\nBAYTAlVTMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBX\naWRnaXRzIFB0eSBMdGQxETAPBgNVBAMMCGNsaWVudF8yMCAXDTE4MDcwMjE2MzUy\nOFoYDzIxMDYwMjExMTYzNTI4WjBYMQswCQYDVQQGEwJVUzETMBEGA1UECAwKU29t\nZS1TdGF0ZTEhMB8GA1UECgwYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMREwDwYD\nVQQDDAhjbGllbnRfMjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANMy\n1QohUbUoyte8cYCCO1+vJ/GImvVkrb79HUTSzL3G46lDC0JYZGMpMvX9NncadCYL\nQV8fmofOouNs4AWJgf0skH5sAJcZMgj3GVqqLsx2iDye3cgqsCCzTf5gzhOVtpXg\nNoBMFckVGxI+dG9h06n71mH9dtGoD/BoWOB4FLae0Ec4olot5eROeJ3Z0J15aXPW\noQrn3J5Eoz0/c7D7+byb+XGjF/r+uJVrKqOLtnO69Ro99fowwVtVQAPHmxLQ9VvF\niLONwbOfELtBvX4MlxHDOuynDsDw/mHxkzMSxPXAd9QfIU05ySZ9eVR3UfNUeCk8\na63NSO8MZdfHFnUsEO8CAwEAAaNQME4wHQYDVR0OBBYEFFEdch1XYRpO5JXxPkBx\ndAoAt6IiMB8GA1UdIwQYMBaAFFEdch1XYRpO5JXxPkBxdAoAt6IiMAwGA1UdEwQF\nMAMBAf8wDQYJKoZIhvcNAQELBQADggEBABTTN0up/ndWCNamqrV8ik1XwUqPCAO7\nTYKmZrRilo3STxyp2aUiFf1uPSkU6WU4Eu0JoDKU46axIFzZO3Ckoq17JMde2OzE\nSlAF+hQyvg/3l+6mbBK/OuzOiC+yfU9roD6vmjsBlH0My1+CnqkZLr6YQSaCHffl\nb6zqA7+aLUEWjyVneD6jQ6CCFwCs6eDorY1eKFM7lCQ5OdJFBc2LOOXuSGRXLZDK\nF3X2SfKCld0VWIOknJk8drfrCc1ylWa7wIuXU/kTyX8Z68a8w1/6ZkGxN9tsHWVt\nSe6ggOD1AFI5OQ3c8lCUzgGeFl69hz2UduHOyWs1KXUhgSy7fViAP90=\n-----END CERTIFICATE-----\n"
+    }
+}

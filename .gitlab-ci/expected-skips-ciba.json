@@ -18,5 +18,20 @@
             "client_registration": "static_client"
         },
         "configuration-filename": "authlete-fapi-ciba-id1-privatekey-poll.json"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-ciba-id1-mtls-poll.json"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-ciba-id1-privatekey-poll.json"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json"
     }
 ]

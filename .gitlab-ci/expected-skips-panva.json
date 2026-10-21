@@ -1,0 +1,27 @@
+[
+    {
+        "test-name": "fapi-ciba-id1-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": "*",
+        "configuration-filename": "panva-fapi-ciba-id1-test-plan.json"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": "*",
+        "configuration-filename": "panva-fapi1-advanced-final-test-plan.json"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": "*",
+        "configuration-filename": "panva-fapi1-advanced-final-test-plan-privatejwt.json"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": "*",
+        "configuration-filename": "panva-fapi2-message-signing-id1-test-plan-privatejwt-plainoauth.json"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": "*",
+        "configuration-filename": "panva-fapi2-message-signing-id1-test-plan-dpop.json"
+    }
+]
