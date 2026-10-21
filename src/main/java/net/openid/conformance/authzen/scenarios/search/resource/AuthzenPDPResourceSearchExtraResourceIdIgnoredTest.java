@@ -43,6 +43,12 @@ public class AuthzenPDPResourceSearchExtraResourceIdIgnoredTest extends Abstract
 	}
 
 	@Override
+	protected String[] additionalStatusRequirements() {
+		// Section 8.5.1: the resource id, "if present, MUST be ignored".
+		return new String[] {"AUTHZEN-8.5.1"};
+	}
+
+	@Override
 	protected BaseSearch getBaseSearch() {
 		// Section 8.5.1: the id, "if present, MUST be ignored".
 		return new BaseSearch("resource.id", request -> {
