@@ -58,6 +58,13 @@ public class CheckTokenEndpointReturnedJsonContentType_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_mixedCase() {
+		setHeader(env, "Application/JSON; charset=UTF-8");
+
+		cond.execute(env);
+	}
+
+	@Test
 	public void testEvaluate_invalid() {
 		assertThrows(ConditionError.class, () -> {
 			setHeader(env, "application/jsonmoo");
