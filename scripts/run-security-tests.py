@@ -1836,12 +1836,41 @@ def run_tests():
     # cannot log in gets a 404, whether or not a page exists at the path
     resp = unauthenticated_get(base_url, "no-such-page.html", verify_ssl, headers={"Accept": "application/json"})
     runner.check_status("Metadata: anonymous non-browser request for an unknown path is a 404, not a login redirect", resp, 404)
-    resp = unauthenticated_get(base_url, "schedule-test.html", verify_ssl, headers={"Accept": "*/*"})
-    runner.check_status("Metadata: anonymous non-browser request for a page is a 404, not a login redirect", resp, 404)
-    for page in ("schedule-test.html", "api-document.html"):
+    resp = unauthenticated_get(base_url, "no-such-page.html", verify_ssl, headers=BROWSER_ACCEPT)
+    runner.check("Metadata: anonymous browser navigation to an unknown path is sent to login",
+                 resp.status_code == 302 and "login" in resp.headers.get("Location", ""),
+                 f"HTTP {resp.status_code}, Location: {resp.headers.get('Location', 'none')}")
+
+    # ===================================================================
+    # 4g2. ANONYMOUS ACCESS TO EVERY SERVED PAGE
+    # ===================================================================
+    # Every page behind login, including the Swagger UI that springdoc serves from its own jar
+    # rather than from the static directory: a browser navigation is sent to login and a client
+    # that cannot log in gets a 404. Only the login page and the home page answer anonymously.
+    print("\n--- 4g2. Anonymous access to every served page ---")
+
+    for page in ("plans.html", "logs.html", "plan-detail.html", "log-detail.html", "schedule-test.html",
+                 "running-test.html", "tokens.html", "upload.html", "statistics.html", "settings.html",
+                 "api-document.html"):
         resp = unauthenticated_get(base_url, page, verify_ssl, headers=BROWSER_ACCEPT)
-        runner.check(f"Metadata: anonymous browser navigation to {page} is still sent to login",
-                     resp.status_code == 302 and "login" in resp.headers.get("Location", ""),
+        runner.check(f"Pages: anonymous browser navigation to {page} is sent to login",
+                     resp.status_code == 302 and resp.headers.get("Location", "") == f"{base_url}login.html",
+                     f"HTTP {resp.status_code}, Location: {resp.headers.get('Location', 'none')}")
+        resp = unauthenticated_get(base_url, page, verify_ssl, headers={"Accept": "*/*"})
+        runner.check_status(f"Pages: anonymous non-browser request for {page} is a 404, not a login redirect",
+                            resp, 404)
+        # the normal error page answers, not a bare status line
+        runner.check(f"Pages: the 404 for {page} is rendered by the error page",
+                     resp.headers.get("content-type", "").startswith("text/html") and "404" in resp.text,
+                     f"HTTP {resp.status_code} {resp.headers.get('content-type', '')} {resp.text[:200]}")
+
+    resp = unauthenticated_get(base_url, "login.html", verify_ssl, headers=BROWSER_ACCEPT)
+    runner.check_status("Pages: anonymous browser navigation to login.html is served", resp, 200)
+    # HomeController sends an anonymous visitor to login whatever the Accept header says
+    for accept in (BROWSER_ACCEPT, {"Accept": "*/*"}):
+        resp = unauthenticated_get(base_url, "", verify_ssl, headers=accept)
+        runner.check(f"Pages: anonymous home page is sent to login with Accept {accept['Accept']}",
+                     resp.status_code == 302 and resp.headers.get("Location", "").endswith("/login.html"),
                      f"HTTP {resp.status_code}, Location: {resp.headers.get('Location', 'none')}")
 
     # OpenID Provider configuration is appended to the issuer path, not inserted after the host
