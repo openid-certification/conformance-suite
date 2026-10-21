@@ -482,9 +482,9 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 	/**
 	 * Override to assert the actual HTTP status is in a set of acceptable codes. Default
 	 * delegates to {@link #getExpectedHttpStatusCode()} as a singleton set, so existing
-	 * exact-code tests keep working. Negative transport tests where the spec only requires
-	 * "some 4xx" (§10.1.1/§10.1.2) should return e.g. {@code Set.of(400, 405)} for method
-	 * rejection or {@code Set.of(400, 415)} for content-type rejection.
+	 * exact-code tests keep working. A module that accepts several outcomes returns them all, as
+	 * the method rejection modules do ({@code Set.of(400, 404, 405)}, with 404 warned about) and
+	 * the media type rejection modules do ({@code Set.of(400, 415)}).
 	 */
 	protected Set<Integer> getAcceptableHttpStatusCodes() {
 		return Set.of(getExpectedHttpStatusCode());
