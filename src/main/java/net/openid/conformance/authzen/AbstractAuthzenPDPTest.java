@@ -21,6 +21,7 @@ import net.openid.conformance.authzen.condition.EnsureDiscoveryMetadataResponseV
 import net.openid.conformance.authzen.condition.EnsureMetadataCapabilitiesValid;
 import net.openid.conformance.authzen.condition.EnsurePDPJwksConfigured;
 import net.openid.conformance.authzen.condition.EnsurePolicyDecisionPointMatchesIssuer;
+import net.openid.conformance.authzen.condition.GetAuthzenClientConfiguration;
 import net.openid.conformance.authzen.condition.GetPDPDynamicServerConfiguration;
 import net.openid.conformance.authzen.condition.GetPDPStaticServerConfiguration;
 import net.openid.conformance.authzen.condition.ValidateDiscoverySignedMetadata;
@@ -67,7 +68,7 @@ import net.openid.conformance.variant.VariantSetup;
 	"client.client_secret"
 })
 @VariantConfigurationFields(parameter = PDPAuthType.class, value = "api_key", configurationFields = {
-	"pdp.api_key"
+	"client.api_key"
 })
 @VariantConfigurationFields(parameter = PDPAuthType.class, value = "mtls", configurationFields = {
 	"mtls.key",
@@ -80,6 +81,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	protected boolean serverSupportsDiscovery;
 	protected Class<? extends ConditionSequence> profileCompleteClientConfiguration;
 	protected Class<? extends ConditionSequence> addPDPEndpointClientAuthentication;
+	protected Class<? extends Condition> loadClientConfiguration;
 	protected Class<? extends ConditionSequence> supportMTLSEndpointAliases;
 	private boolean endpointPathV1Checked;
 
@@ -116,12 +118,14 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	public void setupClientSecretBasic() {
 		profileCompleteClientConfiguration = null;
 		addPDPEndpointClientAuthentication = AddBasicAuthClientSecretAuthenticationToAuthzenApiRequest.class;
+		loadClientConfiguration = GetAuthzenClientConfiguration.class;
 	}
 
 	@VariantSetup(parameter = PDPAuthType.class, value = "api_key")
 	public void setupApiKey() {
 		profileCompleteClientConfiguration = null;
 		addPDPEndpointClientAuthentication = AddApiKeyAuthenticationToAuthzenApiRequest.class;
+		loadClientConfiguration = GetAuthzenClientConfiguration.class;
 	}
 
 	@VariantSetup(parameter = PDPAuthType.class, value = "mtls")
@@ -230,6 +234,9 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	}
 
 	protected void completeClientConfiguration() {
+		if (loadClientConfiguration != null) {
+			callAndStopOnFailure(loadClientConfiguration);
+		}
 	}
 
 	@Override
