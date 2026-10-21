@@ -35,7 +35,8 @@ public class VP1FinalVerifierTestPlan implements TestPlan {
 		VP1FinalVerifierKbJwtIatInFuture.class,
 		VP1FinalVerifierPresentRevokedCredential.class,
 		VP1FinalVerifierPresentCredentialOnIdentifierList.class,
-		VP1FinalVerifierPresentCredentialWithoutStatus.class
+		VP1FinalVerifierPresentCredentialWithoutStatus.class,
+		VP1FinalVerifierWrongVct.class
 	);
 
 	@Override
