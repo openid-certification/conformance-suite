@@ -370,5 +370,50 @@
         "condition": "EnsureGrantManagementEndpointReturns403Or404",
         "expected-result": "failure",
         "comment": "Authlete returns 204 when a client revokes another client's grant; GM-6.6 requires 403 or 404 (wrong-client query is correctly rejected, only revoke lacks the ownership check)"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": "*",
+        "configuration-filename": "*test-configs-rp-against-op/*.json",
+        "current-block": "Validate the JWK set in server JWKS",
+        "condition": "WarnOnUnusableJwksKeys",
+        "expected-result": "warning",
+        "comment": "the paired client test under test deliberately publishes unusable keys in its jwks_uri (AddUnusableKeysToServerPublicJwks, RFC 7517 section 5)"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-holder-of-key-required-at-non-alias-token-endpoint",
+        "variant": "*",
+        "configuration-filename": "*test-configs-rp-against-op/*.json",
+        "current-block": "Validate the JWK set in server JWKS",
+        "condition": "WarnOnUnusableJwksKeys",
+        "expected-result": "warning",
+        "comment": "the paired client test under test deliberately publishes unusable keys in its jwks_uri (AddUnusableKeysToServerPublicJwks, RFC 7517 section 5)"
+    },
+    {
+        "test-name": "fapi1-advanced-final-client-test",
+        "variant": "*",
+        "configuration-filename": "*fapi-rp-test-config-non-alias-token-endpoint.json",
+        "current-block": "",
+        "condition": "fapi1-advanced-final-client-test",
+        "expected-result": "failure",
+        "comment": "Expected by design, not a suite bug. The OP-side driver fapi1-advanced-final-ensure-mtls-holder-of-key-required-at-non-alias-token-endpoint deliberately calls the token_endpoint outside mtls_endpoint_aliases without a TLS certificate; this client test, acting as the authorization server, rejects it with invalid_client and stops. fapi-rp-test-config-non-alias-token-endpoint.json is used only by this pairing."
+    },
+    {
+        "test-name": "fapi2-security-profile-final-client-test-happy-path",
+        "variant": "*",
+        "configuration-filename": "*fapi-rp-test-config-no-jwks-non-alias-token-endpoint.json",
+        "current-block": "",
+        "condition": "fapi2-security-profile-final-client-test-happy-path",
+        "expected-result": "failure",
+        "comment": "Expected by design, not a suite bug. The OP-side driver fapi2-security-profile-final-ensure-holder-of-key-required-at-non-alias-token-endpoint deliberately calls the token_endpoint outside mtls_endpoint_aliases without a TLS certificate; this client test, acting as the authorization server, rejects it with invalid_client and stops. fapi-rp-test-config-no-jwks-non-alias-token-endpoint.json is used only by this pairing."
+    },
+    {
+        "test-name": "fapi2-security-profile-id2-client-test-happy-path",
+        "variant": "*",
+        "configuration-filename": "*fapi-rp-eddsa-keytest-config-non-alias-token-endpoint.json",
+        "current-block": "",
+        "condition": "fapi2-security-profile-id2-client-test-happy-path",
+        "expected-result": "failure",
+        "comment": "Expected by design, not a suite bug. The OP-side driver fapi2-security-profile-id2-ensure-holder-of-key-required-at-non-alias-token-endpoint deliberately calls the token_endpoint outside mtls_endpoint_aliases without a TLS certificate; this client test, acting as the authorization server, rejects it with invalid_client and stops. fapi-rp-eddsa-keytest-config-non-alias-token-endpoint.json is used only by this pairing."
     }
 ]
