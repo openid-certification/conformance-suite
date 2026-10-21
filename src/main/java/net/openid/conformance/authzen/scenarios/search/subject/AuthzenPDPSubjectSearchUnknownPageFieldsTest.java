@@ -44,4 +44,10 @@ public class AuthzenPDPSubjectSearchUnknownPageFieldsTest extends AbstractAuthze
 			}
 			""";
 	}
+
+	@Override
+	protected String[] additionalStatusRequirements() {
+		// Section 10.1.1: "receivers MUST ignore unknown fields present in request or response bodies".
+		return new String[] {"AUTHZEN-10.1.1"};
+	}
 }
