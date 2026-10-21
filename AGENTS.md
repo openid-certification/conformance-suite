@@ -358,6 +358,8 @@ When an external client **calls a test-suite endpoint** (e.g., a wallet calling 
 
 Each check should be a separate condition so the caller controls the severity (FAILURE vs WARNING).
 
+**Comparing media types.** A `Content-Type` or `Accept` value is a media type, not a string: the type and subtype are case-insensitive and parameters such as `charset` are not part of the name (RFC 9110 section 8.3.1), so `Application/JSON; charset=UTF-8` is `application/json`. Never compare the raw header with `equals`. Either strip the parameters with `AbstractCheckEndpointContentTypeReturned.getMimeTypeFromContentType` and compare with `equalsIgnoreCase`, or parse with `MediaType.parseMediaType` and use `equalsTypeAndSubtype` (or `isCompatibleWith` when wildcards such as `*/*` are allowed, e.g. in `Accept`). Header names are already lower-cased when the suite stores a request or response in the environment, so look them up as `content-type`, not `Content-Type`.
+
 ## REST API endpoints
 
 Any new or changed handler under `/api/**` (`@GetMapping` / `@PostMapping` / `@RequestMapping`, or a change to an existing handler's authorization) must land in the same MR as security tests in `scripts/run-security-tests.py`, run by the `security_test` CI job via `.gitlab-ci/run-tests.sh --security-tests`. Cover, as applicable: unauthenticated access is rejected (401); share-link / private-link tokens cannot reach endpoints outside their allow-list (401/403); the owner or admin can reach their own resource (200); an unknown and an unauthorized resource id return the same 404 so existence does not leak. Use a short timeout on any long-poll endpoint so the suite stays fast.
