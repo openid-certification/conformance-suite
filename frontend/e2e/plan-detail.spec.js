@@ -813,6 +813,100 @@ test.describe("plan-detail.html — Plan Detail", () => {
     );
   });
 
+  /**
+   * Records every window.open URL in window.__openedUrls instead of opening
+   * a popup, so a download button's target can be asserted.
+   * @param {import("@playwright/test").Page} page - The page under test.
+   */
+  async function captureWindowOpen(page) {
+    await page.addInitScript(() => {
+      /** @type {string[]} */
+      const openedUrls = [];
+      window.__openedUrls = openedUrls;
+      window.open = (url) => {
+        openedUrls.push(String(url));
+        return null;
+      };
+    });
+  }
+
+  test("per-module Download Logs fetches the HTML+JSON archive like log-detail does", async ({
+    page,
+  }) => {
+    await captureWindowOpen(page);
+    await mockAdminPlan(page, MOCK_PLAN_FINDINGS);
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    await page.locator("#planItems .module-row").first().locator(".downloadBtn button").click();
+    await expect
+      .poll(() => page.evaluate(() => window.__openedUrls))
+      .toEqual(["/api/log/exporthtml/test-inst-001"]);
+  });
+
+  test("public view: a signed-in viewer's per-module Download Logs asks for published data", async ({
+    page,
+  }) => {
+    await captureWindowOpen(page);
+    await setupFailFast(page);
+    await page.route("**/api/plan/plan-abc-123?public=true", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_PLAN_DETAIL, publish: "everything" }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123&public=true");
+
+    await page.locator("#planItems .module-row").first().locator(".downloadBtn button").click();
+    await expect
+      .poll(() => page.evaluate(() => window.__openedUrls))
+      .toEqual(["/api/log/exporthtml/test-inst-001?public=true"]);
+  });
+
+  test("public view: an anonymous visitor gets View Logs but no Download Logs", async ({
+    page,
+  }) => {
+    // The archive endpoint needs a signed-in user even for published data,
+    // so the button would only produce a 401 for this visitor.
+    await setupFailFast(page);
+    await page.route("**/api/plan/plan-abc-123?public=true", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_PLAN_DETAIL, publish: "everything" }),
+      }),
+    );
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123&public=true");
+
+    const firstRow = page.locator("#planItems .module-row").first();
+    await expect(firstRow.locator(".viewBtn")).toHaveCount(1);
+    await expect(page.locator("#planItems .downloadBtn")).toHaveCount(0);
+  });
+
+  test("public view: a failed user lookup does not hide Download Logs", async ({ page }) => {
+    // Only a 401 proves the visitor is anonymous; a server error says nothing
+    // about who they are.
+    await setupFailFast(page);
+    await page.route("**/api/plan/plan-abc-123?public=true", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_PLAN_DETAIL, publish: "everything" }),
+      }),
+    );
+    await setupCommonRoutes(page);
+    await page.route("**/api/currentuser", (route) => route.fulfill({ status: 500, body: "" }));
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123&public=true");
+
+    await expect(page.locator("#planItems .downloadBtn")).toHaveCount(3);
+  });
+
   test("findings summary lists each distinct finding once with the modules it occurred in", async ({
     page,
   }) => {

@@ -1750,7 +1750,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     // Download Logs always calls /api/log/exporthtml/{id}, appending ?public=true
     // in public mode so the server filters to publicly-visible entries only.
     // The download item only shows in public (readonly) mode when the test
-    // is published with publish === "everything".
+    // is published with publish === "everything" and the viewer is signed in.
     /** @type {string[]} */
     const apiRequests = [];
     page.on("request", (req) => {
@@ -1766,7 +1766,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await page.route("**/api/log/exporthtml/**", (route) =>
       route.fulfill({ status: 200, contentType: "application/zip", body: "PK" }),
     );
-    await setupCommonRoutes(page, { user: null });
+    await setupCommonRoutes(page);
 
     await page.goto(`/log-detail.html?log=${encodeURIComponent(publishedInfo.testId)}&public=true`);
 
@@ -1781,11 +1781,46 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     expect(exportUrl.searchParams.get("public")).toBe("true");
   });
 
+  test("public mode: an anonymous visitor is not offered Download Logs", async ({ page }) => {
+    // The archive endpoint needs a signed-in user even for published data,
+    // so the action would only produce a 401 for this visitor.
+    await setupFailFast(page);
+    const publishedInfo = { ...MOCK_TEST_STATUS, publish: "everything" };
+    await setupV2Routes(page, {
+      testInfo: publishedInfo,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(publishedInfo.testId)}&public=true`);
+
+    await page.locator('[data-testid="overflow-trigger"]').click();
+    await expect(page.locator('button[data-action-id="view-config"]')).toBeVisible();
+    await expect(page.locator('button[data-action-id="download-log"]')).toHaveCount(0);
+  });
+
+  test("public mode: a failed user lookup does not hide Download Logs", async ({ page }) => {
+    // Only a 401 proves the visitor is anonymous; a server error says nothing
+    // about who they are.
+    await setupFailFast(page);
+    const publishedInfo = { ...MOCK_TEST_STATUS, publish: "everything" };
+    await setupV2Routes(page, {
+      testInfo: publishedInfo,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+    await page.route("**/api/currentuser", (route) => route.fulfill({ status: 500, body: "" }));
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(publishedInfo.testId)}&public=true`);
+
+    await page.locator('[data-testid="overflow-trigger"]').click();
+    await expect(page.locator('button[data-action-id="download-log"]')).toBeVisible();
+  });
+
   test("authenticated mode: Download Logs requests /api/log/exporthtml/<id>", async ({ page }) => {
     // Authenticated users get the HTML+JSON archive from /api/log/exporthtml/{id},
     // which includes the rendered HTML log and its signature in addition to the
-    // JSON export. This differs from plan-detail's per-module download which uses
-    // the JSON-only /api/log/export/{id}.
+    // JSON export — the same archive as plan-detail's per-module download.
     /** @type {string[]} */
     const apiRequests = [];
     page.on("request", (req) => {

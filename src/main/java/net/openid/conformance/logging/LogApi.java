@@ -1274,10 +1274,10 @@ public class LogApi {
 	// unauthenticated callers get 401 before reaching the controller. Private-link
 	// share users reach it and are limited to tests in their shared plan by
 	// getTestResults/getTestInfo. The publicOnly=true branch is only reached with
-	// an explicit ?public=true. In rendered UI flows that happens when an owner views
-	// log-detail with public=true on the URL (the "Public link" preview of an
-	// everything-published test) and clicks "Download Logs" — the JS appends
-	// ?public=true in that mode.
+	// an explicit ?public=true. In rendered UI flows that happens when a signed-in
+	// user views log-detail or plan-detail with public=true on the URL and clicks
+	// "Download Logs" — the JS appends ?public=true in that mode. The UI hides the
+	// button from anonymous visitors, who would only get the 401.
 	@GetMapping(value = "/log/exporthtml/{id}", produces = APPLICATION_ZIP_VALUE)
 	@Tag(name = SwaggerConfig.TAG_TEST_LOGS)
 	@Operation(operationId = "exportTestLogHtml", summary = "Export test logs as html by test id", description = DESC_TEST_LOG_FILENAME)

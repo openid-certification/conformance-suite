@@ -557,6 +557,29 @@ export const PublicView = {
   },
 };
 
+// An anonymous visitor to an everything-published test: log-detail.js sets
+// `hide-download` because the log archive endpoint would reject them.
+export const PublicViewHideDownload = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${{ ...COMPLETED_TEST, publish: "everything" }}
+      is-public
+      hide-download
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const overflow = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
+      if (!el) throw new Error("status-bar-overflow not yet rendered");
+      return el;
+    });
+    const labels = Array.from(overflow.querySelectorAll(".overflowItem"), (el) =>
+      el.textContent.trim(),
+    );
+    expect(labels.some((s) => s.includes("View configuration"))).toBe(true);
+    expect(labels.some((s) => s.includes("Download Logs"))).toBe(false);
+  },
+};
+
 // --- R24: summary zone splitting (persistent objective-summary context) ---
 // Plan: docs/plans/2026-04-25-008-feat-r24-test-description-vs-instructions-plan.md
 // The description half of the summary ("About this test") now lives in the

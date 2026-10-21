@@ -532,6 +532,27 @@ export const ModulesReadonly = {
 };
 
 /**
+ * An anonymous visitor to a published plan: the page sets `hide-download`
+ * because the log archive endpoint would reject them, so each row keeps
+ * View Logs but loses Download Logs.
+ */
+export const ModulesHideDownload = {
+  render: () => html`
+    <cts-plan-modules
+      .modules=${MODULES_WITH_STATUS}
+      plan-id="plan-abc-123"
+      is-readonly
+      is-public
+      hide-download
+    ></cts-plan-modules>
+  `,
+  async play({ canvasElement }) {
+    expect(canvasElement.querySelectorAll(".viewBtn").length).toBe(3);
+    expect(canvasElement.querySelectorAll(".downloadBtn").length).toBe(0);
+  },
+};
+
+/**
  * Covers the second half of cts-plan-modules' disabled Run Test branch:
  * when a plan is marked `immutable` (published / certification-locked),
  * `_canRunTest()` returns false and the Run Test cts-button is omitted.
