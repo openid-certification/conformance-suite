@@ -3,8 +3,8 @@ package net.openid.conformance.vci10wallet.condition;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
-import net.openid.conformance.condition.client.lote.LoteSlot;
 import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
+import net.openid.conformance.condition.client.lote.TrustPurpose;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
@@ -48,8 +48,7 @@ public class ValidateKeyAttestationX5cCertificateChain extends AbstractValidateX
 			List<X509Certificate> certs = parseX5cCertificatesFromStrings(x5c);
 
 			// the configured 'Key Attestation Trust Anchor' plus the wallet providers listed in the configured LoTE
-			LoteTrustAnchors.TrustAnchorSet anchors = resolveTrustAnchors(env, env.getString("vci", "key_attestation_trust_anchor_pem"),
-				"Key Attestation Trust Anchor", LoteSlot.ISSUANCE_SUFFIX, LoteSlot.WALLET);
+			LoteTrustAnchors.TrustAnchorSet anchors = resolveTrustAnchors(env, TrustPurpose.KEY_ATTESTATION);
 
 			X509Certificate matched = validateX5cCertificateChainAgainst(certs, anchors);
 			verifyJwtSignatureWithX5cLeafCert(rawJwt, certs);

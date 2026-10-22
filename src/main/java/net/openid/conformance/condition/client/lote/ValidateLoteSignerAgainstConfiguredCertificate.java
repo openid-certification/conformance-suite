@@ -19,9 +19,9 @@ public class ValidateLoteSignerAgainstConfiguredCertificate extends AbstractLote
 	@Override
 	@PreEnvironment(required = { LOTE, "config" })
 	public Environment evaluate(Environment env) {
-		// the config form keeps a cleared field as "", so blank is unconfigured; WarnIfLoteSigningCertificateNotConfigured reports it
-		String configuredPem = env.getString("config", LoteSlot.SIGNING_CERTIFICATE_CONFIG_KEY);
-		if (configuredPem == null || configuredPem.isBlank()) {
+		// an unconfigured certificate is WarnIfLoteSigningCertificateNotConfigured's to report
+		String configuredPem = LoteSlot.configuredSigningCertificatePem(env);
+		if (configuredPem == null) {
 			log("No '" + LoteSlot.SIGNING_CERTIFICATE_FIELD_LABEL + "' is configured; the list's signer is not checked against one");
 			return env;
 		}

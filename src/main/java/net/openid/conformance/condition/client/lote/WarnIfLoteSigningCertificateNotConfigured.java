@@ -20,8 +20,7 @@ public class WarnIfLoteSigningCertificateNotConfigured extends AbstractCondition
 	@PreEnvironment(required = "config")
 	public Environment evaluate(Environment env) {
 		env.putString(REPORTED, "true");
-		String configuredPem = env.getString("config", LoteSlot.SIGNING_CERTIFICATE_CONFIG_KEY);
-		if (configuredPem != null && !configuredPem.isBlank()) {
+		if (LoteSlot.configuredSigningCertificatePem(env) != null) {
 			logSuccess("A '" + LoteSlot.SIGNING_CERTIFICATE_FIELD_LABEL + "' is configured; the lists of trusted entities are checked against it");
 			return env;
 		}

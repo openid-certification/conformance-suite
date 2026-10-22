@@ -1,7 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.nimbusds.jose.util.X509CertUtils;
-import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.client.lote.TrustPurpose;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.MdocCertificateProfileChecks;
 
@@ -12,14 +12,15 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Validates the configured mdoc trust anchor ('Trust anchor PEM' in the 'Credential Issuer'
- * section of the test configuration) against the IACA root certificate profile in
- * ISO/IEC 18013-5 Table B.1 / B.1.2. Although this checks the tester's own configuration
- * rather than the implementation under test, that configuration should mirror the production
- * trust anchor, so profile errors in it are surfaced. Skipped when no trust anchor is
- * configured.
+ * Validates the mdoc trust anchor against the IACA root certificate profile in ISO/IEC 18013-5
+ * Table B.1 / B.1.2: the configured 'Credential Trust Anchor' of the 'Credential Issuer' section
+ * of the test configuration, or, when the trust source is a list of trusted entities, the listed
+ * IACA that issued the credential's document signer certificate. Although this checks the
+ * tester's configuration or the scheme operator's list rather than the implementation under test,
+ * both should mirror the production trust anchor, so profile errors in them are surfaced. Skipped
+ * when neither names an anchor.
  */
-public class ValidateMdocTrustAnchorIacaCertificateProfile extends AbstractCondition {
+public class ValidateMdocTrustAnchorIacaCertificateProfile extends AbstractValidateMdocDsCertificate {
 
 	private static final int MAX_VALIDITY_DAYS = 20 * 365 + 5; // Table B.1: maximum of 20 years
 
@@ -28,15 +29,29 @@ public class ValidateMdocTrustAnchorIacaCertificateProfile extends AbstractCondi
 
 	@Override
 	public Environment evaluate(Environment env) {
-		String trustAnchorPem = env.getString("credential_trust_anchor_pem");
-		if (trustAnchorPem == null) {
-			logSuccess("No trust anchor is configured; IACA certificate profile check skipped");
-			return env;
-		}
-
-		X509Certificate anchor = X509CertUtils.parse(trustAnchorPem);
-		if (anchor == null) {
-			throw error("The configured trust anchor could not be parsed as an X.509 certificate");
+		String trustAnchorPem = TrustPurpose.CREDENTIAL.registeredPem(env);
+		X509Certificate anchor;
+		String source;
+		if (trustAnchorPem != null) {
+			anchor = X509CertUtils.parse(trustAnchorPem);
+			if (anchor == null) {
+				throw error("The configured trust anchor could not be parsed as an X.509 certificate");
+			}
+			source = "configured trust anchor";
+		} else {
+			if (env.getString("mdoc_credential_cbor") == null) {
+				logSuccess("No trust anchor is configured; IACA certificate profile check skipped");
+				return env;
+			}
+			X509Certificate dsCert = extractDsCertificate(decodeIssuerSigned(env));
+			anchor = issuingCertificateFromLotes(env, dsCert);
+			if (anchor == null) {
+				logSuccess("No trust anchor is configured and no configured list of trusted entities lists the issuer of the"
+						+ " document signer certificate; IACA certificate profile check skipped",
+					args("ds_certificate_issuer", dsCert.getIssuerX500Principal().getName()));
+				return env;
+			}
+			source = "IACA listed in the configured list of trusted entities for the mdoc's issuer";
 		}
 		String subject = anchor.getSubjectX500Principal().getName();
 
@@ -107,12 +122,12 @@ public class ValidateMdocTrustAnchorIacaCertificateProfile extends AbstractCondi
 		}
 
 		if (!violations.isEmpty()) {
-			throw error("The configured trust anchor does not comply with the ISO 18013-5 IACA root certificate profile: "
+			throw error("The " + source + " does not comply with the ISO 18013-5 IACA root certificate profile: "
 					+ String.join("; ", violations),
 				args("subject", subject, "violations", violations));
 		}
 
-		logSuccess("The configured trust anchor complies with the ISO 18013-5 IACA root certificate profile",
+		logSuccess("The " + source + " complies with the ISO 18013-5 IACA root certificate profile",
 			args("subject", subject));
 		return env;
 	}

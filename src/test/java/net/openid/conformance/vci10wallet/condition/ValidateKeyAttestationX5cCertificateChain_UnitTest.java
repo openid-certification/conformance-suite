@@ -140,7 +140,7 @@ public class ValidateKeyAttestationX5cCertificateChain_UnitTest {
 		JsonArray x5c = new JsonArray();
 		x5c.add(toBase64(leafCert));
 		putKeyAttestationJwt(jwt, x5c);
-		env.putString("vci", "key_attestation_trust_anchor_pem", toPem(rootCert));
+		env.putString("key_attestation_trust_anchor_pem", toPem(rootCert));
 
 		assertDoesNotThrow(() -> cond.execute(env));
 	}
@@ -176,7 +176,7 @@ public class ValidateKeyAttestationX5cCertificateChain_UnitTest {
 		JsonArray x5c = new JsonArray();
 		x5c.add(toBase64(leafCert));
 		putKeyAttestationJwt(jwt, x5c);
-		env.putString("vci", "key_attestation_trust_anchor_pem", toPem(rootCert));
+		env.putString("key_attestation_trust_anchor_pem", toPem(rootCert));
 		net.openid.conformance.condition.client.lote.LoteTestFixtures.INSTANCE.putAnchors(env,
 			net.openid.conformance.condition.client.lote.LoteSlot.WALLET,
 			net.openid.conformance.condition.client.lote.LoteTestFixtures.WALLET_ISSUANCE, "Wallet entity", listedRootCert);
@@ -215,7 +215,7 @@ public class ValidateKeyAttestationX5cCertificateChain_UnitTest {
 		JsonArray x5c = new JsonArray();
 		x5c.add(toBase64(leafCert));
 		putKeyAttestationJwt(jwt, x5c);
-		env.putString("vci", "key_attestation_trust_anchor_pem", toPem(otherRootCert));
+		env.putString("key_attestation_trust_anchor_pem", toPem(otherRootCert));
 
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 		assertEquals("invalid_proof", env.getString("vci", "credential_error_response.body.error"));

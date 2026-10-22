@@ -3,6 +3,7 @@ package net.openid.conformance.condition.as.clientattestation;
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
 import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
+import net.openid.conformance.condition.client.lote.TrustPurpose;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -25,9 +26,8 @@ public class ValidateClientAttestationX5cClaimInProofJwt extends AbstractValidat
 
 		List<String> x5c = OIDFJSON.convertJsonArrayToList(x5cEl.getAsJsonArray());
 
-		// the configured 'Client Attestation Trust Anchor' plus the wallet providers listed in the configured LoTE
-		LoteTrustAnchors.TrustAnchorSet anchors = resolveTrustAnchors(env, env.getString("vci", "client_attestation_trust_anchor_pem"),
-			"Client Attestation Trust Anchor", LoteSlot.ISSUANCE_SUFFIX, LoteSlot.WALLET);
+		// the configured 'Client Attestation Trust Anchor', or the wallet providers listed in the configured LoTE
+		LoteTrustAnchors.TrustAnchorSet anchors = resolveTrustAnchors(env, TrustPurpose.CLIENT_ATTESTATION);
 		if (anchors.isEmpty()) {
 			throw error("No trust anchor for the client attestation: none of " + TrustPurpose.CLIENT_ATTESTATION.fieldsDescription()
 				+ " of the test configuration yielded one");

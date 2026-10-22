@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.client.lote;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
@@ -24,14 +23,12 @@ public class RegisterLote extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		LoteSlot slot = LoteSlot.valueOf(env.getString(SLOT));
 
-		// the config form keeps cleared fields as empty strings, so treat blank as absent
-		String url = Strings.emptyToNull(env.getString("config", slot.configKey));
+		String url = slot.configuredUrl(env);
 		if (url == null) {
 			env.removeObject(AbstractLoteCondition.LOTE);
 			log("No " + slot.fieldDescription() + "; skipping the trust checks against that list of trusted entities");
 			return env;
 		}
-		url = url.trim();
 		// a trusted list fetched over plaintext must not be used as the source of trust decisions
 		if (!url.toLowerCase(Locale.ROOT).startsWith("https://")) {
 			throw error("The " + slot.fieldDescription() + " must be an https:// URL",
