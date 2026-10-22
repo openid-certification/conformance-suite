@@ -68,6 +68,24 @@ public abstract class AbstractValidateOwnCertificatesAgainstLote extends Abstrac
 		return env;
 	}
 
+	/**
+	 * Whether none of {@code slots}' lists is configured, in which case there is nothing to check the
+	 * suite's certificates against; logs that.
+	 */
+	protected boolean noListConfigured(Environment env, String what, LoteSlot... slots) {
+		for (LoteSlot slot : slots) {
+			if (env.containsObject(slot.envKey)) {
+				return false;
+			}
+		}
+		List<String> labels = new ArrayList<>();
+		for (LoteSlot slot : slots) {
+			labels.add("'" + slot.fieldLabel + "'");
+		}
+		log("No " + String.join(" or ", labels) + " is configured; nothing to check the suite's " + what + " certificate against");
+		return true;
+	}
+
 	/** The x5c chain of the signing key of a configured JWKS, or null when the JWKS is absent. */
 	protected List<X509Certificate> chainOfConfiguredJwks(JsonElement jwksEl, String fieldLabel) {
 		if (jwksEl == null || jwksEl.isJsonNull()) {

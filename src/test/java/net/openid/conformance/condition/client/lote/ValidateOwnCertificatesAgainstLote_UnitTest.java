@@ -162,10 +162,35 @@ public class ValidateOwnCertificatesAgainstLote_UnitTest {
 	}
 
 	@Test
-	public void slotConstantsMatchTheEnvKeys() {
-		assertThat(LoteSlot.PID_ENV_KEY).isEqualTo(LoteSlot.PID.envKey);
-		assertThat(LoteSlot.MDL_ENV_KEY).isEqualTo(LoteSlot.MDL.envKey);
-		assertThat(LoteSlot.WALLET_ENV_KEY).isEqualTo(LoteSlot.WALLET.envKey);
-		assertThat(LoteSlot.WRPAC_ENV_KEY).isEqualTo(LoteSlot.WRPAC.envKey);
+	public void builtInKeyAttestationSignerPassesWhenTheWalletProviderCaIsListed() throws Exception {
+		LoteTestFixtures.INSTANCE.putAnchors(env, LoteSlot.WALLET, LoteTestFixtures.WALLET_ISSUANCE, "OpenID Foundation",
+			javaCert(TestKeysAndCerts.SuiteCa.WALLET_PROVIDER));
+
+		assertThatCode(() -> cond(new ValidateOwnKeyAttestationSigningCertificateAgainstWalletLote()).execute(env)).doesNotThrowAnyException();
+	}
+
+	@Test
+	public void aConfiguredKeyAttestationJwksIsCheckedInsteadOfTheBuiltInSigner() throws Exception {
+		var configured = LoteTestFixtures.INSTANCE.mintLeaf(strangerCa, "configured key attester");
+		env.putObject("config", "vci.key_attestation_jwks",
+			JsonParser.parseString("{\"keys\":[" + configured.getFirst().toJSONString() + "]}").getAsJsonObject());
+		LoteTestFixtures.INSTANCE.putAnchors(env, LoteSlot.WALLET, LoteTestFixtures.WALLET_ISSUANCE, "OpenID Foundation",
+			javaCert(TestKeysAndCerts.SuiteCa.WALLET_PROVIDER));
+
+		assertThatThrownBy(() -> cond(new ValidateOwnKeyAttestationSigningCertificateAgainstWalletLote()).execute(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("'Key Attestation JWKS' field");
+	}
+
+	@Test
+	public void keyAttestationSignerCheckDoesNothingWithoutAWalletList() {
+		assertThatCode(() -> cond(new ValidateOwnKeyAttestationSigningCertificateAgainstWalletLote()).execute(env)).doesNotThrowAnyException();
+	}
+
+	@Test
+	public void requestSignerCheckDoesNothingWithoutAWrpacList() throws Exception {
+		env.putObject("client_jwks", JsonParser.parseString("{\"keys\":[]}").getAsJsonObject());
+
+		assertThatCode(() -> cond(new ValidateOwnRequestSigningCertificateAgainstWrpacLote()).execute(env)).doesNotThrowAnyException();
 	}
 }

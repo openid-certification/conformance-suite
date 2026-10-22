@@ -19,8 +19,11 @@ import java.util.Map;
 public class ValidateOwnAttestationSigningCertificateAgainstWalletLote extends AbstractValidateOwnCertificatesAgainstLote {
 
 	@Override
-	@PreEnvironment(required = { "config", LoteSlot.WALLET_ENV_KEY })
+	@PreEnvironment(required = "config")
 	public Environment evaluate(Environment env) {
+		if (noListConfigured(env, "wallet attestation signing", LoteSlot.WALLET)) {
+			return env;
+		}
 		JsonElement configured = env.getElementFromObject("config", "client_attestation.attester_jwks");
 		if (configured == null) {
 			configured = env.getElementFromObject("config", "vci.client_attester_keys_jwks");

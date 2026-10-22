@@ -28,9 +28,11 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureClientAttestationIssuerConfigured;
+import net.openid.conformance.condition.client.WarnIfBuiltInClientAttestationSignerIsEphemeral;
 import net.openid.conformance.condition.client.EnsureCredentialTrustAnchorConfigured;
 import net.openid.conformance.condition.client.lote.LoteSlot;
 import net.openid.conformance.condition.client.lote.ValidateOwnAttestationSigningCertificateAgainstWalletLote;
+import net.openid.conformance.condition.client.lote.ValidateOwnKeyAttestationSigningCertificateAgainstWalletLote;
 import net.openid.conformance.condition.client.EnsureStatusListTrustAnchorConfigured;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCode;
@@ -49,7 +51,7 @@ import net.openid.conformance.fapi2spfinal.AbstractFAPI2SPFinalServerTestModule;
 import net.openid.conformance.fapi2spfinal.VCIProfileBehavior;
 import net.openid.conformance.openid.federation.CallCredentialIssuerNonceEndpoint;
 import net.openid.conformance.sequence.AbstractConditionSequence;
-import net.openid.conformance.sequence.client.SetupLoteFromConfiguration;
+import net.openid.conformance.sequence.client.CheckOwnCertificatesAgainstLotes;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CreateVCICredentialRequestSteps;
 import net.openid.conformance.sequence.client.GenerateVCIKeyAttestationAndProofSteps;
@@ -105,6 +107,7 @@ import net.openid.conformance.vci10issuer.condition.VCIWaitForTxCode;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @VariantParameters({
@@ -118,6 +121,7 @@ import java.util.List;
 	"vci.credential_configuration_id",
 	"vci.credential_proof_type_hint",
 	"client_attestation.key_attestation_jwks",
+	"client_attestation.wallet_lote_url",
 	"vci.authorization_server",
 	"credential.pid_lote_url",
 	"credential.mdl_lote_url",
@@ -161,8 +165,6 @@ import java.util.List;
 // Client attestation configuration field hides
 @VariantHidesConfigurationFields(parameter = ClientAuthType.class, value = "client_attestation",
 	configurationFields = {"client.jwks"})
-@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_attestation",
-	configurationFields = {"client_attestation.wallet_lote_url"})
 @VariantHidesConfigurationFields(parameter = ClientAuthType.class, value = "private_key_jwt",
 	configurationFields = {"client_attestation.issuer", "client_attestation.trust_anchor"})
 @VariantHidesConfigurationFields(parameter = ClientAuthType.class, value = "mtls",
@@ -266,17 +268,20 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 			callAndContinueOnFailure(EnsureStatusListTrustAnchorConfigured.class, Condition.ConditionResult.FAILURE, "HAIP-6.1");
 		}
 
+		// the built-in attestation signer is only trusted outside this instance when the deployment has the
+		// published wallet provider CA's key; the key attestation signer is checked once the issuer's metadata
+		// says whether key attestations are needed
 		if (getVariant(ClientAuthType.class) == ClientAuthType.CLIENT_ATTESTATION) {
-			// the wallet providers list only drives a pre-flight check that the suite's own attestation
-			// signing chain is covered, which reports on the suite's listing, not on the issuer under test
-			call(new SetupLoteFromConfiguration(LoteSlot.WALLET, Condition.ConditionResult.WARNING));
-			call(condition(ValidateOwnAttestationSigningCertificateAgainstWalletLote.class)
-				.skipIfObjectsMissing(LoteSlot.WALLET_ENV_KEY)
-				.onSkip(Condition.ConditionResult.INFO)
-				.onFail(Condition.ConditionResult.WARNING)
-				.dontStopOnFailure()
-				.requirements("ETSI119602-6.6.3"));
+			callAndContinueOnFailure(WarnIfBuiltInClientAttestationSignerIsEphemeral.class, Condition.ConditionResult.WARNING);
 		}
+		// the wallet providers list only drives pre-flight checks of the suite's own attestation signers: the key
+		// attestation signer under every client authentication method, the client attestation signer with client attestation
+		List<Class<? extends Condition>> attestationSignerChecks = new ArrayList<>();
+		attestationSignerChecks.add(ValidateOwnKeyAttestationSigningCertificateAgainstWalletLote.class);
+		if (getVariant(ClientAuthType.class) == ClientAuthType.CLIENT_ATTESTATION) {
+			attestationSignerChecks.add(ValidateOwnAttestationSigningCertificateAgainstWalletLote.class);
+		}
+		call(new CheckOwnCertificatesAgainstLotes(env, attestationSignerChecks, LoteSlot.WALLET));
 
 		call(profileBehavior.configureClientExtra());
 		call(profileBehavior.configureClientAttestation());

@@ -78,10 +78,6 @@ import net.openid.conformance.condition.client.AugmentRealJwksWithDecoys;
 import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.EnsureKeyAttestationTrustAnchorConfigured;
-import net.openid.conformance.condition.client.EnsureClientAttestationTrustAnchorConfigured;
-import net.openid.conformance.condition.client.lote.LoteSlot;
-import net.openid.conformance.condition.client.lote.ValidateOwnMdocSigningCertificateAgainstLote;
-import net.openid.conformance.condition.client.lote.ValidateOwnSdJwtSigningCertificateAgainstLote;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithBCP195SecureCipherOrTls13;
@@ -102,7 +98,9 @@ import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.RequireMtlsAccessToken;
 import net.openid.conformance.condition.rs.RequireMtlsClientCredentialsAccessToken;
 import net.openid.conformance.sequence.AbstractConditionSequence;
-import net.openid.conformance.sequence.client.SetupLoteFromConfiguration;
+import net.openid.conformance.condition.client.WarnIfBuiltInCredentialSignerIsEphemeral;
+import net.openid.conformance.sequence.client.CheckOwnCertificatesAgainstLotes;
+import net.openid.conformance.sequence.client.SetupWalletTrustSources;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.sequence.as.AddPARToServerConfiguration;
@@ -182,8 +180,6 @@ import net.openid.conformance.vci10wallet.condition.VCIValidateTxCode;
 import net.openid.conformance.vci10wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
 import net.openid.conformance.vci10wallet.condition.VerifyKeyAttestationSignatureUsingConfigJwks;
 import net.openid.conformance.condition.as.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
-import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterClientAttestationTrustAnchor;
-import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterKeyAttestationTrustAnchor;
 import net.openid.conformance.util.OAuthUriUtil;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpHeaders;
@@ -440,21 +436,15 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 				throw new TestFailureException(getId(), "client_attestation.issuer must be configured if client_attestation is used as client authentication method.");
 			}
 			callAndStopOnFailure(AddClientAttestationSigningAlgValuesSupportedToServerConfiguration.class, "OAuth2-ATCA07-10.1");
-
-			callAndStopOnFailure(EnsureClientAttestationTrustAnchorConfigured.class);
-			callAndStopOnFailure(VCIRegisterClientAttestationTrustAnchor.class, ConditionResult.FAILURE);
 		}
 
-		callAndStopOnFailure(VCIRegisterKeyAttestationTrustAnchor.class);
-		// the wallet providers LoTE anchors the wallet's client attestation and key attestation signers
-		call(new SetupLoteFromConfiguration(LoteSlot.WALLET, ConditionResult.FAILURE));
-		// the PID and mDL providers lists only drive a pre-flight check that the suite's own credential
-		// signing chains are covered, which reports on the suite's listing, not on the wallet under test
-		call(new SetupLoteFromConfiguration(LoteSlot.PID, ConditionResult.WARNING));
-		call(new SetupLoteFromConfiguration(LoteSlot.MDL, ConditionResult.WARNING));
-		callAndContinueOnFailure(vciCredentialFormat == VCI1FinalCredentialFormat.MDOC
-			? ValidateOwnMdocSigningCertificateAgainstLote.class : ValidateOwnSdJwtSigningCertificateAgainstLote.class,
-			ConditionResult.WARNING, "ETSI119602-6.6.3");
+		call(new SetupWalletTrustSources(env, clientAuthType == ClientAuthType.CLIENT_ATTESTATION));
+		if (vciCredentialFormat != VCI1FinalCredentialFormat.MDOC) {
+			// the built-in SD-JWT VC signer is only trusted outside this instance when the deployment has the published CA's key
+			callAndContinueOnFailure(WarnIfBuiltInCredentialSignerIsEphemeral.class, ConditionResult.WARNING);
+		}
+		// the PID and mDL providers lists only drive a pre-flight check of the suite's own credential signer
+		call(CheckOwnCertificatesAgainstLotes.forCredentialSigner(env, vciCredentialFormat == VCI1FinalCredentialFormat.MDOC));
 		if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
 			callAndContinueOnFailure(EnsureKeyAttestationTrustAnchorConfigured.class, ConditionResult.FAILURE, "HAIP-4.5.1");
 		}

@@ -548,5 +548,54 @@
         "condition": "FetchMdocDsCertificateCrl",
         "expected-result": "failure",
         "comment": "Authlete's document signer certificate names http://example.com/authlete-fapidev-ca.crl as its CRL distribution point, which serves no CRL (404); the certificate needs re-minting with a real CRL"
+    },
+    {
+        "test-name": "oid4vp-1final-wallet-*",
+        "variant": "*",
+        "configuration-filename": "*vp-wallet-test-config-*-lote.json",
+        "current-block": "",
+        "condition": "WarnIfBuiltInAccessCertificateIsEphemeral",
+        "expected-result": "warning",
+        "comment": "CI runs without the SUITE_CA_KEY_* variables, so the suite signs with an ephemeral stand-in for its published CA"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-*",
+        "variant": {
+            "credential_format": "sd_jwt_vc"
+        },
+        "configuration-filename": "*vp-verifier-test-config*-lote.json",
+        "current-block": "",
+        "condition": "WarnIfBuiltInCredentialSignerIsEphemeral",
+        "expected-result": "warning",
+        "comment": "CI runs without the SUITE_CA_KEY_* variables, so the suite signs with an ephemeral stand-in for its published CA"
+    },
+    {
+        "test-name": "oid4vci-1_0-wallet-*",
+        "variant": {
+            "credential_format": "sd_jwt_vc"
+        },
+        "configuration-filename": "*vci-wallet-test-config-haip-lote.json",
+        "current-block": "",
+        "condition": "WarnIfBuiltInCredentialSignerIsEphemeral",
+        "expected-result": "warning",
+        "comment": "CI runs without the SUITE_CA_KEY_* variables, so the suite signs with an ephemeral stand-in for its published CA"
+    },
+    {
+        "test-name": "oid4vci-1_0-issuer-happy-flow",
+        "variant": "*",
+        "configuration-filename": "*vci-issuer-test-config-client_attestation-client-auth-dpop*-lote.json",
+        "current-block": "",
+        "condition": "WarnIfBuiltInClientAttestationSignerIsEphemeral",
+        "expected-result": "warning",
+        "comment": "CI runs without the SUITE_CA_KEY_* variables, so the suite signs with an ephemeral stand-in for its published CA"
+    },
+    {
+        "test-name": "oid4vci-1_0-issuer-happy-flow",
+        "variant": "*",
+        "configuration-filename": "*vci-issuer-test-config-client_attestation-client-auth-dpop-mdoc*-lote.json",
+        "current-block": "",
+        "condition": "WarnIfBuiltInKeyAttestationSignerIsEphemeral",
+        "expected-result": "warning",
+        "comment": "CI runs without the SUITE_CA_KEY_* variables, so the suite signs with an ephemeral stand-in for its published CA; the emulated HAIP issuer asks for key attestations for mdoc credentials"
     }
 ]

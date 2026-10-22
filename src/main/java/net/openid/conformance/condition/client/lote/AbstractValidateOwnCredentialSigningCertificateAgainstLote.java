@@ -22,12 +22,11 @@ public abstract class AbstractValidateOwnCredentialSigningCertificateAgainstLote
 	@Override
 	@PreEnvironment(required = "config")
 	public Environment evaluate(Environment env) {
-		boolean pid = env.containsObject(LoteSlot.PID.envKey);
-		boolean mdl = env.containsObject(LoteSlot.MDL.envKey);
-		if (!pid && !mdl) {
-			log("Neither a PID providers nor an mDL providers list of trusted entities is configured; nothing to check the suite's credential signing certificate against");
+		if (noListConfigured(env, "credential signing", LoteSlot.PID, LoteSlot.MDL)) {
 			return env;
 		}
+		boolean pid = env.containsObject(LoteSlot.PID.envKey);
+		boolean mdl = env.containsObject(LoteSlot.MDL.envKey);
 		if (pid && mdl) {
 			throw error("Both the " + LoteSlot.PID.fieldDescription() + " and the " + LoteSlot.MDL.fieldDescription()
 				+ " are set; a credential chain has one trust source, so please clear the one that does not cover the credential under test");
