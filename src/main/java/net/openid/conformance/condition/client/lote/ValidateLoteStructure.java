@@ -18,7 +18,8 @@ import java.util.regex.Pattern;
 /**
  * Checks the list of trusted entities against the structure ETSI TS 119 602 clauses 6.3 to 6.6
  * and the EU profiles (Annexes D to G) prescribe: the mandatory scheme information fields, the
- * list type the slot expects, dates that make sense (issued in the past, a NextUpdate present,
+ * list type, status determination approach, scheme rules URI and territory ("EU") the profile of
+ * the slot's list fixes, dates that make sense (issued in the past, a NextUpdate present,
  * in the future and at most six months after issue), the per-entity and per-service shape with a
  * service type identifier the profile allows and at least one parseable X.509 certificate in
  * each service digital identity, and no service status fields (the EU profiles say they shall
@@ -38,6 +39,9 @@ public class ValidateLoteStructure extends AbstractLoteCondition {
 	private static final Duration MAX_UPDATE_INTERVAL = Duration.ofDays(184);
 
 	private static final Pattern DATE_TIME = Pattern.compile("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z");
+
+	/** Annex D.2 Table D.1 and its siblings: the territory of every EU list. */
+	private static final String SCHEME_TERRITORY = "EU";
 
 	@Override
 	@PreEnvironment(required = LOTE)
@@ -107,11 +111,25 @@ public class ValidateLoteStructure extends AbstractLoteCondition {
 		JsonElement territory = info.get("SchemeTerritory");
 		if (territory == null || !territory.isJsonPrimitive() || !territory.getAsJsonPrimitive().isString()) {
 			findings.add("SchemeTerritory is missing or not a string");
+		} else if (!SCHEME_TERRITORY.equals(OIDFJSON.getString(territory))) {
+			findings.add("SchemeTerritory is '" + OIDFJSON.getString(territory) + "'; the EU profiles require '" + SCHEME_TERRITORY + "'");
 		}
-		for (String required : List.of("StatusDeterminationApproach", "SchemeTypeCommunityRules", "SchemeInformationURI")) {
-			if (info.get(required) == null) {
-				findings.add(required + " is missing");
-			}
+		JsonElement approach = info.get("StatusDeterminationApproach");
+		if (approach == null || !approach.isJsonPrimitive() || !approach.getAsJsonPrimitive().isString()) {
+			findings.add("StatusDeterminationApproach is missing or not a string");
+		} else if (!slot.expectedStatusDeterminationApproach.equals(OIDFJSON.getString(approach))) {
+			findings.add("StatusDeterminationApproach is '" + OIDFJSON.getString(approach) + "'; the profile of this list requires '"
+				+ slot.expectedStatusDeterminationApproach + "'");
+		}
+		JsonElement rules = info.get("SchemeTypeCommunityRules");
+		if (rules == null) {
+			findings.add("SchemeTypeCommunityRules is missing");
+		} else if (!uriValues(rules).contains(slot.expectedSchemeTypeCommunityRules)) {
+			findings.add("SchemeTypeCommunityRules " + uriValues(rules) + " does not include '" + slot.expectedSchemeTypeCommunityRules
+				+ "', which the profile of this list requires");
+		}
+		if (info.get("SchemeInformationURI") == null) {
+			findings.add("SchemeInformationURI is missing");
 		}
 
 		Instant now = Instant.now();
@@ -220,6 +238,20 @@ public class ValidateLoteStructure extends AbstractLoteCondition {
 				findings.add(prefix + forbidden + " is present; the EU profiles say it shall not be used");
 			}
 		}
+	}
+
+	/** The uriValue members of a multilingual pointer array (Annex B.3); empty when the element has another shape. */
+	private static List<String> uriValues(JsonElement multilingual) {
+		List<String> values = new ArrayList<>();
+		if (multilingual.isJsonArray()) {
+			for (JsonElement entry : multilingual.getAsJsonArray()) {
+				JsonElement uri = entry.isJsonObject() ? entry.getAsJsonObject().get("uriValue") : null;
+				if (uri != null && uri.isJsonPrimitive() && uri.getAsJsonPrimitive().isString()) {
+					values.add(OIDFJSON.getString(uri));
+				}
+			}
+		}
+		return values;
 	}
 
 	private static Instant dateTime(JsonElement el, String field, List<String> findings) {

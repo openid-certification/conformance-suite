@@ -13,6 +13,9 @@ import java.util.List;
  * same certificate serves both, which the Dashboard allows for services of different types. ETSI TS
  * 119 602 defines no mDL providers profile: that list follows the European Commission's mDL Providers
  * List Specification (https://eidas.ec.europa.eu/efda/wallet/lists-of-trusted-entities/mdl-providers).
+ *
+ * <p>The consuming side ({@code LoteSlot}) takes the list type and the service types it accepts
+ * from here, so each list carries every service type its profile defines.
  */
 public enum LoteList {
 

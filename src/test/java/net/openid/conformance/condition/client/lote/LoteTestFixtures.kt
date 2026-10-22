@@ -14,6 +14,7 @@ import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.util.Base64
 import com.nimbusds.jose.util.X509CertUtils
 import net.openid.conformance.testmodule.Environment
+import net.openid.conformance.util.LoteList
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.asn1.x509.BasicConstraints
 import org.bouncycastle.asn1.x509.Extension
@@ -202,8 +203,10 @@ object LoteTestFixtures {
 		info.addProperty("LoTEType", loteType)
 		info.add("SchemeName", multilingual("EU Test List"))
 		info.add("SchemeInformationURI", multilingualUri("https://example.com/lote"))
-		info.addProperty("StatusDeterminationApproach", "http://uri.etsi.org/19602/PIDProvidersList/StatusDetn/EU")
-		info.add("SchemeTypeCommunityRules", multilingualUri("http://uri.etsi.org/19602/PIDProviders/schemerules/EU"))
+		// the profile of the list type fixes these; the PID list's values stand in for a type no profile covers
+		val profile = LoteList.values().firstOrNull { it.loteType == loteType } ?: LoteList.PID_PROVIDERS
+		info.addProperty("StatusDeterminationApproach", profile.statusDeterminationApproach)
+		info.add("SchemeTypeCommunityRules", multilingualUri(profile.schemeTypeCommunityRules))
 		info.addProperty("SchemeTerritory", territory)
 		val dp = JsonArray()
 		dp.add("https://example.com/lote.jwt")
