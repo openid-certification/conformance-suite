@@ -2,8 +2,8 @@ package net.openid.conformance.condition.client;
 
 import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.client.lote.LoteSlot;
 import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
+import net.openid.conformance.condition.client.lote.TrustPurpose;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.MdocUtil;
 import org.multipaz.cbor.Cbor;
@@ -71,8 +71,7 @@ public class ValidateMdocDsCertificateChain extends AbstractValidateX5cCertifica
 			anchors = LoteTrustAnchors.TrustAnchorSet.none();
 		} else {
 			// the configured 'Credential Trust Anchor' plus the PID and mDL providers listed in the configured LoTEs
-			anchors = resolveTrustAnchors(env, env.getString("credential_trust_anchor_pem"),
-				"Credential Trust Anchor", LoteSlot.ISSUANCE_SUFFIX, LoteSlot.PID, LoteSlot.MDL);
+			anchors = resolveTrustAnchors(env, TrustPurpose.CREDENTIAL);
 		}
 		X509Certificate matched = validateX5cCertificateChainAgainst(certs, anchors);
 

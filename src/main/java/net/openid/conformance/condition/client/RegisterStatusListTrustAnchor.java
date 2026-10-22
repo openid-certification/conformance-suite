@@ -1,23 +1,12 @@
 package net.openid.conformance.condition.client;
 
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.condition.client.lote.AbstractRegisterTrustSource;
+import net.openid.conformance.condition.client.lote.TrustPurpose;
 
-public class RegisterStatusListTrustAnchor extends AbstractCondition {
+public class RegisterStatusListTrustAnchor extends AbstractRegisterTrustSource {
 
 	@Override
-	public Environment evaluate(Environment env) {
-
-		String trustAnchorPem = env.getString("config", "credential.status_list_trust_anchor_pem");
-
-		if (trustAnchorPem == null) {
-			log("No status list trust anchor configured, skipping registration");
-		} else {
-			env.putString("status_list_trust_anchor_pem", trustAnchorPem);
-			log("Registered status list trust anchor certificate",
-				args("trust_anchor_pem", trustAnchorPem));
-		}
-
-		return env;
+	protected TrustPurpose purpose() {
+		return TrustPurpose.STATUS_LIST;
 	}
 }

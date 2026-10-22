@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client.lote;
 
 import com.google.common.collect.ImmutableSet;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.LoteList;
 
 /**
@@ -86,6 +87,23 @@ public enum LoteSlot {
 	/** How the field is referred to in messages to the tester. */
 	public String fieldDescription() {
 		return "'" + fieldLabel + "' field in the '" + sectionLabel + "' section of the test configuration";
+	}
+
+	/** The list URL the test configuration sets for this slot, trimmed, or null; the form keeps a cleared field as "". */
+	public String configuredUrl(Environment env) {
+		String url = env.getString("config", configKey);
+		return url == null || url.isBlank() ? null : url.trim();
+	}
+
+	/** Whether the test configuration names a list URL for this slot. */
+	public boolean isConfigured(Environment env) {
+		return configuredUrl(env) != null;
+	}
+
+	/** The scheme operator's sealing certificate the test configuration sets, PEM, or null when the field is blank. */
+	public static String configuredSigningCertificatePem(Environment env) {
+		String pem = env.getString("config", SIGNING_CERTIFICATE_CONFIG_KEY);
+		return pem == null || pem.isBlank() ? null : pem;
 	}
 
 	/** Whether {@code serviceType} is one this slot takes anchors from. */

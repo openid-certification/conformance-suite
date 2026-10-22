@@ -5,6 +5,7 @@ import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jose.util.Base64URL;
+import net.openid.conformance.condition.client.lote.LoteTestFixtures;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.CRLDistPoint;
@@ -147,6 +148,12 @@ final class MdocDsCertificateTestFixtures {
 		return credentialWithX5c(docType, signingKey, certDer);
 	}
 
+
+	/** Creates an IssuerSigned mDL whose x5chain is a document signer certificate issued by {@code ca}. */
+	static byte[] credentialSignedByLeafUnder(LoteTestFixtures.ListedCa ca) throws Exception {
+		var leaf = LoteTestFixtures.INSTANCE.mintLeaf(ca, "mdoc DS");
+		return credentialWithX5c(DrivingLicense.MDL_DOCTYPE, leaf.getFirst(), leaf.getSecond().getEncoded());
+	}
 
 	private static byte[] credentialWithX5c(String docType, ECKey signingKey, byte[] certDer) throws Exception {
 		ECKey signingKeyWithX5c = new ECKey.Builder(signingKey)

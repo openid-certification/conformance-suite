@@ -2,8 +2,8 @@ package net.openid.conformance.condition.client;
 
 import com.nimbusds.jose.util.X509CertUtils;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.client.lote.LoteSlot;
 import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
+import net.openid.conformance.condition.client.lote.TrustPurpose;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.MdocUtil;
 import net.openid.conformance.util.X509CertificateUtil;
@@ -103,11 +103,12 @@ public class ValidateMdocRevocationListCertificateChain extends AbstractRevocati
 			anchors = LoteTrustAnchors.TrustAnchorSet.of(vicalIaca,
 				"the IACA certificate the configured VICAL lists for the MSO's issuer");
 		} else {
-			// the configured 'Credential Trust Anchor' plus the PID and mDL providers listed in the configured
-			// LoTEs: the IACA that signed the MSO's signer also signs the revocation list signer (12.3.6.2)
+			// the configured 'Credential Trust Anchor', or the PID and mDL providers listed in the configured
+			// LoTEs: the IACA that signed the MSO's signer also signs the revocation list signer (12.3.6.2).
+			// This differs from the SD-JWT status list token, which chains to the lists' revocation services
+			// (TrustPurpose.STATUS_LIST): ISO ties MSO revocation to the IACA, not to a separate CA
 			try {
-				anchors = LoteTrustAnchors.resolve(env, env.getString("credential_trust_anchor_pem"),
-					"Credential Trust Anchor", LoteSlot.ISSUANCE_SUFFIX, LoteSlot.PID, LoteSlot.MDL);
+				anchors = TrustPurpose.CREDENTIAL.resolve(env);
 			} catch (X509CertificateUtil.X5cCertificateChainException e) {
 				throw error("Failed to parse the 'Credential Trust Anchor' field in the 'Credential"
 					+ " Issuer' section of the test configuration as a PEM encoded X.509 certificate", e);

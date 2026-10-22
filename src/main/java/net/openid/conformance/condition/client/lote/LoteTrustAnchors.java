@@ -9,6 +9,7 @@ import net.openid.conformance.util.X509CertificateUtil;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -92,7 +93,7 @@ public final class LoteTrustAnchors {
 	 * @throws X509CertificateUtil.X5cCertificateChainException when the configured PEM is not a certificate
 	 */
 	public static TrustAnchorSet resolve(Environment env, String configuredPem, String configuredLabel,
-			String serviceTypeSuffix, LoteSlot... slots) throws X509CertificateUtil.X5cCertificateChainException {
+			String serviceTypeSuffix, Collection<LoteSlot> slots) throws X509CertificateUtil.X5cCertificateChainException {
 		if (configuredPem != null && !configuredPem.isBlank()) {
 			return TrustAnchorSet.of(X509CertificateUtil.parseTrustAnchorPem(configuredPem),
 				"'" + configuredLabel + "' from the test configuration");
@@ -104,11 +105,11 @@ public final class LoteTrustAnchors {
 	 * The anchors of the lists of trusted entities in {@code slots} whose service type ends in
 	 * {@code serviceTypeSuffix} ({@link LoteSlot#ISSUANCE_SUFFIX} or {@link LoteSlot#REVOCATION_SUFFIX}).
 	 */
-	public static TrustAnchorSet fromLists(Environment env, String serviceTypeSuffix, LoteSlot... slots) {
+	public static TrustAnchorSet fromLists(Environment env, String serviceTypeSuffix, Collection<LoteSlot> slots) {
 		List<Anchor> anchors = new ArrayList<>();
 		List<String> configuredLists = new ArrayList<>();
 		for (LoteSlot slot : slots) {
-			if (env.containsObject(slot.envKey) || isConfigured(env, slot)) {
+			if (env.containsObject(slot.envKey) || slot.isConfigured(env)) {
 				configuredLists.add(slot.fieldDescription());
 			}
 			JsonElement list = env.getElementFromObject(slot.envKey, "anchors.list");
@@ -155,32 +156,16 @@ public final class LoteTrustAnchors {
 	 * is set. A chain has one trust source, so more than one is a configuration error.
 	 */
 	public static List<String> configuredSources(Environment env, String configuredPem, String pemFieldDescription,
-			LoteSlot... slots) {
+			Collection<LoteSlot> slots) {
 		List<String> configured = new ArrayList<>();
 		if (configuredPem != null && !configuredPem.isBlank()) {
 			configured.add(pemFieldDescription);
 		}
 		for (LoteSlot slot : slots) {
-			if (isConfigured(env, slot)) {
+			if (slot.isConfigured(env)) {
 				configured.add(slot.fieldDescription());
 			}
 		}
 		return configured;
-	}
-
-	/** Whether the test configuration names a list URL for any of {@code slots}. */
-	public static boolean anySlotConfigured(Environment env, LoteSlot... slots) {
-		for (LoteSlot slot : slots) {
-			if (isConfigured(env, slot)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/** Whether the test configuration names a list URL for {@code slot}; the form keeps a cleared field as "". */
-	private static boolean isConfigured(Environment env, LoteSlot slot) {
-		String url = env.getString("config", slot.configKey);
-		return url != null && !url.isBlank();
 	}
 }

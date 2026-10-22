@@ -25,7 +25,6 @@ public class VCIRegisterClientAttestationTrustAnchor_UnitTest {
 		cond = new VCIRegisterClientAttestationTrustAnchor();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.FAILURE);
 		env.putObject("config", new JsonObject());
-		env.putObject("vci", new JsonObject());
 	}
 
 	@Test
@@ -34,7 +33,7 @@ public class VCIRegisterClientAttestationTrustAnchor_UnitTest {
 
 		cond.execute(env);
 
-		assertThat(env.getString("vci", "client_attestation_trust_anchor_pem")).isEqualTo("-----BEGIN CERTIFICATE-----");
+		assertThat(env.getString("client_attestation_trust_anchor_pem")).isEqualTo("-----BEGIN CERTIFICATE-----");
 	}
 
 	@Test
@@ -49,6 +48,6 @@ public class VCIRegisterClientAttestationTrustAnchor_UnitTest {
 	@Test
 	public void registersNothingWhenNoPemIsConfigured() {
 		assertThatCode(() -> cond.execute(env)).doesNotThrowAnyException();
-		assertThat(env.getString("vci", "client_attestation_trust_anchor_pem")).isNull();
+		assertThat(env.getString("client_attestation_trust_anchor_pem")).isNull();
 	}
 }

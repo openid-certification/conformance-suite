@@ -101,12 +101,13 @@ public class LoteTrustAnchors_UnitTest {
 	}
 
 	@Test
-	public void anySlotConfiguredLooksAtTheConfigurationNotTheFetchedLists() {
+	public void configuredSourcesLooksAtTheConfigurationNotTheFetchedLists() {
 		env.putObject("config", new JsonObject());
-		assertThat(LoteTrustAnchors.anySlotConfigured(env, LoteSlot.PID, LoteSlot.MDL)).isFalse();
+		env.putObject(LoteSlot.PID.envKey, new JsonObject());
+		assertThat(LoteTrustAnchors.configuredSources(env, null, "PEM", LoteSlot.PID, LoteSlot.MDL)).isEmpty();
 		env.putString("config", LoteSlot.MDL.configKey, "https://lote.example.com/mdl.jwt");
-		assertThat(LoteTrustAnchors.anySlotConfigured(env, LoteSlot.PID, LoteSlot.MDL)).isTrue();
+		assertThat(LoteTrustAnchors.configuredSources(env, null, "PEM", LoteSlot.PID, LoteSlot.MDL)).containsExactly(LoteSlot.MDL.fieldDescription());
 		env.putString("config", LoteSlot.MDL.configKey, "");
-		assertThat(LoteTrustAnchors.anySlotConfigured(env, LoteSlot.PID, LoteSlot.MDL)).isFalse();
+		assertThat(LoteTrustAnchors.configuredSources(env, null, "PEM", LoteSlot.PID, LoteSlot.MDL)).isEmpty();
 	}
 }

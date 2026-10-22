@@ -33,7 +33,6 @@ public class ValidateClientAttestationX5cClaimInProofJwt_UnitTest {
 	public void setUp() throws Exception {
 		cond = new ValidateClientAttestationX5cClaimInProofJwt();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.FAILURE);
-		env.putObject("vci", new JsonObject());
 		JsonArray x5c = new JsonArray();
 		x5c.add(Base64.encode(LoteTestFixtures.INSTANCE.mintLeaf(walletProviderCa, "attester").getSecond().getEncoded()).toString());
 		JsonObject header = new JsonObject();
@@ -52,7 +51,7 @@ public class ValidateClientAttestationX5cClaimInProofJwt_UnitTest {
 
 	@Test
 	public void passesWhenTheChainEndsAtTheConfiguredAnchor() {
-		env.putString("vci", "client_attestation_trust_anchor_pem", X509CertificateUtil.toPem(walletProviderCa.getCert()));
+		env.putString("client_attestation_trust_anchor_pem", X509CertificateUtil.toPem(walletProviderCa.getCert()));
 
 		assertThatCode(() -> cond.execute(env)).doesNotThrowAnyException();
 	}
@@ -73,7 +72,7 @@ public class ValidateClientAttestationX5cClaimInProofJwt_UnitTest {
 
 	@Test
 	public void failsWhenTheChainEndsAtNoneOfTheAnchors() {
-		env.putString("vci", "client_attestation_trust_anchor_pem", X509CertificateUtil.toPem(otherCa.getCert()));
+		env.putString("client_attestation_trust_anchor_pem", X509CertificateUtil.toPem(otherCa.getCert()));
 		LoteTestFixtures.INSTANCE.putAnchors(env, LoteSlot.WALLET, LoteTestFixtures.WALLET_ISSUANCE, "Wallet entity", otherCa.getCert());
 
 		assertThatThrownBy(() -> cond.execute(env)).isInstanceOf(ConditionError.class).hasMessageContaining("PKIX path validation failed");

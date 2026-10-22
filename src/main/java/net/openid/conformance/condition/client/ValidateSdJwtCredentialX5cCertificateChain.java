@@ -3,8 +3,8 @@ package net.openid.conformance.condition.client;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.client.lote.LoteSlot;
 import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
+import net.openid.conformance.condition.client.lote.TrustPurpose;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -40,8 +40,7 @@ public class ValidateSdJwtCredentialX5cCertificateChain extends AbstractValidate
 		List<X509Certificate> certs = parseX5cCertificatesFromStrings(x5c);
 
 		// the configured 'Credential Trust Anchor' plus the PID and mDL providers listed in the configured LoTEs
-		LoteTrustAnchors.TrustAnchorSet anchors = resolveTrustAnchors(env, env.getString("credential_trust_anchor_pem"),
-			"Credential Trust Anchor", LoteSlot.ISSUANCE_SUFFIX, LoteSlot.PID, LoteSlot.MDL);
+		LoteTrustAnchors.TrustAnchorSet anchors = resolveTrustAnchors(env, TrustPurpose.CREDENTIAL);
 		X509Certificate matched = validateX5cCertificateChainAgainst(certs, anchors);
 
 		String credentialJwt = env.getString("sdjwt", "credential.value");

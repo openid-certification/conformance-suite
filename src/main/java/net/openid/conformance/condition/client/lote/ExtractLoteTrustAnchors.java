@@ -65,8 +65,8 @@ public class ExtractLoteTrustAnchors extends AbstractLoteCondition {
 		List<X509Certificate> chain = getSignerCertificateChain(jws);
 		X509Certificate signer = chain.get(0);
 		verifyJwtSignatureWithX5cLeafCert(getLoteValue(env), chain);
-		String configuredPem = env.getString("config", LoteSlot.SIGNING_CERTIFICATE_CONFIG_KEY);
-		if (configuredPem != null && !configuredPem.isBlank()) {
+		String configuredPem = LoteSlot.configuredSigningCertificatePem(env);
+		if (configuredPem != null) {
 			try {
 				ValidateLoteSignerAgainstConfiguredCertificate.checkSigner(chain,
 					X509CertificateUtil.parseTrustAnchorPem(configuredPem));

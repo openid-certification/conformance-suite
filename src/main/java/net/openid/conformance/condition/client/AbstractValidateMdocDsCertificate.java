@@ -2,8 +2,8 @@ package net.openid.conformance.condition.client;
 
 import com.nimbusds.jose.util.X509CertUtils;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.client.lote.LoteSlot;
 import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
+import net.openid.conformance.condition.client.lote.TrustPurpose;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.MdocCertificateProfileChecks;
 import net.openid.conformance.util.MdocUtil;
@@ -97,7 +97,7 @@ public abstract class AbstractValidateMdocDsCertificate extends AbstractConditio
 		if (fromVical != null) {
 			return fromVical;
 		}
-		String trustAnchorPem = env.getString("credential_trust_anchor_pem");
+		String trustAnchorPem = TrustPurpose.CREDENTIAL.registeredPem(env);
 		if (trustAnchorPem != null) {
 			X509Certificate anchor = X509CertUtils.parse(trustAnchorPem);
 			if (anchor != null
@@ -114,7 +114,7 @@ public abstract class AbstractValidateMdocDsCertificate extends AbstractConditio
 	 * Null when no list is configured or none of its anchors issued it.
 	 */
 	protected X509Certificate issuingCertificateFromLotes(Environment env, X509Certificate dsCert) {
-		LoteTrustAnchors.TrustAnchorSet anchors = LoteTrustAnchors.fromLists(env, LoteSlot.ISSUANCE_SUFFIX, LoteSlot.PID, LoteSlot.MDL);
+		LoteTrustAnchors.TrustAnchorSet anchors = TrustPurpose.CREDENTIAL.listAnchors(env);
 		for (X509Certificate anchor : anchors.certs()) {
 			if (dsCert.getIssuerX500Principal().equals(anchor.getSubjectX500Principal())
 				&& signedThisCertificate(anchor, dsCert)) {

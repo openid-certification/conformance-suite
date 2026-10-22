@@ -5,8 +5,8 @@ import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jose.proc.JWSVerifierFactory;
 import com.nimbusds.jwt.SignedJWT;
-import net.openid.conformance.condition.client.lote.LoteSlot;
 import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
+import net.openid.conformance.condition.client.lote.TrustPurpose;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.X509CertificateUtil;
 
@@ -86,13 +86,12 @@ public abstract class AbstractValidateX5cCertificateChain extends AbstractCondit
 	}
 
 	/**
-	 * The trust anchors for a purpose: the configured PEM when set, otherwise the anchors of the given
-	 * lists of trusted entities; a misconfigured PEM surfaces as a test failure.
+	 * The trust anchors for a chain: the registered PEM when set, otherwise the anchors of the lists of
+	 * trusted entities covering it; a misconfigured PEM surfaces as a test failure.
 	 */
-	protected LoteTrustAnchors.TrustAnchorSet resolveTrustAnchors(Environment env, String configuredPem, String configuredLabel,
-			String serviceTypeSuffix, LoteSlot... slots) {
+	protected LoteTrustAnchors.TrustAnchorSet resolveTrustAnchors(Environment env, TrustPurpose purpose) {
 		try {
-			return LoteTrustAnchors.resolve(env, configuredPem, configuredLabel, serviceTypeSuffix, slots);
+			return purpose.resolve(env);
 		} catch (X509CertificateUtil.X5cCertificateChainException e) {
 			throw error(e.getMessage());
 		}

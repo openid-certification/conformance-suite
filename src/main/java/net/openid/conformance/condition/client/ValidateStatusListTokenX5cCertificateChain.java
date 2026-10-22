@@ -3,8 +3,8 @@ package net.openid.conformance.condition.client;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
-import net.openid.conformance.condition.client.lote.LoteSlot;
 import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
+import net.openid.conformance.condition.client.lote.TrustPurpose;
 import net.openid.conformance.testmodule.Environment;
 
 import java.security.cert.X509Certificate;
@@ -54,8 +54,7 @@ public class ValidateStatusListTokenX5cCertificateChain extends AbstractValidate
 		List<X509Certificate> certs = parseX5cCertificatesFromNimbusBase64(x5cChain);
 
 		// the configured 'Status List Trust Anchor' plus the revocation services of the PID and mDL providers listed in the configured LoTEs
-		LoteTrustAnchors.TrustAnchorSet anchors = resolveTrustAnchors(env, env.getString("status_list_trust_anchor_pem"),
-			"Status List Trust Anchor", LoteSlot.REVOCATION_SUFFIX, LoteSlot.PID, LoteSlot.MDL);
+		LoteTrustAnchors.TrustAnchorSet anchors = resolveTrustAnchors(env, TrustPurpose.STATUS_LIST);
 		X509Certificate matched = validateX5cCertificateChainAgainst(certs, anchors);
 
 		verifyJwtSignatureWithX5cLeafCert(statusListTokenJwtString, certs);
