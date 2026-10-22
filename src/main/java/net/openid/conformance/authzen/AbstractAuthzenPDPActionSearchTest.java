@@ -45,7 +45,7 @@ public abstract class AbstractAuthzenPDPActionSearchTest extends AbstractAuthzen
 	@Override
 	protected void processAuthApiEndpointResponse() {
 		callAndStopOnFailure(ExtractAuthzenApiEndpointSearchResponse.class, "AUTHZEN-8.3");
-		callAndStopOnFailure(EnsureValidActionSearchResponse.class, "AUTHZEN-8.3", "AUTHZEN-8.6");
+		callAndStopOnFailure(EnsureValidActionSearchResponse.class, "AUTHZEN-8.3", "AUTHZEN-8.6", "AUTHZEN-5.3");
 		callAndStopOnFailure(EnsureValidSearchResponsePage.class, "AUTHZEN-8.2.2", "AUTHZEN-8.3");
 		callAndContinueOnFailure(EnsureSearchResponseHasPageAfterPageToken.class, getPageAfterPageTokenSeverity(), "AUTHZEN-8.2");
 		callAndContinueOnFailure(EnsureSearchResponsePageCountMatchesResults.class, ConditionResult.FAILURE, "AUTHZEN-8.2.2");
