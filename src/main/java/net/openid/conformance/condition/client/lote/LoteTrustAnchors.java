@@ -36,18 +36,19 @@ public final class LoteTrustAnchors {
 
 	/**
 	 * The anchors, plus the configuration fields of the lists of trusted entities that were
-	 * consulted, whether or not they contributed.
+	 * consulted, whether or not they contributed, and among those the lists whose anchors were never
+	 * extracted because fetching or checking the list failed.
 	 */
-	public record TrustAnchorSet(List<Anchor> anchors, List<String> configuredLists) {
+	public record TrustAnchorSet(List<Anchor> anchors, List<String> configuredLists, List<String> unusableLists) {
 
 		/** No anchor and no list of trusted entities consulted: the chain check falls back to the legacy walk. */
 		public static TrustAnchorSet none() {
-			return new TrustAnchorSet(List.of(), List.of());
+			return new TrustAnchorSet(List.of(), List.of(), List.of());
 		}
 
 		/** A single explicit anchor, with no list of trusted entities consulted. */
 		public static TrustAnchorSet of(X509Certificate cert, String source) {
-			return new TrustAnchorSet(List.of(new Anchor(cert, source)), List.of());
+			return new TrustAnchorSet(List.of(new Anchor(cert, source)), List.of(), List.of());
 		}
 
 		public boolean isEmpty() {
@@ -62,8 +63,37 @@ public final class LoteTrustAnchors {
 			return anchors.isEmpty() && !configuredLists.isEmpty();
 		}
 
+		/**
+		 * The failure message when {@link #trustsNothing}, for the chain described by {@code chain}:
+		 * names the lists that could not be used, when that is why there is no anchor.
+		 */
+		public String trustsNothingMessage(String chain) {
+			if (!unusableLists.isEmpty()) {
+				return "The " + String.join(" and the ", unusableLists) + " could not be fetched or checked (see the earlier"
+					+ " failure), so there is no trust anchor for " + chain + " and the chain is not trusted.";
+			}
+			return "The configured list of trusted entities lists no trust anchor for " + chain + ", so the chain"
+				+ " is not trusted. An empty list, or one listing only services of other types, trusts nobody.";
+		}
+
 		public List<X509Certificate> certs() {
 			return anchors.stream().map(Anchor::cert).toList();
+		}
+
+		/**
+		 * Validates {@code certs} against this set ({@link X509CertificateUtil#validateX5cCertificateChain(List, Collection)}):
+		 * full PKIX path validation when there are anchors, the legacy parent-signature walk when there
+		 * are none and no list was consulted.
+		 *
+		 * @param chain what the chain is, for the message when the set {@link #trustsNothing}
+		 * @return the anchor the path ended at, or null for the legacy walk
+		 * @throws X509CertificateUtil.X5cCertificateChainException when the set trusts nothing or the chain does not validate
+		 */
+		public X509Certificate validate(List<X509Certificate> certs, String chain) throws X509CertificateUtil.X5cCertificateChainException {
+			if (trustsNothing()) {
+				throw new X509CertificateUtil.X5cCertificateChainException(trustsNothingMessage(chain));
+			}
+			return X509CertificateUtil.validateX5cCertificateChain(certs, certs());
 		}
 
 		public List<String> sources() {
@@ -108,9 +138,14 @@ public final class LoteTrustAnchors {
 	public static TrustAnchorSet fromLists(Environment env, String serviceTypeSuffix, Collection<LoteSlot> slots) {
 		List<Anchor> anchors = new ArrayList<>();
 		List<String> configuredLists = new ArrayList<>();
+		List<String> unusableLists = new ArrayList<>();
 		for (LoteSlot slot : slots) {
 			if (env.containsObject(slot.envKey) || slot.isConfigured(env)) {
 				configuredLists.add(slot.fieldDescription());
+				// ExtractLoteTrustAnchors stores "anchors" (possibly empty) only once the list fetched, parsed and verified
+				if (env.getElementFromObject(slot.envKey, "anchors") == null) {
+					unusableLists.add(slot.fieldDescription());
+				}
 			}
 			JsonElement list = env.getElementFromObject(slot.envKey, "anchors.list");
 			if (list == null || !list.isJsonArray()) {
@@ -136,7 +171,7 @@ public final class LoteTrustAnchors {
 					+ ", " + cert.getSubjectX500Principal().getName()));
 			}
 		}
-		return new TrustAnchorSet(anchors, configuredLists);
+		return new TrustAnchorSet(anchors, configuredLists, unusableLists);
 	}
 
 	/**
