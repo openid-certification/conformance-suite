@@ -24,13 +24,13 @@ public class LoteTrustAnchors_UnitTest {
 
 		LoteTrustAnchors.TrustAnchorSet issuance = LoteTrustAnchors.resolve(env, null,
 			"Credential Trust Anchor", LoteSlot.ISSUANCE_SUFFIX, LoteSlot.PID, LoteSlot.MDL);
-		assertThat(issuance.anchors()).containsExactly(pidCa.getCert(), mdlCa.getCert());
+		assertThat(issuance.certs()).containsExactly(pidCa.getCert(), mdlCa.getCert());
 		assertThat(issuance.sources().get(0)).startsWith("PID providers LoTE URL: PID entity, PID/Issuance, ");
 		assertThat(issuance.sourceOf(mdlCa.getCert())).startsWith("mDL providers LoTE URL: mDL entity, mDL/Issuance, ");
 
 		LoteTrustAnchors.TrustAnchorSet revocation = LoteTrustAnchors.resolve(env, null, "Status List Trust Anchor",
 			LoteSlot.REVOCATION_SUFFIX, LoteSlot.PID, LoteSlot.MDL);
-		assertThat(revocation.anchors()).containsExactly(revocationCa.getCert());
+		assertThat(revocation.certs()).containsExactly(revocationCa.getCert());
 	}
 
 	@Test
@@ -66,7 +66,7 @@ public class LoteTrustAnchors_UnitTest {
 
 		LoteTrustAnchors.TrustAnchorSet set = LoteTrustAnchors.resolve(env, X509CertificateUtil.toPem(configuredCa.getCert()),
 			"Credential Trust Anchor", LoteSlot.ISSUANCE_SUFFIX, LoteSlot.PID, LoteSlot.MDL);
-		assertThat(set.anchors()).containsExactly(configuredCa.getCert());
+		assertThat(set.certs()).containsExactly(configuredCa.getCert());
 		assertThat(set.sources()).containsExactly("'Credential Trust Anchor' from the test configuration");
 		assertThat(set.trustsNothing()).isFalse();
 	}
@@ -78,7 +78,7 @@ public class LoteTrustAnchors_UnitTest {
 
 		LoteTrustAnchors.TrustAnchorSet set = LoteTrustAnchors.resolve(env, null,
 			"Credential Trust Anchor", LoteSlot.ISSUANCE_SUFFIX, LoteSlot.PID, LoteSlot.MDL);
-		assertThat(set.anchors()).containsExactly(pidCa.getCert());
+		assertThat(set.certs()).containsExactly(pidCa.getCert());
 	}
 
 	@Test

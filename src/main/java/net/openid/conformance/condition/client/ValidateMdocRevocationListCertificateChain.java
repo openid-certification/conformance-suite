@@ -100,8 +100,8 @@ public class ValidateMdocRevocationListCertificateChain extends AbstractRevocati
 			if (vicalIaca == null) {
 				throw error("Failed to parse the IACA certificate recorded from the configured VICAL");
 			}
-			anchors = new LoteTrustAnchors.TrustAnchorSet(List.of(vicalIaca),
-				List.of("the IACA certificate the configured VICAL lists for the MSO's issuer"));
+			anchors = LoteTrustAnchors.TrustAnchorSet.of(vicalIaca,
+				"the IACA certificate the configured VICAL lists for the MSO's issuer");
 		} else {
 			// the configured 'Credential Trust Anchor' plus the PID and mDL providers listed in the configured
 			// LoTEs: the IACA that signed the MSO's signer also signs the revocation list signer (12.3.6.2)
@@ -122,7 +122,7 @@ public class ValidateMdocRevocationListCertificateChain extends AbstractRevocati
 		try {
 			// with trust anchors this is full PKIX path validation; without any (none configured
 			// outside HAIP) only the chain-internal checks run
-			matched = X509CertificateUtil.validateX5cCertificateChain(statusJavaChain, anchors.anchors());
+			matched = X509CertificateUtil.validateX5cCertificateChain(statusJavaChain, anchors.certs());
 		} catch (X509CertificateUtil.X5cCertificateChainException e) {
 			throw error("The MSO revocation list's x5chain does not validate"
 					+ (anchors.isEmpty() ? "" : " against " + String.join(" or ", anchors.sources())),

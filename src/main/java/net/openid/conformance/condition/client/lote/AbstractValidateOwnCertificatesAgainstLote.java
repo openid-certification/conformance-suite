@@ -27,12 +27,7 @@ public abstract class AbstractValidateOwnCertificatesAgainstLote extends Abstrac
 	 * @param slots the lists whose issuance services must cover the chains
 	 */
 	protected Environment check(Environment env, Map<String, List<X509Certificate>> chains, String what, LoteSlot... slots) {
-		LoteTrustAnchors.TrustAnchorSet anchors;
-		try {
-			anchors = LoteTrustAnchors.resolve(env, null, null, LoteSlot.ISSUANCE_SUFFIX, slots);
-		} catch (X509CertificateUtil.X5cCertificateChainException e) {
-			throw error(e.getMessage());
-		}
+		LoteTrustAnchors.TrustAnchorSet anchors = LoteTrustAnchors.fromLists(env, LoteSlot.ISSUANCE_SUFFIX, slots);
 		List<String> slotLabels = new ArrayList<>();
 		for (LoteSlot slot : slots) {
 			if (env.containsObject(slot.envKey)) {
@@ -46,9 +41,9 @@ public abstract class AbstractValidateOwnCertificatesAgainstLote extends Abstrac
 			JsonObject result = new JsonObject();
 			result.addProperty("leaf_subject", entry.getValue().get(0).getSubjectX500Principal().getName());
 			try {
-				X509Certificate matched = X509CertificateUtil.validateX5cCertificateChain(entry.getValue(), anchors.anchors());
+				X509Certificate matched = X509CertificateUtil.validateX5cCertificateChain(entry.getValue(), anchors.certs());
 				result.addProperty("trusted", matched != null);
-				result.addProperty("matched_trust_anchor", matched == null ? null : anchors.sourceOf(matched));
+				result.addProperty("matched_trust_anchor", anchors.sourceOf(matched));
 				if (matched == null) {
 					uncovered.add(entry.getKey());
 				}

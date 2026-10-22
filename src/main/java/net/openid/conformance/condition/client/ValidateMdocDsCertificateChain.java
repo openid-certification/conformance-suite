@@ -68,7 +68,7 @@ public class ValidateMdocDsCertificateChain extends AbstractValidateX5cCertifica
 		if (env.getObject("vical") != null) {
 			log("A VICAL is configured, so the mdoc issuer certificate chain is evaluated against the"
 				+ " VICAL rather than the configured credential trust anchor");
-			anchors = new LoteTrustAnchors.TrustAnchorSet(List.of(), List.of());
+			anchors = LoteTrustAnchors.TrustAnchorSet.none();
 		} else {
 			// the configured 'Credential Trust Anchor' plus the PID and mDL providers listed in the configured LoTEs
 			anchors = resolveTrustAnchors(env, env.getString("credential_trust_anchor_pem"),
@@ -81,7 +81,7 @@ public class ValidateMdocDsCertificateChain extends AbstractValidateX5cCertifica
 				"chain_length", certs.size(),
 				"pkix_validated_against_trust_anchor", matched != null,
 				"trust_anchors", anchors.sourcesJson(),
-				"matched_trust_anchor", matched == null ? null : anchors.sourceOf(matched)));
+				"matched_trust_anchor", anchors.sourceOf(matched)));
 
 		return env;
 	}

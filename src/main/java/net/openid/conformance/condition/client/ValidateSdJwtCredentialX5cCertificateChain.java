@@ -52,7 +52,7 @@ public class ValidateSdJwtCredentialX5cCertificateChain extends AbstractValidate
 				"leaf_cert_subject", certs.get(0).getSubjectX500Principal().getName(),
 				"chain_length", certs.size(),
 				"trust_anchors", anchors.sourcesJson(),
-				"matched_trust_anchor", matched == null ? null : anchors.sourceOf(matched)));
+				"matched_trust_anchor", anchors.sourceOf(matched)));
 
 		return env;
 	}
