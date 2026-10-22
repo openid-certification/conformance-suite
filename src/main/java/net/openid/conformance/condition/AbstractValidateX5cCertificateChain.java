@@ -69,15 +69,13 @@ public abstract class AbstractValidateX5cCertificateChain extends AbstractCondit
 	 * @return the anchor the path ended at, or null for the legacy walk
 	 */
 	protected X509Certificate validateX5cCertificateChainAgainst(List<X509Certificate> certs, LoteTrustAnchors.TrustAnchorSet anchors) {
-		if (anchors.trustsNothing()) {
-			throw error("The configured list of trusted entities lists no trust anchor for this certificate chain, so the chain"
-					+ " is not trusted. An empty list, or one listing only services of other types, trusts nobody.",
-				args("lists_of_trusted_entities", anchors.configuredLists(),
-					"leaf_cert_subject", certs.isEmpty() ? null : certs.get(0).getSubjectX500Principal().getName()));
-		}
 		try {
-			return X509CertificateUtil.validateX5cCertificateChain(certs, anchors.certs());
+			return anchors.validate(certs, "this certificate chain");
 		} catch (X509CertificateUtil.X5cCertificateChainException e) {
+			if (anchors.trustsNothing()) {
+				throw error(e.getMessage(), args("lists_of_trusted_entities", anchors.configuredLists(),
+					"leaf_cert_subject", certs.isEmpty() ? null : certs.get(0).getSubjectX500Principal().getName()));
+			}
 			if (anchors.isEmpty()) {
 				throw error(e.getMessage());
 			}

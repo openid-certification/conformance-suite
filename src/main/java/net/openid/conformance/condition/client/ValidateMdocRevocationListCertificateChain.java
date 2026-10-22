@@ -114,17 +114,15 @@ public class ValidateMdocRevocationListCertificateChain extends AbstractRevocati
 					+ " Issuer' section of the test configuration as a PEM encoded X.509 certificate", e);
 			}
 		}
-		if (anchors.trustsNothing()) {
-			throw error("The configured list of trusted entities lists no trust anchor for the MSO revocation list's x5chain,"
-					+ " so the chain is not trusted. An empty list, or one listing only services of other types, trusts nobody.",
-				args("lists_of_trusted_entities", anchors.configuredLists()));
-		}
 		X509Certificate matched;
 		try {
 			// with trust anchors this is full PKIX path validation; without any (none configured
 			// outside HAIP) only the chain-internal checks run
-			matched = X509CertificateUtil.validateX5cCertificateChain(statusJavaChain, anchors.certs());
+			matched = anchors.validate(statusJavaChain, "the MSO revocation list's x5chain");
 		} catch (X509CertificateUtil.X5cCertificateChainException e) {
+			if (anchors.trustsNothing()) {
+				throw error(e.getMessage(), args("lists_of_trusted_entities", anchors.configuredLists()));
+			}
 			throw error("The MSO revocation list's x5chain does not validate"
 					+ (anchors.isEmpty() ? "" : " against " + String.join(" or ", anchors.sources())),
 				args("error", e.getMessage(), "trust_anchors_tried", anchors.sourcesJson()));

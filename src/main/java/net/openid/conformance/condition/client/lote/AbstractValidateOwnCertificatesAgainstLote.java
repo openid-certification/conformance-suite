@@ -27,7 +27,7 @@ public abstract class AbstractValidateOwnCertificatesAgainstLote extends Abstrac
 	 * @param slots the lists whose issuance services must cover the chains
 	 */
 	protected Environment check(Environment env, Map<String, List<X509Certificate>> chains, String what, LoteSlot... slots) {
-		LoteTrustAnchors.TrustAnchorSet anchors = LoteTrustAnchors.fromLists(env, LoteSlot.ISSUANCE_SUFFIX, slots);
+		LoteTrustAnchors.TrustAnchorSet anchors = LoteTrustAnchors.fromLists(env, LoteSlot.ISSUANCE_SUFFIX, List.of(slots));
 		List<String> slotLabels = new ArrayList<>();
 		for (LoteSlot slot : slots) {
 			if (env.containsObject(slot.envKey)) {
