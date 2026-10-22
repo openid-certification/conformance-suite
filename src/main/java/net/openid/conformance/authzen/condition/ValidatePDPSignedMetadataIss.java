@@ -53,7 +53,12 @@ public class ValidatePDPSignedMetadataIss extends AbstractCondition {
 		}
 
 		if (!expectedIssuer.equals(actualIssuer)) {
-			throw error("PDP issuer mismatch in signed_metadata",
+			throw error(usingConfiguredIssuer
+					? "The `iss` claim of the discovery metadata `signed_metadata` JWT does not match the 'Signed Metadata Issuer' "
+						+ "field in the 'AuthZEN' section of the test configuration"
+					: "The `iss` claim of the discovery metadata `signed_metadata` JWT does not match the 'PDP Identifier'. If a "
+						+ "party other than the PDP signs the metadata, enter its issuer in the 'Signed Metadata Issuer' field in "
+						+ "the 'AuthZEN' section of the test configuration",
 				args("expected", expectedIssuer, "actual", actualIssuer, "compared_against", expectedIssuerField));
 		}
 
