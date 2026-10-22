@@ -48,6 +48,7 @@ import net.openid.conformance.condition.client.CheckIatInBindingJwt;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.AddBuiltInAccessCertificateToClientConfiguration;
 import net.openid.conformance.condition.client.AddBuiltInRegistrationCertificateToClientConfiguration;
+import net.openid.conformance.condition.client.WarnIfBuiltInAccessCertificateIsEphemeral;
 import net.openid.conformance.condition.client.CheckIfClientIdInX509CertSanDns;
 import net.openid.conformance.condition.client.lote.LoteSlot;
 import net.openid.conformance.condition.client.lote.ValidateOwnRequestSigningCertificateAgainstWrpacLote;
@@ -106,6 +107,7 @@ import net.openid.conformance.condition.client.ParseCredentialAsMdoc;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwtKb;
 import net.openid.conformance.condition.client.RegisterCredentialTrustAnchor;
 import net.openid.conformance.condition.client.RegisterStatusListTrustAnchor;
+import net.openid.conformance.sequence.client.CheckOwnCertificatesAgainstLotes;
 import net.openid.conformance.sequence.client.SetupRicalFromConfiguration;
 import net.openid.conformance.sequence.client.SetupVicalFromConfiguration;
 import net.openid.conformance.sequence.client.SetupLoteFromConfiguration;
@@ -351,6 +353,15 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				break;
 		}
 
+		if (clientIdPrefix.usesX5cCertificate()) {
+			// the built-in certificates go into the configuration before anything reads it: the x509_hash client
+			// identifier is derived from the signing certificate. A built-in certificate is only trusted outside
+			// this instance when the deployment has the published CA's key.
+			callAndContinueOnFailure(WarnIfBuiltInAccessCertificateIsEphemeral.class, ConditionResult.WARNING);
+			callAndStopOnFailure(AddBuiltInAccessCertificateToClientConfiguration.class);
+			callAndStopOnFailure(AddBuiltInRegistrationCertificateToClientConfiguration.class);
+		}
+
 		switch (clientIdPrefix) {
 			case DECENTRALIZED_IDENTIFIER:
 			case PRE_REGISTERED:
@@ -419,10 +430,6 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	}
 
 	protected void configureClient() {
-		if (clientIdPrefix.usesX5cCertificate()) {
-			callAndStopOnFailure(AddBuiltInAccessCertificateToClientConfiguration.class);
-			callAndStopOnFailure(AddBuiltInRegistrationCertificateToClientConfiguration.class);
-		}
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class);
@@ -524,13 +531,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 			// this reports on the test configuration, not on the wallet under test.
 			call(sequence(SetupRicalFromConfiguration.class));
 			// likewise the optionally configured WRPAC providers list of trusted entities
-			call(new SetupLoteFromConfiguration(LoteSlot.WRPAC, ConditionResult.WARNING));
-			call(condition(ValidateOwnRequestSigningCertificateAgainstWrpacLote.class)
-				.skipIfObjectsMissing(LoteSlot.WRPAC_ENV_KEY)
-				.onSkip(ConditionResult.INFO)
-				.onFail(ConditionResult.WARNING)
-				.dontStopOnFailure()
-				.requirements("ETSI119602-6.6.3"));
+			call(new CheckOwnCertificatesAgainstLotes(env, ValidateOwnRequestSigningCertificateAgainstWrpacLote.class, LoteSlot.WRPAC));
 			call(condition(ValidateConfiguredClientCertificatesAgainstRical.class)
 				.skipIfObjectsMissing("rical")
 				.onSkip(ConditionResult.INFO)

@@ -72,8 +72,6 @@ import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignatureAgainstX5cHeader;
 import net.openid.conformance.condition.as.ValidateRequestObjectX5cChainAgainstRical;
 import net.openid.conformance.condition.client.lote.LoteSlot;
-import net.openid.conformance.condition.client.lote.ValidateOwnMdocSigningCertificateAgainstLote;
-import net.openid.conformance.condition.client.lote.ValidateOwnSdJwtSigningCertificateAgainstLote;
 import net.openid.conformance.condition.as.ValidateRequestObjectTypIsOAuthQauthReqJwt;
 import net.openid.conformance.condition.as.ValidateResponseMode;
 import net.openid.conformance.condition.as.ValidateVpClientMetadataEncryptionForHaip;
@@ -97,6 +95,8 @@ import net.openid.conformance.condition.client.ValidateVerifierInfo;
 import net.openid.conformance.condition.common.ExpectVerifierSuccessfulVerificationPage;
 import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.sequence.as.ValidateStatusListRequest;
+import net.openid.conformance.condition.client.WarnIfBuiltInCredentialSignerIsEphemeral;
+import net.openid.conformance.sequence.client.CheckOwnCertificatesAgainstLotes;
 import net.openid.conformance.sequence.client.SetupRicalFromConfiguration;
 import net.openid.conformance.sequence.client.SetupLoteFromConfiguration;
 import net.openid.conformance.sequence.client.SetupVicalFromConfiguration;
@@ -314,15 +314,14 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				.dontStopOnFailure()
 				.requirements("ISO18013-5-C.1.7.1"));
 		}
-		// the optionally configured PID and mDL providers lists of trusted entities, then pre-flight
-		// check that the suite's own credential signing chains are covered by them - a verifier
-		// trusting the lists is expected to reject the presented credentials otherwise. A WARNING
-		// as this reports on the suite's listing, not on the verifier under test.
-		call(new SetupLoteFromConfiguration(LoteSlot.PID, ConditionResult.WARNING));
-		call(new SetupLoteFromConfiguration(LoteSlot.MDL, ConditionResult.WARNING));
-		callAndContinueOnFailure(getVariant(VP1FinalVerifierCredentialFormat.class) == VP1FinalVerifierCredentialFormat.ISO_MDL
-			? ValidateOwnMdocSigningCertificateAgainstLote.class : ValidateOwnSdJwtSigningCertificateAgainstLote.class,
-			ConditionResult.WARNING, "ETSI119602-6.6.3");
+		if (getVariant(VP1FinalVerifierCredentialFormat.class) != VP1FinalVerifierCredentialFormat.ISO_MDL) {
+			// the built-in SD-JWT VC signer is only trusted outside this instance when the deployment has the published CA's key
+			callAndContinueOnFailure(WarnIfBuiltInCredentialSignerIsEphemeral.class, ConditionResult.WARNING);
+		}
+		// the optionally configured PID and mDL providers lists only drive a pre-flight check of the
+		// suite's own credential signer
+		call(CheckOwnCertificatesAgainstLotes.forCredentialSigner(env,
+			getVariant(VP1FinalVerifierCredentialFormat.class) == VP1FinalVerifierCredentialFormat.ISO_MDL));
 		if (getVariant(VPProfile.class) == VPProfile.HAIP) {
 			callAndContinueOnFailure(EnsureClientRequestObjectTrustAnchorConfigured.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.9.3");
 		}

@@ -39,9 +39,7 @@ import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferRedi
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferUri;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialSigningCertificateIsNotSelfSigned;
-import net.openid.conformance.condition.client.EnsureClientAttestationTrustAnchorConfigured;
-import net.openid.conformance.condition.client.lote.LoteSlot;
-import net.openid.conformance.sequence.client.SetupLoteFromConfiguration;
+import net.openid.conformance.sequence.client.SetupWalletTrustSources;
 import net.openid.conformance.vci10wallet.condition.VCIExtractCredentialRequestProof;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateIssuerState;
 import net.openid.conformance.vci10wallet.condition.VCIInjectCredentialConfigurationIdHint;
@@ -59,8 +57,6 @@ import net.openid.conformance.vci10wallet.condition.VCIVerifyCredentialOfferRequ
 import net.openid.conformance.vci10wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
 import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationX5cCertificateChain;
 import net.openid.conformance.condition.as.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
-import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterClientAttestationTrustAnchor;
-import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterKeyAttestationTrustAnchor;
 import net.openid.conformance.oauth.statuslists.JwtStatusListTokenClaimsBuilder;
 import net.openid.conformance.oauth.statuslists.StatusListCwt;
 import net.openid.conformance.vci10wallet.condition.statuslist.VCIGenerateCwtStatusListToken;
@@ -176,14 +172,10 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 			public void evaluate() {
 				if (clientAttestation) {
 					callAndStopOnFailure(AddClientAttestationSigningAlgValuesSupportedToServerConfiguration.class, "OAuth2-ATCA07-10.1");
-					callAndStopOnFailure(EnsureClientAttestationTrustAnchorConfigured.class);
-					callAndStopOnFailure(VCIRegisterClientAttestationTrustAnchor.class);
 				}
 				// the credential signing certificate must not be self-signed (HAIP); the built-in one is CA-issued
 				callAndStopOnFailure(VCIEnsureCredentialSigningCertificateIsNotSelfSigned.class, "HAIP-6.1.1");
-				callAndStopOnFailure(VCIRegisterKeyAttestationTrustAnchor.class);
-				// the wallet providers LoTE anchors the wallet's client attestation and key attestation signers
-				call(sequence(() -> new SetupLoteFromConfiguration(LoteSlot.WALLET, ConditionResult.FAILURE)));
+				call(new SetupWalletTrustSources(env, clientAttestation));
 				if (issuerInitiatedSetup != null) {
 					call(issuerInitiatedSetup);
 				}

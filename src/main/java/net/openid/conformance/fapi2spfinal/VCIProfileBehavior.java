@@ -60,6 +60,7 @@ import net.openid.conformance.vci10issuer.condition.VCIFetchSdJwtVcTypeMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIValidateSdJwtVcTypeMetadataStructure;
 import net.openid.conformance.vci10issuer.condition.VCIVerifyTypeMetadataIntegrity;
 import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
+import net.openid.conformance.condition.client.WarnIfBuiltInKeyAttestationSignerIsEphemeral;
 import net.openid.conformance.vci10issuer.condition.VCICheckKeyAttestationJwksIfKeyAttestationIsRequired;
 import net.openid.conformance.vci10issuer.condition.VCIDecryptCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
@@ -646,6 +647,13 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 
 				// Only check key attestation if cryptographic binding is required
 				callAndStopOnFailure(VCICheckKeyAttestationJwksIfKeyAttestationIsRequired.class, ConditionResult.FAILURE);
+				// which leaves the key attestation JWKS in the environment only when one is needed; the built-in
+				// signer is only trusted outside this instance when the deployment has the published CA's key
+				call(condition(WarnIfBuiltInKeyAttestationSignerIsEphemeral.class)
+					.skipIfObjectMissing("vci_key_attestation_jwks")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.WARNING)
+					.dontStopOnFailure());
 			}
 		};
 	}

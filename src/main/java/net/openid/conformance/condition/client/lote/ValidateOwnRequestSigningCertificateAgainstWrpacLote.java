@@ -17,8 +17,11 @@ import java.util.Map;
 public class ValidateOwnRequestSigningCertificateAgainstWrpacLote extends AbstractValidateOwnCertificatesAgainstLote {
 
 	@Override
-	@PreEnvironment(required = { "client_jwks", LoteSlot.WRPAC_ENV_KEY })
+	@PreEnvironment(required = "client_jwks")
 	public Environment evaluate(Environment env) {
+		if (noListConfigured(env, "request signing", LoteSlot.WRPAC)) {
+			return env;
+		}
 		Map<String, List<X509Certificate>> chains = new LinkedHashMap<>();
 		chains.put("'jwks' field in the 'Client' section", chainOfConfiguredJwks(env.getObject("client_jwks"), "'jwks' field in the 'Client' section"));
 		if (env.containsObject("client2_jwks")) {
