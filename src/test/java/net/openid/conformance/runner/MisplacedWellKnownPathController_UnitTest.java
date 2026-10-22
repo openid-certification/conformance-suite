@@ -2,8 +2,13 @@ package net.openid.conformance.runner;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Map;
 
@@ -43,6 +48,20 @@ public class MisplacedWellKnownPathController_UnitTest {
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 		assertThat(response.getBody()).containsEntry("expected_url",
 			"https://localhost.emobix.co.uk:8443/.well-known/openid-credential-issuer/test/a/my-wallet");
+	}
+
+	@Test
+	public void answers_json_whatever_the_client_accepts() throws Exception {
+		MockMvc mvc = MockMvcBuilders.standaloneSetup(controller).build();
+		for (String accept : new String[] {"text/html", "application/jwt", "application/json", "*/*"}) {
+			MockHttpServletResponse response = mvc.perform(MockMvcRequestBuilders
+				.get("/oauth-authorization-server/test/a/my-wallet/").header("Accept", accept)).andReturn().getResponse();
+
+			assertThat(response.getStatus()).as("Accept: " + accept).isEqualTo(HttpStatus.NOT_FOUND.value());
+			assertThat(response.getContentType()).as("Accept: " + accept).startsWith(MediaType.APPLICATION_JSON_VALUE);
+			assertThat(response.getContentAsString()).as("Accept: " + accept)
+				.contains("/.well-known/oauth-authorization-server/test/a/my-wallet");
+		}
 	}
 
 	@Test

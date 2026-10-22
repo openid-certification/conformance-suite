@@ -69,6 +69,10 @@ TINY_PNG_DATA_URI = ("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYA
 # controller.
 UNKNOWN_TEST_ID = "doesNotExist0"
 
+# What a browser sends when the user navigates to a page. The OIDC chain only redirects such a
+# request to login; a client that sends */* or no Accept header cannot log in and gets a 404.
+BROWSER_ACCEPT = {"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"}
+
 
 def get_config():
     """Get server URL and token from environment."""
@@ -313,10 +317,10 @@ def is_der_crl(resp):
             and len(resp.content) > 0 and resp.content[0] == 0x30)
 
 
-def unauthenticated_get(base_url, path, verify_ssl, params=None):
+def unauthenticated_get(base_url, path, verify_ssl, params=None, headers=None):
     """One-shot GET with no Authorization header, for 'requires auth -> 401' probes."""
     with httpx.Client(verify=verify_ssl, timeout=10) as client:
-        return client.get(f"{base_url}{path}", params=params)
+        return client.get(f"{base_url}{path}", params=params, headers=headers)
 
 
 def run_tests():
@@ -773,16 +777,17 @@ def run_tests():
 
     # HTML pages are served by the non-API filter chain which has no BearerTokenAuthenticationFilter.
     # The Bearer JWT therefore cannot reach log-detail.html / plan-detail.html — those require a
-    # /login/ott-established session. Expect redirect to login or 401/403.
+    # /login/ott-established session. Expect 401/403, a redirect to login for a browser, or the
+    # 404 the chain gives a client that does not ask for HTML.
     plan_bearer_no_redirect = httpx.Client(
         verify=verify_ssl, timeout=20, follow_redirects=False,
         headers={"Authorization": f"Bearer {plan_jwt}"})
     resp = plan_bearer_no_redirect.get(f"{base_url}plan-detail.html?plan={plan_id}")
     runner.check_status_in("Plan JWT Bearer: cannot access plan-detail.html",
-                           resp, {302, 401, 403})
+                           resp, {302, 401, 403, 404})
     resp = plan_bearer_no_redirect.get(f"{base_url}log-detail.html?log={test_id}")
     runner.check_status_in("Plan JWT Bearer: cannot access log-detail.html",
-                           resp, {302, 401, 403})
+                           resp, {302, 401, 403, 404})
     plan_bearer_no_redirect.close()
 
     plan_bearer.close()
@@ -1791,12 +1796,29 @@ def run_tests():
 
     # a well-known name appended to the host instead of inserted after /.well-known/ (issue #1817)
     # must get a 404 naming the right URL, not a redirect to the login page
-    resp = unauthenticated_get(base_url, "oauth-authorization-server/test/a/no-such-alias/", verify_ssl)
-    body = resp.json() if resp.status_code == 404 else {}
+    # a browser-like Accept header must not matter: the hint is JSON for every client
+    resp = unauthenticated_get(base_url, "oauth-authorization-server/test/a/no-such-alias/", verify_ssl,
+                               headers=BROWSER_ACCEPT)
+    try:
+        body = resp.json() if resp.status_code == 404 else {}
+    except ValueError:
+        body = {}
     runner.check("Metadata: misplaced well-known path returns 404 with the RFC 8414 URL",
                  resp.status_code == 404
                  and body.get("expected_url") == f"{base_url}.well-known/oauth-authorization-server/test/a/no-such-alias",
-                 f"HTTP {resp.status_code} {resp.headers.get('location', '')}")
+                 f"HTTP {resp.status_code} {resp.headers.get('location', '')} {resp.text[:200]}")
+
+    # only a browser navigation (Accept: text/html) is redirected to login; a wallet or script that
+    # cannot log in gets a 404, whether or not a page exists at the path
+    resp = unauthenticated_get(base_url, "no-such-page.html", verify_ssl, headers={"Accept": "application/json"})
+    runner.check_status("Metadata: anonymous non-browser request for an unknown path is a 404, not a login redirect", resp, 404)
+    resp = unauthenticated_get(base_url, "schedule-test.html", verify_ssl, headers={"Accept": "*/*"})
+    runner.check_status("Metadata: anonymous non-browser request for a page is a 404, not a login redirect", resp, 404)
+    for page in ("schedule-test.html", "api-document.html"):
+        resp = unauthenticated_get(base_url, page, verify_ssl, headers=BROWSER_ACCEPT)
+        runner.check(f"Metadata: anonymous browser navigation to {page} is still sent to login",
+                     resp.status_code == 302 and "login" in resp.headers.get("Location", ""),
+                     f"HTTP {resp.status_code}, Location: {resp.headers.get('Location', 'none')}")
 
     # ===================================================================
     # 4h. BULK PLAN DELETE (ADMIN ONLY)
@@ -1897,7 +1919,7 @@ def run_tests():
     # to login like any other page; the authenticated non-admin 403 needs a browser session,
     # which this harness cannot make (the page chain ignores bearer tokens), so only the
     # redirect is proved here.
-    resp = unauthenticated_get(base_url, "statistics.html", verify_ssl)
+    resp = unauthenticated_get(base_url, "statistics.html", verify_ssl, headers=BROWSER_ACCEPT)
     runner.check("Statistics: anonymous page request is sent to login",
                  resp.status_code == 302 and "login" in resp.headers.get("Location", ""),
                  f"HTTP {resp.status_code}, Location: {resp.headers.get('Location', 'none')}")
@@ -1946,7 +1968,7 @@ def run_tests():
 
     # /settings.html is gated to ROLE_ADMIN on the OIDC chain, like /statistics.html: only the
     # anonymous redirect to login can be proved without a browser session.
-    resp = unauthenticated_get(base_url, "settings.html", verify_ssl)
+    resp = unauthenticated_get(base_url, "settings.html", verify_ssl, headers=BROWSER_ACCEPT)
     runner.check("Settings: anonymous page request is sent to login",
                  resp.status_code == 302 and "login" in resp.headers.get("Location", ""),
                  f"HTTP {resp.status_code}, Location: {resp.headers.get('Location', 'none')}")

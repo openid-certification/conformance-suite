@@ -36,15 +36,19 @@ public class MisplacedWellKnownPathController {
 		this.baseUrl = baseUrl;
 	}
 
-	@RequestMapping(value = MISPLACED_PATH_PATTERN, produces = MediaType.APPLICATION_JSON_VALUE)
+	/**
+	 * The response is JSON whatever the client's Accept header says: a {@code produces} condition
+	 * would answer a client that accepts only, say, text/html or application/jwt with an empty
+	 * 406, and the hint is what the client needs to see.
+	 */
+	@RequestMapping(MISPLACED_PATH_PATTERN)
 	public ResponseEntity<Map<String, String>> handle(HttpServletRequest request) {
 		String path = request.getRequestURI();
 		String expectedUrl = baseUrl + TestDispatcher.WELL_KNOWN + OAuthUriUtil.stripTrailingSlash(path.substring(1));
-		return new ResponseEntity<>(Map.of(
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(Map.of(
 			"error", "No metadata is served at " + path + ". The well-known path is formed by inserting "
 				+ "'/.well-known/<name>' between the host and the path of the issuer URL, as per RFC 8414 section 3.1, "
 				+ "so the URL to fetch is " + expectedUrl,
-			"expected_url", expectedUrl),
-			HttpStatus.NOT_FOUND);
+			"expected_url", expectedUrl));
 	}
 }

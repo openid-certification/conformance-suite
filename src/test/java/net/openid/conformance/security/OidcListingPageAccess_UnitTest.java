@@ -70,7 +70,15 @@ public class OidcListingPageAccess_UnitTest {
 		context.close();
 	}
 
+	/** A browser navigating to {@code path}: it asks for HTML. */
 	private MockHttpServletRequest buildSecureGet(String path) {
+		return buildSecureGet(path, "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+	}
+
+	/**
+	 * @param accept the Accept header, or null to send none, as a wallet or a script might
+	 */
+	private MockHttpServletRequest buildSecureGet(String path, String accept) {
 		MockHttpServletRequest request = new MockHttpServletRequest(context.getServletContext());
 		request.setMethod("GET");
 		request.setRequestURI(path);
@@ -79,7 +87,9 @@ public class OidcListingPageAccess_UnitTest {
 		request.setSecure(true);
 		request.setServerName("localhost.emobix.co.uk");
 		request.setServerPort(8443);
-		request.addHeader("Accept", "text/html");
+		if (accept != null) {
+			request.addHeader("Accept", accept);
+		}
 		return request;
 	}
 
@@ -178,6 +188,61 @@ public class OidcListingPageAccess_UnitTest {
 		assertAnonymousIconProbeKeepsSavedPage("/apple-touch-icon-120x120-precomposed.png");
 	}
 
+	private void assertAnonymousNonBrowserRequestIs404(String path, String accept) throws Exception {
+		MockHttpServletRequest request = buildSecureGet(path, accept);
+		MockHttpServletResponse response = new MockHttpServletResponse();
+
+		filterChainProxy.doFilter(request, response, new MockFilterChain());
+
+		String description = path + " with Accept " + accept;
+		Assertions.assertNull(response.getRedirectedUrl(), description + " must not enter the login flow");
+		Assertions.assertEquals(HttpServletResponse.SC_NOT_FOUND, response.getStatus(),
+			description + " is not a browser navigation, so it must get a 404 rather than a login redirect");
+		Assertions.assertNull(new HttpSessionRequestCache().getRequest(request, response),
+			description + " must not create a saved request");
+	}
+
+	@Test
+	public void anonymous_non_browser_request_gets_404_instead_of_login_redirect() throws Exception {
+		// a wallet or script asking for an unknown path, or for a page, cannot log in: a redirect
+		// would only suggest the path exists but needs a session (issue #1817)
+		assertAnonymousNonBrowserRequestIs404("/nonexistent.html", "application/json");
+		assertAnonymousNonBrowserRequestIs404("/some/random/path", "*/*");
+		assertAnonymousNonBrowserRequestIs404("/plans.html.bak", null);
+		assertAnonymousNonBrowserRequestIs404("/plans.html", "application/json");
+		assertAnonymousNonBrowserRequestIs404("/api-document.html", "*/*");
+	}
+
+	@Test
+	public void anonymous_browser_navigation_to_unknown_path_still_goes_to_login() throws Exception {
+		// a browser can log in, so an unknown path is treated like any page: login first
+		assertAnonymousBareListingRedirectsToLoginAndSavesRequest("/nonexistent.html");
+	}
+
+	@Test
+	public void anonymous_non_browser_request_does_not_replace_saved_page() throws Exception {
+		MockHttpServletRequest pageRequest = buildSecureGet("/plans.html");
+		pageRequest.setQueryString("owner=ci&to=2025-01-01");
+		filterChainProxy.doFilter(pageRequest, new MockHttpServletResponse(), new MockFilterChain());
+
+		MockHttpServletRequest unknownRequest = buildSecureGet("/nonexistent.html", "application/json");
+		unknownRequest.setSession(pageRequest.getSession());
+		MockHttpServletResponse unknownResponse = new MockHttpServletResponse();
+		filterChainProxy.doFilter(unknownRequest, unknownResponse, new MockFilterChain());
+
+		Assertions.assertEquals(HttpServletResponse.SC_NOT_FOUND, unknownResponse.getStatus());
+		assertSavedPageIsStillPlans(unknownRequest, unknownResponse,
+			"a request answered with 404 must not replace the page saved for post-login replay");
+	}
+
+	@Test
+	public void anonymous_browser_navigation_to_any_page_redirects_to_login_and_saves_original_url() throws Exception {
+		// a page that is not one of the listing pages
+		assertAnonymousBareListingRedirectsToLoginAndSavesRequest("/schedule-test.html");
+		// the Swagger UI, which springdoc serves from its own jar rather than from the static directory
+		assertAnonymousBareListingRedirectsToLoginAndSavesRequest("/api-document.html");
+	}
+
 	@Test
 	public void anonymous_error_dispatch_does_not_replace_saved_page() throws Exception {
 		// A permitted path that has no file 404s, and the container re-dispatches
@@ -221,8 +286,7 @@ public class OidcListingPageAccess_UnitTest {
 	}
 
 	private void assertAnonymousMisplacedWellKnownPathIsPermitted(String path) throws Exception {
-		MockHttpServletRequest request = buildSecureGet(path);
-		request.addHeader("Accept", "application/json");
+		MockHttpServletRequest request = buildSecureGet(path, "application/json");
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
 		filterChainProxy.doFilter(request, response, new MockFilterChain());
