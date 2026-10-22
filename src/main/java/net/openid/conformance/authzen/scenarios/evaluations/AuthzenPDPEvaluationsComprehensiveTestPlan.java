@@ -53,6 +53,7 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsEvaluationLevelErrorsTest.class,
 		// evaluations_semantic option (Section 7.1.2.1), including the OPTIONAL
 		// short-circuiting semantics that AuthzenPDPEvaluationsTestPlan leaves out
+		AuthzenPDPEvaluationsDefaultSemanticContinuesAfterDenyTest.class,
 		AuthzenPDPEvaluationsExecuteAllExplicitTest.class,
 		AuthzenPDPEvaluationsDenyOnFirstDenyTest.class,
 		AuthzenPDPEvaluationsPermitOnFirstPermitTest.class,

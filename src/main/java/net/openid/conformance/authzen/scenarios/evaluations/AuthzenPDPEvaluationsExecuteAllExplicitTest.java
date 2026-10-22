@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-evaluations-execute-all-explicit",
 	displayName = "AuthZEN Evaluations API - Section 7.1.2.1: evaluations_semantic explicitly set to execute_all",
-	summary = "Section 7.1.2.1 lists `execute_all` among the values a PEP can pass in `options.evaluations_semantic`, and defines it as executing all of the requests and returning all of the results, in the same array order; it is also the default. Certification scenario 6.4.1 sends the option explicitly in the same way. This test sends the mixed permit/deny batch of authzen-pdp-evaluations-batch-with-fixture-decisions-validated, which relies on the default, with `evaluations_semantic: \"execute_all\"` set instead, and expects HTTP 200 with both decisions in request order, the second one a deny that does not stop the batch.\n" + AuthzenPDPEvaluationsExecuteAllExplicitTest.payload,
+	summary = "Section 7.1.2.1 lists `execute_all` among the values a PEP can pass in `options.evaluations_semantic`, and defines it as executing all of the requests and returning all of the results, in the same array order; it is also the default. Certification scenario 6.4.1 sends the option explicitly in the same way. This test sends `evaluations_semantic: \"execute_all\"` with the deny first: bob writes record-1 (rule 4 = false), then bob reads record-1 (rule 3 = true). The PDP MUST return HTTP 200 with both decisions in request order; a PDP that stops at the deny returns only the first decision and fails.\n" + AuthzenPDPEvaluationsExecuteAllExplicitTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPEvaluationsExecuteAllExplicitTest extends AbstractAuthzenPDPEvaluationsTest {
@@ -16,8 +16,8 @@ public class AuthzenPDPEvaluationsExecuteAllExplicitTest extends AbstractAuthzen
 			"subject": { "type": "user", "id": "bob" },
 			"resource": { "type": "record", "id": "record-1" },
 			"evaluations": [
-				{ "action": { "name": "read" } },
-				{ "action": { "name": "write" } }
+				{ "action": { "name": "write" } },
+				{ "action": { "name": "read" } }
 			],
 			"options": { "evaluations_semantic": "execute_all" }
 		}
@@ -33,8 +33,8 @@ public class AuthzenPDPEvaluationsExecuteAllExplicitTest extends AbstractAuthzen
 		return """
 			{
 				"evaluations": [
-					{ "decision": true },
-					{ "decision": false }
+					{ "decision": false },
+					{ "decision": true }
 				]
 			}
 			""";

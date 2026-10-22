@@ -22,12 +22,13 @@ import java.util.Map;
 		AuthzenPDPEvaluationsBatchWithFullySpecifiedEvaluationsTest.class,
 		AuthzenPDPEvaluationsBatchWithContextInheritanceTest.class,
 		AuthzenPDPEvaluationsEvaluationLevelErrorsTest.class,
-		// evaluations_semantic option (Section 7.1.2.1). The execute_all default is what the
-		// fixture-decisions module above already relies on; this one asks for it explicitly.
-		// The short-circuiting semantics are OPTIONAL for a PDP to support, so requiring them
+		// evaluations_semantic option (Section 7.1.2.1). The execute_all default must run every
+		// evaluation, which a batch with a deny before a permit shows; the second module asks for
+		// it explicitly. The short-circuiting semantics are OPTIONAL for a PDP to support, so requiring them
 		// (or requiring an unknown value to be rejected, which presupposes the option is
 		// implemented) would fail conformant PDPs that omit the feature; they are covered by
 		// AuthzenPDPEvaluationsComprehensiveTestPlan instead.
+		AuthzenPDPEvaluationsDefaultSemanticContinuesAfterDenyTest.class,
 		AuthzenPDPEvaluationsExecuteAllExplicitTest.class,
 		// Per-eval overrides top-level defaults (Section 7.1.1)
 		AuthzenPDPEvaluationsPerEvalOverridesDefaultTest.class,
