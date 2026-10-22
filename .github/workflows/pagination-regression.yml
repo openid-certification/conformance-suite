@@ -1,0 +1,21 @@
+name: Pagination regression tests
+
+on:
+  push:
+    branches:
+      - test/pagination-offset-regression
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  pagination-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Run pagination unit tests
+        run: mvn -B -Dpmd.skip -Dtest=PaginationRequest_UnitTest test
