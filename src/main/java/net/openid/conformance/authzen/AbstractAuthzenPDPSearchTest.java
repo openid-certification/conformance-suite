@@ -15,6 +15,7 @@ import net.openid.conformance.authzen.condition.AbstractChangeAuthzenSearchReque
 import net.openid.conformance.authzen.condition.AggregateAuthzenSearchResults;
 import net.openid.conformance.authzen.condition.EnsureAuthzenSearchResponseValsMatchExpectedVals;
 import net.openid.conformance.authzen.condition.EnsureSearchFixtureEntitiesMatchBaseSearch;
+import net.openid.conformance.authzen.condition.WarnSearchPageCapReached;
 import net.openid.conformance.authzen.condition.EnsureSearchPageTokenNotRepeated;
 import net.openid.conformance.authzen.condition.EnsureSearchResultsMatchBaseSearch;
 import net.openid.conformance.authzen.condition.ExtractAuthzenSearchExpectedResponse;
@@ -313,7 +314,7 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	 * also accepts an error status the search was rejected, and for one that accepts only 200
 	 * the status check has already failed.
 	 * Follows the {@code page.next_token} chain, failing on a page that repeats an earlier
-	 * page's token and results, and capped at {@code MAX_PAGES},
+	 * page's token and results, and stopping with a warning after {@code MAX_PAGES} pages,
 	 * aggregating results across pages, and matches the accumulated results
 	 * against the expected set. Log blocks do not nest, so each page has a block of its own,
 	 * as does the matching; each is closed in a finally, so it closes even when a condition
@@ -372,18 +373,24 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	/**
 	 * Sends the search request and then one request per {@code page.next_token}, each in its own
 	 * log block, adding each page's results to {@code authzen_search_endpoint_aggregated_results}.
-	 * A later page that is not a 200 fails the test.
+	 * A later page that is not a 200 fails the test. When the PDP is still returning a page token
+	 * after {@code MAX_PAGES} pages it stops with a warning, and the pages fetched so far are matched.
 	 *
 	 * @return true when the first response is not a 200, so there are no results to match
 	 */
 	private boolean fetchAllSearchPages() {
 		int pageNum = 0;
 		do {
-			pageNum++;
-			if (pageNum > MAX_PAGES) {
-				throw new TestFailureException(getId(),
-					"Pagination cap of " + MAX_PAGES + " pages exceeded — server may be returning unbounded pages");
+			if (pageNum == MAX_PAGES) {
+				eventLog.startBlock("Stop following pages");
+				try {
+					callAndContinueOnFailure(new WarnSearchPageCapReached(MAX_PAGES), ConditionResult.WARNING, "AUTHZEN-8.2");
+				} finally {
+					eventLog.endBlock();
+				}
+				break;
 			}
+			pageNum++;
 			eventLog.startBlock((sendingBaseSearch ? "Base search, page " : "Page ") + pageNum);
 			try {
 				createAuthzenApiRequest();
