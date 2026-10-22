@@ -13,6 +13,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 class ValidatePDPSignedMetadataIss_UnitTest {
@@ -87,7 +88,9 @@ class ValidatePDPSignedMetadataIss_UnitTest {
 		// With no 'Signed Metadata Issuer' configured the metadata must be self-attested by the PDP.
 		putClaimsIss(THIRD_PARTY_ISSUER);
 		putExpectedIssuer(PDP_ISSUER);
-		assertThrows(ConditionError.class, () -> cond.execute(env));
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("does not match the 'PDP Identifier'"), e.getMessage());
+		assertTrue(e.getMessage().contains("'Signed Metadata Issuer' field"), e.getMessage());
 	}
 
 	@Test
@@ -105,7 +108,8 @@ class ValidatePDPSignedMetadataIss_UnitTest {
 		// not to the configured value is a mismatch.
 		putClaimsIss(PDP_ISSUER);
 		putConfig(PDP_ISSUER, THIRD_PARTY_ISSUER);
-		assertThrows(ConditionError.class, () -> cond.execute(env));
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("does not match the 'Signed Metadata Issuer' field"), e.getMessage());
 	}
 
 	@Test
