@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.ott.OneTimeTokenAuthentication;
 import org.springframework.security.authentication.ott.OneTimeTokenService;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -52,8 +53,12 @@ import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import org.springframework.security.web.authentication.ott.RedirectOneTimeTokenGenerationSuccessHandler;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.security.web.header.HeaderWriter;
@@ -139,9 +144,31 @@ class WebSecurityOidcLoginConfig {
 		}, devmode);
 	}
 
+	/**
+	 * An anonymous browser navigation is sent to login and the page is replayed afterwards. Any
+	 * other client that reaches the entry point, such as a wallet fetching metadata from a wrong
+	 * path, a script or curl, gets a 404 rendered by the normal error page: it cannot complete a
+	 * login, and a redirect would suggest the path exists but needs a session. The client is told
+	 * apart by its Accept header, as Spring Security's default exception handling does
+	 * ({@link #browserNavigation()}).
+	 */
 	@Bean
-	public LoginUrlAuthenticationEntryPoint authenticationEntryPoint() {
-		return new LoginUrlAuthenticationEntryPoint(baseURL + "/login.html");
+	public AuthenticationEntryPoint authenticationEntryPoint() {
+		return DelegatingAuthenticationEntryPoint.builder()
+			.addEntryPointFor(new LoginUrlAuthenticationEntryPoint(baseURL + "/login.html"), browserNavigation())
+			.defaultEntryPoint((request, response, exception) -> response.sendError(HttpServletResponse.SC_NOT_FOUND))
+			.build();
+	}
+
+	/**
+	 * A request whose Accept header asks for HTML, which browsers send when the user navigates
+	 * to a page. A bare {@code *}/{@code *} does not count, so a wallet, a script or curl sending
+	 * that or no Accept header at all is not taken for a browser.
+	 */
+	static RequestMatcher browserNavigation() {
+		MediaTypeRequestMatcher html = new MediaTypeRequestMatcher(MediaType.TEXT_HTML, MediaType.APPLICATION_XHTML_XML);
+		html.setIgnoredMediaTypes(Set.of(MediaType.ALL));
+		return html;
 	}
 
 	@Bean
@@ -368,6 +395,12 @@ class WebSecurityOidcLoginConfig {
 		http.exceptionHandling(exceptions -> {
 			exceptions.authenticationEntryPoint(authenticationEntryPoint());
 		});
+
+		// Only a browser navigation is worth replaying after login; a request answered with 404
+		// must not overwrite the page the user was heading for.
+		HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
+		requestCache.setRequestMatcher(browserNavigation());
+		http.requestCache(cache -> cache.requestCache(requestCache));
 
 		http.sessionManagement(sessions -> {
 			sessions.sessionCreationPolicy(SessionCreationPolicy.ALWAYS);
