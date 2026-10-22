@@ -127,7 +127,7 @@ class ValidateDiscoverySignedMetadata_UnitTest {
 		// No 'Signed Metadata Issuer' is configured, so the metadata is expected to be self-attested.
 		putSignedMetadata(hmacSigned(new JWTClaimsSet.Builder().issuer(THIRD_PARTY_ISSUER).build()));
 		Throwable e = assertThrows(TestFailureException.class, () -> module.runSequence());
-		assertTrue(e.getMessage().contains("issuer mismatch"));
+		assertTrue(e.getMessage().contains("does not match the 'PDP Identifier'"), e.getMessage());
 	}
 
 	@Test
