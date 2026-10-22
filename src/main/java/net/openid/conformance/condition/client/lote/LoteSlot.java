@@ -1,43 +1,33 @@
 package net.openid.conformance.condition.client.lote;
 
 import com.google.common.collect.ImmutableSet;
-
-import java.util.Set;
+import net.openid.conformance.util.LoteList;
 
 /**
  * The lists of trusted entities (ETSI TS 119 602 LoTEs) the suite can take trust anchors from,
- * one slot per role the EUDI Wallet ecosystem publishes a list for. Each slot owns one
+ * one slot per list whose anchors a chain check consumes (the suite publishes a WRPRC providers
+ * list too, but validates no registration certificate against one). Each slot owns one
  * environment object ({@link #envKey}) holding everything about that list — URL, fetched value,
  * parsed header and payload, extracted anchors — so that the conditions, which all work on the
  * object mapped to {@code "lote"}, stay slot-agnostic; the sequence maps the key before calling
  * them and unmaps it afterwards.
  *
- * <p>The EU profiles (TS 119 602 Annexes D to G) fix the list type and the service type
- * identifiers per list. The mDL providers list has no profile in the specification; the European
- * Commission defines its list type and service types in the eIDAS Dashboard's mDL Providers List
- * Specification (https://eidas.ec.europa.eu/efda/wallet/lists-of-trusted-entities/mdl-providers).
+ * <p>The EU profiles (TS 119 602 Annexes D to G, and the Commission's mDL providers list
+ * specification) fix the list type, the status determination approach, the scheme rules URI and
+ * the service type identifiers per list. Each slot takes them from the {@link LoteList} the suite
+ * publishes for the same role, so the lists the suite serves and the lists it accepts cannot
+ * disagree; the suite publishes every service type a profile defines.
  */
 public enum LoteSlot {
 
-	PID("lote_pid", "credential.pid_lote_url", "PID providers LoTE URL", "Credential Issuer",
-		"http://uri.etsi.org/19602/LoTEType/EUPIDProvidersList",
-		Set.of("http://uri.etsi.org/19602/SvcType/PID/Issuance", "http://uri.etsi.org/19602/SvcType/PID/Revocation")),
+	PID("lote_pid", "credential.pid_lote_url", "PID providers LoTE URL", "Credential Issuer", LoteList.PID_PROVIDERS),
 
-	MDL("lote_mdl", "credential.mdl_lote_url", "mDL providers LoTE URL", "Credential Issuer",
-		"http://trust.ec.europa.eu/lists/mDL/mDLProvidersListType",
-		Set.of("http://trust.ec.europa.eu/lists/mDL/SvcType/Issuance", "http://trust.ec.europa.eu/lists/mDL/SvcType/Revocation")),
+	MDL("lote_mdl", "credential.mdl_lote_url", "mDL providers LoTE URL", "Credential Issuer", LoteList.MDL_PROVIDERS),
 
 	WALLET("lote_wallet", "client_attestation.wallet_lote_url", "Wallet providers LoTE URL", "Client Attestation",
-		"http://uri.etsi.org/19602/LoTEType/EUWalletProvidersList",
-		Set.of("http://uri.etsi.org/19602/SvcType/WalletSolution/Issuance", "http://uri.etsi.org/19602/SvcType/WalletSolution/Revocation")),
+		LoteList.WALLET_PROVIDERS),
 
-	WRPAC("lote_wrpac", "client.wrpac_lote_url", "WRPAC providers LoTE URL", "Client",
-		"http://uri.etsi.org/19602/LoTEType/EUWRPACProvidersList",
-		Set.of("http://uri.etsi.org/19602/SvcType/WRPAC/Issuance", "http://uri.etsi.org/19602/SvcType/WRPAC/Revocation")),
-
-	WRPRC("lote_wrprc", "client.wrprc_lote_url", "WRPRC providers LoTE URL", "Client",
-		"http://uri.etsi.org/19602/LoTEType/EUWRPRCProvidersList",
-		Set.of("http://uri.etsi.org/19602/SvcType/WRPRC/Issuance", "http://uri.etsi.org/19602/SvcType/WRPRC/Revocation"));
+	WRPAC("lote_wrpac", "client.wrpac_lote_url", "WRPAC providers LoTE URL", "Client", LoteList.WRPAC_PROVIDERS);
 
 	/** The slots' environment keys as constants, for use in annotations; each equals the slot's envKey. */
 	public static final String PID_ENV_KEY = "lote_pid";
@@ -71,17 +61,26 @@ public enum LoteSlot {
 	/** The LoTEType the profile fixes for this list. */
 	public final String expectedLoteType;
 
+	/** The StatusDeterminationApproach the profile fixes for this list. */
+	public final String expectedStatusDeterminationApproach;
+
+	/** The SchemeTypeCommunityRules URI the profile fixes for this list. */
+	public final String expectedSchemeTypeCommunityRules;
+
 	/** The service type identifiers the profile allows. */
 	public final ImmutableSet<String> allowedServiceTypes;
 
-	LoteSlot(String envKey, String configKey, String fieldLabel, String sectionLabel,
-			String expectedLoteType, Set<String> allowedServiceTypes) {
-		this.allowedServiceTypes = ImmutableSet.copyOf(allowedServiceTypes);
+	LoteSlot(String envKey, String configKey, String fieldLabel, String sectionLabel, LoteList profile) {
 		this.envKey = envKey;
 		this.configKey = configKey;
 		this.fieldLabel = fieldLabel;
 		this.sectionLabel = sectionLabel;
-		this.expectedLoteType = expectedLoteType;
+		this.expectedLoteType = profile.loteType;
+		this.expectedStatusDeterminationApproach = profile.statusDeterminationApproach;
+		this.expectedSchemeTypeCommunityRules = profile.schemeTypeCommunityRules;
+		this.allowedServiceTypes = profile.services.stream()
+			.map(LoteList.Service::serviceType)
+			.collect(ImmutableSet.toImmutableSet());
 	}
 
 	/** How the field is referred to in messages to the tester. */

@@ -219,6 +219,28 @@ public class ValidateLoteStructure_UnitTest {
 	}
 
 	@Test
+	public void flagsSchemeValuesOtherThanTheOnesTheProfileFixes() {
+		putGood(o -> {
+			info(o).addProperty("SchemeTerritory", "DE");
+			info(o).addProperty("StatusDeterminationApproach", "http://uri.etsi.org/19602/WalletProvidersList/StatusDetn/EU");
+			info(o).getAsJsonArray("SchemeTypeCommunityRules").get(0).getAsJsonObject()
+				.addProperty("uriValue", "http://uri.etsi.org/19602/WalletProvidersList/schemerules/EU");
+		});
+
+		assertThatThrownBy(() -> cond.execute(env)).isInstanceOf(ConditionError.class);
+		assertFinding("SchemeTerritory is 'DE'");
+		assertFinding("StatusDeterminationApproach is 'http://uri.etsi.org/19602/WalletProvidersList/StatusDetn/EU'");
+		assertFinding("does not include 'http://uri.etsi.org/19602/PIDProviders/schemerules/EU'");
+	}
+
+	@Test
+	public void acceptsTheCommissionsDevelopmentPidList() {
+		LoteTestFixtures.INSTANCE.putParsedLote(env, LoteSlot.PID, LoteTestFixtures.INSTANCE.ecDevelopmentList("pid-providers"));
+
+		assertThatCode(() -> cond.execute(env)).doesNotThrowAnyException();
+	}
+
+	@Test
 	public void flagsMissingSchemeInformationFields() {
 		putGood(o -> {
 			info(o).remove("SchemeTerritory");
