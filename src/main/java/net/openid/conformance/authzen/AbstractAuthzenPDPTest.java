@@ -143,7 +143,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 		PDPAuthType PdpAuthType = getVariant(PDPAuthType.class);
 		env.putString("client_auth_type", PdpAuthType.toString());
 
-		callAndStopOnFailure(ValidatePDPIdentifier.class, "AUTHZEN-9.1.1");
+		callAndStopOnFailure(ValidatePDPIdentifier.class);
 
 		switch (getVariant(PDPServerMetadata.class)) {
 			case DISCOVERY:
