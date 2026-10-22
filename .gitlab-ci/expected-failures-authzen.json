@@ -92,5 +92,14 @@
   "condition": "EnsureAuthzenApiResponseHasWwwAuthenticate",
   "expected-result": "warning",
   "comment": "The CI proxy refuses a missing or untrusted client certificate with a 401 that carries no WWW-Authenticate: no HTTP authentication scheme exists for TLS client certificates, so it has no challenge to name"
+ },
+ {
+  "test-name": "authzen-pdp-*-search-denied-*-excluded",
+  "variant": "*",
+  "configuration-filename": "*",
+  "current-block": "*",
+  "condition": "WarnSearchResultsIncludeDeniedFixtureEntities",
+  "expected-result": "warning",
+  "comment": "Cerbos PDP behavior: its searches return entities its own Access Evaluation API denies (bob among the users who can write record-1, record-1 among the records bob can write, write among bob's actions on record-1, though bob writing record-1 is denied), where Section 8.1 says each search result SHOULD evaluate to true"
  }
 ]
