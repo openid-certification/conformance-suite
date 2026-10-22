@@ -59,7 +59,7 @@ public class ValidateRequestObjectSignatureAgainstX5cHeader extends AbstractVali
 					"leaf_cert_subject", certs.get(0).getSubjectX500Principal().getName(),
 					"chain_length", certs.size(),
 					"trust_anchors", anchors.sourcesJson(),
-					"matched_trust_anchor", matched == null ? null : anchors.sourceOf(matched)));
+					"matched_trust_anchor", anchors.sourceOf(matched)));
 			return env;
 
 		} catch (ParseException e) {

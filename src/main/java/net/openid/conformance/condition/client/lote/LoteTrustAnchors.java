@@ -29,15 +29,24 @@ public final class LoteTrustAnchors {
 	private LoteTrustAnchors() {
 	}
 
-	/**
-	 * The anchors and, in the same order, a human-readable source for each, plus the configuration
-	 * fields of the lists of trusted entities that were consulted, whether or not they contributed.
-	 */
-	public record TrustAnchorSet(List<X509Certificate> anchors, List<String> sources, List<String> configuredLists) {
+	/** A trust anchor and a human-readable description of where it came from. */
+	public record Anchor(X509Certificate cert, String source) {
+	}
 
-		/** A set from explicit anchors, with no list of trusted entities consulted. */
-		public TrustAnchorSet(List<X509Certificate> anchors, List<String> sources) {
-			this(anchors, sources, List.of());
+	/**
+	 * The anchors, plus the configuration fields of the lists of trusted entities that were
+	 * consulted, whether or not they contributed.
+	 */
+	public record TrustAnchorSet(List<Anchor> anchors, List<String> configuredLists) {
+
+		/** No anchor and no list of trusted entities consulted: the chain check falls back to the legacy walk. */
+		public static TrustAnchorSet none() {
+			return new TrustAnchorSet(List.of(), List.of());
+		}
+
+		/** A single explicit anchor, with no list of trusted entities consulted. */
+		public static TrustAnchorSet of(X509Certificate cert, String source) {
+			return new TrustAnchorSet(List.of(new Anchor(cert, source)), List.of());
 		}
 
 		public boolean isEmpty() {
@@ -52,17 +61,24 @@ public final class LoteTrustAnchors {
 			return anchors.isEmpty() && !configuredLists.isEmpty();
 		}
 
+		public List<X509Certificate> certs() {
+			return anchors.stream().map(Anchor::cert).toList();
+		}
+
+		public List<String> sources() {
+			return anchors.stream().map(Anchor::source).toList();
+		}
+
 		/** The sources as a JSON array for log entries. */
 		public JsonArray sourcesJson() {
 			JsonArray array = new JsonArray();
-			sources.forEach(array::add);
+			anchors.forEach(anchor -> array.add(anchor.source()));
 			return array;
 		}
 
-		/** The source of {@code anchor}, or null when it is not in the set. */
-		public String sourceOf(X509Certificate anchor) {
-			int i = anchors.indexOf(anchor);
-			return i < 0 ? null : sources.get(i);
+		/** The source of {@code cert}, or null when it is null or not in the set. */
+		public String sourceOf(X509Certificate cert) {
+			return anchors.stream().filter(anchor -> anchor.cert().equals(cert)).map(Anchor::source).findFirst().orElse(null);
 		}
 	}
 
@@ -78,11 +94,18 @@ public final class LoteTrustAnchors {
 	public static TrustAnchorSet resolve(Environment env, String configuredPem, String configuredLabel,
 			String serviceTypeSuffix, LoteSlot... slots) throws X509CertificateUtil.X5cCertificateChainException {
 		if (configuredPem != null && !configuredPem.isBlank()) {
-			return new TrustAnchorSet(List.of(X509CertificateUtil.parseTrustAnchorPem(configuredPem)),
-				List.of("'" + configuredLabel + "' from the test configuration"));
+			return TrustAnchorSet.of(X509CertificateUtil.parseTrustAnchorPem(configuredPem),
+				"'" + configuredLabel + "' from the test configuration");
 		}
-		List<X509Certificate> anchors = new ArrayList<>();
-		List<String> sources = new ArrayList<>();
+		return fromLists(env, serviceTypeSuffix, slots);
+	}
+
+	/**
+	 * The anchors of the lists of trusted entities in {@code slots} whose service type ends in
+	 * {@code serviceTypeSuffix} ({@link LoteSlot#ISSUANCE_SUFFIX} or {@link LoteSlot#REVOCATION_SUFFIX}).
+	 */
+	public static TrustAnchorSet fromLists(Environment env, String serviceTypeSuffix, LoteSlot... slots) {
+		List<Anchor> anchors = new ArrayList<>();
 		List<String> configuredLists = new ArrayList<>();
 		for (LoteSlot slot : slots) {
 			if (env.containsObject(slot.envKey) || isConfigured(env, slot)) {
@@ -103,17 +126,16 @@ public final class LoteTrustAnchors {
 					// ExtractLoteTrustAnchors only stores certificates it parsed
 					throw new IllegalStateException("A stored trust anchor of " + slot.name() + " does not parse");
 				}
-				if (anchors.contains(cert)) {
+				if (anchors.stream().anyMatch(a -> a.cert().equals(cert))) {
 					continue;
 				}
-				anchors.add(cert);
 				JsonElement teName = anchor.get("te_name");
-				sources.add(slot.fieldLabel + ": " + (teName == null || teName.isJsonNull() ? "(unnamed entity)" : OIDFJSON.getString(teName))
+				anchors.add(new Anchor(cert, slot.fieldLabel + ": " + (teName == null || teName.isJsonNull() ? "(unnamed entity)" : OIDFJSON.getString(teName))
 					+ ", " + shortServiceType(serviceType)
-					+ ", " + cert.getSubjectX500Principal().getName());
+					+ ", " + cert.getSubjectX500Principal().getName()));
 			}
 		}
-		return new TrustAnchorSet(anchors, sources, configuredLists);
+		return new TrustAnchorSet(anchors, configuredLists);
 	}
 
 	/**

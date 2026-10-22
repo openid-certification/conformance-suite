@@ -76,7 +76,7 @@ public abstract class AbstractValidateX5cCertificateChain extends AbstractCondit
 					"leaf_cert_subject", certs.isEmpty() ? null : certs.get(0).getSubjectX500Principal().getName()));
 		}
 		try {
-			return X509CertificateUtil.validateX5cCertificateChain(certs, anchors.anchors());
+			return X509CertificateUtil.validateX5cCertificateChain(certs, anchors.certs());
 		} catch (X509CertificateUtil.X5cCertificateChainException e) {
 			if (anchors.isEmpty()) {
 				throw error(e.getMessage());
