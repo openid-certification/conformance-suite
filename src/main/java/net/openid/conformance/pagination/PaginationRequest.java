@@ -17,7 +17,8 @@ public class PaginationRequest {
 	@Schema(description = "DataTables echo counter; returned unchanged as 'draw' in the response so a client can match responses to requests")
 	private int draw;
 
-	@Schema(description = "0-based index of the first record to return")
+	@Schema(description = "0-based index of the first record to return; must be non-negative and a multiple of length "
+		+ "(10 when length is 0 or unset). Invalid offsets return HTTP 400.", minimum = "0")
 	private int start;
 
 	@Schema(description = "Page size; 0 (or unset) means 10, values above 1000 are rejected")
@@ -116,11 +117,16 @@ public class PaginationRequest {
 				Lists.newArrayList(results));
 	}
 
-	private Pageable getPageable() {
-		int l = length;
-		if (l == 0) {
-			l = 10;
+	public void validateStart() {
+		int pageLength = length == 0 ? 10 : length;
+		if (start < 0 || start % pageLength != 0) {
+			throw new IllegalArgumentException("Page start must be non-negative and aligned to page length.");
 		}
+	}
+
+	private Pageable getPageable() {
+		validateStart();
+		int l = length == 0 ? 10 : length;
 
 		return PageRequest.of(start / l, l, getSort());
 	}
