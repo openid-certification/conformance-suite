@@ -19,6 +19,7 @@ import java.util.Map;
 		// Resource Search API tests, following the certification scenario (https://openid.github.io/authzen/authorization-api-1_0-certification-scenario.html)
 		// Search Core
 		AuthzenPDPResourceSearchValidResourceSearchRequestWithNonEmptyResultsTest.class,
+		AuthzenPDPResourceSearchDeniedResourceExcludedTest.class,
 		AuthzenPDPResourceSearchResourceSearchWithContextTest.class,
 		AuthzenPDPResourceSearchResultsEvaluateToPermitTest.class,
 		AuthzenPDPResourceSearchUnknownEntityIdentifierTest.class,
