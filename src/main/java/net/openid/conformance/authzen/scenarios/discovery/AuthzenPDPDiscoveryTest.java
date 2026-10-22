@@ -44,7 +44,7 @@ public class AuthzenPDPDiscoveryTest extends AbstractAuthzenPDPMetadataTest {
 		if (!storeConfigurationUnlessSkipped(config, baseUrl, externalUrlOverride, baseMtlsUrl)) {
 			return;
 		}
-		callAndStopOnFailure(ValidatePDPIdentifier.class, "AUTHZEN-9.1.1");
+		callAndStopOnFailure(ValidatePDPIdentifier.class);
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
 	}
