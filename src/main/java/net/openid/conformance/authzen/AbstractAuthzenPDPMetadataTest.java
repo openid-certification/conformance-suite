@@ -150,7 +150,7 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 	 * these values. Without signed_metadata the published values are the ones
 	 * {@link #checkPDPServerConfiguration} checks, so this runs only when the document carries it.
 	 */
-	private void checkPublishedEndpointsAndCapabilities() {
+	protected void checkPublishedEndpointsAndCapabilities() {
 		env.mapKey("server", "pdp");
 		try {
 			callAndContinueOnFailure(CheckPublishedPDPMetadataEndpoints.class, ConditionResult.FAILURE, "AUTHZEN-9.1.1", "AUTHZEN-10.1");
