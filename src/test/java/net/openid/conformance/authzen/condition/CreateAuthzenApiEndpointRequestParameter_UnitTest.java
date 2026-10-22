@@ -88,4 +88,31 @@ class CreateAuthzenApiEndpointRequestParameter_UnitTest {
 			"{ \"type\": \"record\", \"id\": \"record-2\", \"properties\": { \"status\": \"archived\" } }")));
 		assertEquals("archived", OIDFJSON.getString(request.getAsJsonObject("resource").getAsJsonObject("properties").get("status")));
 	}
+
+	@Test
+	public void searchSubject_dropsId() {
+		// Section 8.4.1: the Subject Search subject carries a type and no id, so the builder drops an
+		// id; the modules that send one build their payload raw.
+		JsonObject request = build(new CreateAuthzenApiEndpointRequestSearchSubject(json(
+			"{ \"type\": \"user\", \"id\": \"alice\", \"properties\": { \"role\": \"admin\" } }")));
+		JsonObject subject = request.getAsJsonObject("subject");
+		assertEquals("user", OIDFJSON.getString(subject.get("type")));
+		assertFalse(subject.has("id"));
+		assertTrue(subject.has("properties"));
+	}
+
+	@Test
+	public void searchResource_dropsId() {
+		JsonObject request = build(new CreateAuthzenApiEndpointRequestSearchResource(json(
+			"{ \"type\": \"record\", \"id\": \"record-1\" }")));
+		JsonObject resource = request.getAsJsonObject("resource");
+		assertEquals("record", OIDFJSON.getString(resource.get("type")));
+		assertFalse(resource.has("id"));
+	}
+
+	@Test
+	public void searchSubject_withoutType_fails() {
+		env.putObject("authzen_api_endpoint_request", new JsonObject());
+		fails(new CreateAuthzenApiEndpointRequestSearchSubject(json("{ \"id\": \"alice\" }")));
+	}
 }
