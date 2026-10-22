@@ -19,6 +19,7 @@ import java.util.Map;
 		// Action Search API tests, following the certification scenario (https://openid.github.io/authzen/authorization-api-1_0-certification-scenario.html)
 		// Search Core
 		AuthzenPDPActionSearchValidActionSearchRequestWithNonEmptyResultsTest.class,
+		AuthzenPDPActionSearchDeniedActionExcludedTest.class,
 		AuthzenPDPActionSearchActionSearchWithContextTest.class,
 		AuthzenPDPActionSearchResultsEvaluateToPermitTest.class,
 		AuthzenPDPActionSearchRequestWithPageLimitTest.class,

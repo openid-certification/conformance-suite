@@ -16,6 +16,7 @@ import net.openid.conformance.authzen.condition.AggregateAuthzenSearchResults;
 import net.openid.conformance.authzen.condition.EnsureAuthzenSearchResponseValsMatchExpectedVals;
 import net.openid.conformance.authzen.condition.EnsureSearchFixtureEntitiesMatchBaseSearch;
 import net.openid.conformance.authzen.condition.WarnSearchPageCapReached;
+import net.openid.conformance.authzen.condition.WarnSearchResultsIncludeDeniedFixtureEntities;
 import net.openid.conformance.authzen.condition.EnsureSearchPageTokenNotRepeated;
 import net.openid.conformance.authzen.condition.EnsureSearchResultsMatchBaseSearch;
 import net.openid.conformance.authzen.condition.ExtractAuthzenSearchExpectedResponse;
@@ -96,12 +97,14 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 		return null;
 	}
 
-	private String requireExpectedSearchResponseJson() {
-		String expectedJson = getExpectedSearchResponseJson();
-		if (expectedJson == null) {
-			throw new TestFailureException(getId(), getName() + " accepts HTTP 200 but defines no expected search results");
-		}
-		return expectedJson;
+	/**
+	 * Override to name, as a JSON array, the entities the certification fixture denies for this
+	 * search (e.g. [{"type": "user", "id": "bob"}] for writing record-1, rule 4). A result naming
+	 * one is a warning (Section 8.1). A module that sets this may leave
+	 * {@link #getExpectedSearchResponseJson()} null when the fixture requires no result.
+	 */
+	protected String getDeniedFixtureEntitiesJson() {
+		return null;
 	}
 
 	/**
@@ -316,7 +319,7 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	 * Follows the {@code page.next_token} chain, failing on a page that repeats an earlier
 	 * page's token and results, and stopping with a warning after {@code MAX_PAGES} pages,
 	 * aggregating results across pages, and matches the accumulated results
-	 * against the expected set. Log blocks do not nest, so each page has a block of its own,
+	 * against the expected set and the denied fixture entities. Log blocks do not nest, so each page has a block of its own,
 	 * as does the matching; each is closed in a finally, so it closes even when a condition
 	 * throws.
 	 */
@@ -435,18 +438,30 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	}
 
 	/**
-	 * Matches the results of every page together against the expected results, in a log block of
-	 * its own.
+	 * Matches the results of every page together against the expected results and checks them for
+	 * denied fixture entities, in a log block of its own. A module defines either or both.
 	 */
 	private void matchAggregatedSearchResults() {
+		String expectedJson = getExpectedSearchResponseJson();
+		String deniedJson = getDeniedFixtureEntitiesJson();
+		if (expectedJson == null && deniedJson == null) {
+			throw new TestFailureException(getId(), getName() + " accepts HTTP 200 but defines no expected search results");
+		}
 		eventLog.startBlock("Match the search results");
 		try {
-			callAndContinueOnFailure(new ExtractAuthzenSearchExpectedResponse(requireExpectedSearchResponseJson()), ConditionResult.FAILURE);
+			if (expectedJson != null) {
+				callAndContinueOnFailure(new ExtractAuthzenSearchExpectedResponse(expectedJson), ConditionResult.FAILURE);
+			}
 			env.mapKey("authzen_search_endpoint_response", "authzen_search_endpoint_aggregated_results");
 			try {
-				// The expected entities come from the certification fixture (scenario 4.5), not from the
-				// Authorization API specification, and the scenario has no requirement link prefix.
-				callAndContinueOnFailure(EnsureAuthzenSearchResponseValsMatchExpectedVals.class, ConditionResult.FAILURE);
+				if (expectedJson != null) {
+					// The expected entities come from the certification fixture (scenario 4.5), not from the
+					// Authorization API specification, and the scenario has no requirement link prefix.
+					callAndContinueOnFailure(EnsureAuthzenSearchResponseValsMatchExpectedVals.class, ConditionResult.FAILURE);
+				}
+				if (deniedJson != null) {
+					callAndContinueOnFailure(new WarnSearchResultsIncludeDeniedFixtureEntities(deniedJson), ConditionResult.WARNING, "AUTHZEN-8.1");
+				}
 			} finally {
 				env.unmapKey("authzen_search_endpoint_response");
 			}
