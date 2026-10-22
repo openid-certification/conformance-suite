@@ -417,6 +417,19 @@ def run_tests():
     test_jwt = generate_test_share_link(owner_client, base_url, test_id)
     print(f"  Generated test share link (length: {len(test_jwt)})")
 
+    print("\n--- Pagination: owner access and invalid offsets ---")
+    for endpoint in ("api/plan", "api/log"):
+        resp = owner_client.get(f"{base_url}{endpoint}", params={"start": 10, "length": 10})
+        runner.check_status(f"Pagination: owner can page {endpoint}", resp, 200)
+        for params in ({"start": -1, "length": 10}, {"start": 15, "length": 10},
+                       {"start": 5, "length": 0}, {"start": 5}):
+            resp = owner_client.get(f"{base_url}{endpoint}", params=params)
+            runner.check_status(f"Pagination: {endpoint} rejects {params}", resp, 400)
+            runner.check(f"Pagination: {endpoint} returns a JSON error for {params}",
+                         resp.headers.get("content-type", "").startswith("application/json")
+                         and bool(resp.json().get("error")),
+                         f"HTTP {resp.status_code}, body={resp.text[:200]}")
+
     # ===================================================================
     # 1. PLAN SHARING TESTS
     # ===================================================================
@@ -768,6 +781,11 @@ def run_tests():
     resp = plan_bearer.get(f"{base_url}api/log")
     runner.check_status_in("Plan JWT Bearer: cannot list all logs", resp, {401, 403})
 
+    for endpoint in ("api/plan", "api/log"):
+        resp = plan_bearer.get(f"{base_url}{endpoint}", params={"start": 15, "length": 10})
+        runner.check_status_in(f"Plan JWT Bearer: invalid pagination cannot reach {endpoint}",
+                               resp, {401, 403})
+
     # Other /api/* endpoints not in the private-link allow-list
     resp = plan_bearer.get(f"{base_url}api/runner/available")
     runner.check_status_in("Plan JWT Bearer: cannot hit runner", resp, {401, 403})
@@ -939,6 +957,10 @@ def run_tests():
 
     resp = noauth_client.get(f"{base_url}api/plan")
     runner.check_status("Unauth: plan list rejected", resp, 401)
+
+    for endpoint in ("api/plan", "api/log"):
+        resp = noauth_client.get(f"{base_url}{endpoint}", params={"start": 15, "length": 10})
+        runner.check_status(f"Unauth: invalid pagination cannot reach {endpoint}", resp, 401)
 
     resp = noauth_client.get(f"{base_url}api/plan/{plan_id}")
     runner.check_status("Unauth: plan detail rejected", resp, 401)
