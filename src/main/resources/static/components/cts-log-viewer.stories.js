@@ -959,7 +959,6 @@ export const RetryResumesPolling = {
 };
 
 // --- Public-mode fetch threading ---
-// Plan: docs/plans/2026-06-03-003-fix-log-detail-public-mode-plan.md
 // Anonymous viewers of published logs only pass the security filter's
 // public matcher when the request carries `public=true` — on EVERY poll
 // cycle, not just the first fetch. The programmable-fetch responder

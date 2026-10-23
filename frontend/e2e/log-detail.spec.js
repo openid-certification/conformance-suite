@@ -1557,7 +1557,6 @@ test.describe("log-detail.html — new Lit-triad page", () => {
   // public=true, so the bootstrap and the viewer must thread the param
   // through every fetch — and must NOT touch /api/runner, which has no
   // public mode at all.
-  // Plan: docs/plans/2026-06-03-003-fix-log-detail-public-mode-plan.md
 
   test("public mode: entries load and plan name resolves via public=true requests", async ({
     page,
@@ -2991,7 +2990,6 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     // .logMetaTable must collapse to a single column below 640px
     // container width so values get the full drawer width instead of
     // the ~100px the legacy two-column grid left them.
-    // Plan: docs/plans/2026-06-05-002-fix-log-detail-mobile-responsive-plan.md
     await page.setViewportSize({ width: 375, height: 800 });
 
     await setupFailFast(page);
