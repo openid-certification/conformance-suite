@@ -89,13 +89,9 @@ const ALL_PASSED_TEST = {
   ],
 };
 
-// Long-name / many-variant data reproducing the mobile readability bug
-// (docs/plans/2026-06-05-002-fix-log-detail-mobile-responsive-plan.md):
-// the ~66-char module name must truncate in the status bar instead of
-// inflating its auto grid track, and the five variant pairs must stay
-// readable in the stacked metadata layout at phone widths. Story-local
-// on purpose — the shared MOCK_TEST_STATUS name (`oidcc-server`) is too
-// short to ever exercise either behavior.
+// Long names exercise status-bar truncation; five variant pairs exercise
+// readable values in the stacked mobile layout. The shared fixture's short
+// name cannot exercise truncation.
 const LONG_NAME_TEST = {
   ...MOCK_TEST_STATUS,
   testName: "oid4vci-id2-issuer-credential-offer-flow-with-pre-authorized-code",
@@ -415,19 +411,9 @@ const OVERSIZED_CONFIG_TEST = {
 };
 
 /**
- * Regression guard for
- * docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md U2.
- *
- * `.ctsConfigJson` sets both `min-height` and `max-height` so the
- * configuration view stays bounded and long content scrolls inside it
- * rather than inflating the drawer (the original bug was a second layout
- * jump from an unbounded, auto-growing editor host). cts-json-view is the
- * scroll container itself (overflow:auto).
- *
- * This story opens the drawer with an oversized config and asserts:
- *   1. The host's outer height does not exceed 60 vh (its max-height).
- *   2. The host scrolls (scrollHeight > clientHeight), so the bounded
- *      height does not silently clip the configuration.
+ * Bound the configuration view's height so long JSON scrolls inside it
+ * instead of expanding the drawer. Assert both the 60vh maximum height and
+ * internal scrolling so the content remains accessible.
  */
 export const ConfigDrawerHeightLockedAtFixedValue = {
   render: () =>
@@ -1710,13 +1696,9 @@ export const DrawerExpandedRevealsMetadata = {
 };
 
 /**
- * Mobile stacked-metadata contract
- * (docs/plans/2026-06-05-002-fix-log-detail-mobile-responsive-plan.md).
- * Pinned to mobile1 (320×568) so the .ctsDrawer inline-size container
- * sits below the 640px threshold: the metadata table must collapse to
- * a single stacked column (label above value) and the nested variant
- * list must keep a readable value column — the legacy two-column grid
- * crushed variant values to ~10px, wrapping one character per line.
+ * At mobile1 (320x568), the drawer is below the 640px container breakpoint.
+ * Stack labels above values so the nested variant list has enough width to
+ * remain readable.
  */
 export const DrawerMetadataStacksOnMobile = {
   parameters: {
@@ -1761,13 +1743,9 @@ export const DrawerMetadataStacksOnMobile = {
 };
 
 /**
- * Status-bar truncation contract
- * (docs/plans/2026-06-05-002-fix-log-detail-mobile-responsive-plan.md).
- * Grid items default to min-width: auto, so without min-width: 0 on
- * .ctsStatusBarLeft the bar's auto track grew to the nowrap test
- * name's full width (~644px page scroll width at a 360px viewport) and
- * the whole page rendered zoomed-out on phones. Pinned to mobile1 with
- * a long-name fixture so the ellipsis path actually engages.
+ * Grid items default to min-width: auto. The status bar needs min-width: 0
+ * so a long, unwrapped test name truncates instead of widening the page.
+ * Use mobile1 and a long name to exercise truncation.
  */
 export const StatusBarTruncatesLongTestNameOnMobile = {
   parameters: {

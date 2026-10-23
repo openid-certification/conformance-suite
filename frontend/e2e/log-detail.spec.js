@@ -3129,22 +3129,9 @@ test.describe("log-detail.html — new Lit-triad page", () => {
   test("cts-log-toc rail hides itself but the grid column stays reserved for an interrupted test with no blocks", async ({
     page,
   }) => {
-    // The rail's `_applyVisibility()` still toggles `hidden=true` when
-    // an INTERRUPTED test has no blocks and no failures, and the
-    // component's scoped `cts-log-toc[hidden] { display: none }`
-    // override still pulls computed display to "none" — so the rail
-    // itself does not paint an empty card.
-    //
-    // The page grid, however, reserves the 320px track unconditionally
-    // when `.log-page--with-toc` is set on <main> (see
-    // docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md
-    // U1). This eliminates the page-wide horizontal reflow that
-    // previously fired when the first `cts-blocks-updated` event
-    // flipped the grid from single-column to 1fr 320px. The empty
-    // 320px track is the explicit trade-off — an interrupted-test
-    // whitespace gap is preferred to the reflow on every normal log
-    // load. Reverses U2 of
-    // docs/plans/2026-05-20-002-fix-cts-log-toc-empty-rail-visible-plan.md.
+    // An empty rail hides itself, but its 320px grid column stays reserved.
+    // Keeping that space prevents arriving blocks from shifting the entries
+    // horizontally, even when an interrupted test leaves the column empty.
     await setupFailFast(page);
     // Wide viewport — the two-column grid only activates at ≥ 1440px,
     // so this assertion is meaningful only above that breakpoint.
@@ -3192,24 +3179,10 @@ test.describe("log-detail.html — new Lit-triad page", () => {
   });
 
   test("page grid does not reflow when cts-blocks-updated lands new blocks", async ({ page }) => {
-    // Regression guard for
-    // docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md
-    // U1. The user-visible bug was a hard horizontal shrink of the
-    // entries stream a second or two into page load: the rail starts
-    // empty (no blocks yet), so the previous `:has()` guard kept the
-    // page in single-column mode; the first `cts-blocks-updated`
-    // event then unhid the rail and flipped the grid to 1fr 320px.
-    //
-    // After U1 the column is always reserved at ≥ 1440px, so the
-    // grid-template-columns value must be stable across the
-    // empty-rail → populated-rail transition. We stall the initial
-    // `/api/log` response so the snapshot is provably captured BEFORE
-    // any `cts-blocks-updated` event can fire, then release the
-    // response and snapshot again after the rail populates. Without
-    // the stall, the bootstrap fetch resolves so fast that the
-    // pre-event snapshot races against the event and the equality
-    // assertion would pass trivially (both snapshots would reflect
-    // post-event state).
+    // At >= 1440px, the grid columns must stay stable as the rail fills.
+    // Stall the first log response to measure the empty rail before any
+    // blocks arrive. Otherwise both measurements could capture the populated
+    // rail and pass without testing the transition.
     await setupFailFast(page);
     await page.setViewportSize({ width: 1500, height: 900 });
     const testId = "test-reflow-guard-001";
