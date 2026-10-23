@@ -137,8 +137,7 @@ export const EmptyCertificationProfile = {
   },
 };
 
-// Plan: docs/plans/2026-05-27-001-feat-autolink-and-format-test-prose-plan.md
-// (U3). The plan summary callout renders markdown (block parity with the
+// The plan summary callout renders markdown (block parity with the
 // log-detail hero): paragraphs, autolinked bare URLs, and inline code.
 const PLAN_WITH_MARKDOWN_SUMMARY = {
   ...PLAN,

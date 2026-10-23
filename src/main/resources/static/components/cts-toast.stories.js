@@ -504,9 +504,7 @@ export const GetOrCreateIdempotent = {
  * synchronous `getOrCreate()` calls before `<body>` is parsed must still
  * return the same singleton host — otherwise two `<cts-toast-host>` siblings
  * land in `<body>` once `DOMContentLoaded` fires and stay there for the
- * page lifetime. Documented in
- * `docs/residual-review-findings/2026-05-19-cts-toast-residuals-fix-fe34323f6.md`
- * as R-1 (a race introduced while fixing the parent doc's finding #7).
+ * page lifetime.
  *
  * The play function stubs `document.body` to `null`, calls `getOrCreate()`
  * twice, restores `document.body`, and dispatches a synthetic

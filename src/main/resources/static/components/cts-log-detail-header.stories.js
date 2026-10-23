@@ -637,8 +637,7 @@ export const PassedHeroFallbackPlaceholder = {
   },
 };
 
-// Plan: docs/plans/2026-05-27-001-feat-autolink-and-format-test-prose-plan.md
-// (U1). Bare URLs in the hero description render as clickable new-tab links.
+// Bare URLs in the hero description render as clickable new-tab links.
 const SUMMARY_WITH_BARE_URL =
   "This test follows https://datatracker.ietf.org/doc/html/rfc9126 to validate the request_uri parameter.";
 

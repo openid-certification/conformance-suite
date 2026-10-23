@@ -1269,7 +1269,6 @@ test.describe("plan-detail.html — Plan Detail", () => {
     // page-level overflow on plan-detail (unlike log-detail's status
     // bar), so the scrollWidth guard locks that healthy state while
     // the single-track assertion locks the stacked metadata layout.
-    // Plan: docs/plans/2026-06-05-004-fix-plan-header-mobile-responsive-plan.md
     await page.setViewportSize({ width: 375, height: 800 });
 
     await setupFailFast(page);

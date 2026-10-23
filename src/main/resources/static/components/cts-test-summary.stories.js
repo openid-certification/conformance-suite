@@ -150,8 +150,7 @@ export const WithUnbalancedBackticks = {
   },
 };
 
-// Plan: docs/plans/2026-05-27-001-feat-autolink-and-format-test-prose-plan.md
-// (U1). Bare http/https URLs — which pepper these summaries (RFC, spec, and
+// Bare http/https URLs — which pepper these summaries (RFC, spec, and
 // Bitbucket links) — render as new-tab anchors. snake_case identifiers in the
 // same prose are left untouched.
 const DESCRIPTION_WITH_BARE_URL =
