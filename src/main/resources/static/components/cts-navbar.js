@@ -724,11 +724,8 @@ class CtsNavbar extends LitElement {
   /** @param {PointerEvent} e - Document-level pointerdown used to close open menus on outside click. */
   _onDocPointerDown(e) {
     const target = /** @type {Node | null} */ (e.target);
-    // While the sign-out POST is in flight the account dropdown is the
-    // user's only progress feedback, so its dismissal is frozen (R2 in
-    // docs/plans/2026-06-04-005-feat-sign-out-feedback-plan.md). The
-    // mobile menu below stays dismissable — only the account menu carries
-    // the pending feedback.
+    // Keep the account menu open during the sign-out POST so progress
+    // feedback remains visible. The mobile menu can still be dismissed.
     if (this._menuOpen && !this._signingOut) {
       const account = this.querySelector(".cts-account");
       if (account && target && !account.contains(target)) {

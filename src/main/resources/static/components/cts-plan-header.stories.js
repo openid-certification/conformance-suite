@@ -173,14 +173,9 @@ export const SummaryRendersMarkdown = {
   },
 };
 
-// Long-values data reproducing the mobile readability bug
-// (docs/plans/2026-06-05-004-fix-plan-header-mobile-responsive-plan.md):
-// a ~66-char plan name, a five-entry variant map, and a two-entry
-// certification profile. Story-local on purpose — the shared PLAN
-// fixture omits certificationProfileName ("Certification profile:" is
-// the longest label, the one that sized the legacy max-content track),
-// and its short values would make the stacking and track-bound
-// assertions below pass vacuously.
+// Long names, five variant pairs, and two certification profiles exercise
+// the mobile layout. The shared fixture omits the longest label,
+// "Certification profile:", and does not exercise layout with long values.
 const LONG_PLAN = {
   ...PLAN,
   planName: "oid4vci-id2-issuer-test-plan-credential-offer-pre-authorized-code",
@@ -209,14 +204,8 @@ async function waitForPlanMeta(canvasElement) {
 }
 
 /**
- * Mobile stacked-metadata contract
- * (docs/plans/2026-06-05-004-fix-plan-header-mobile-responsive-plan.md).
- * Pinned to mobile1 (320×568) so the ctsPlanHeader inline-size
- * container sits below the 640px threshold: the metadata <dl> must
- * collapse to a single stacked column (label above value) — the legacy
- * max-content 1fr grid let the longest label eat ~164px of a ~312px
- * content box at phone widths, squeezing every value into a ~132px
- * sliver.
+ * At mobile1 (320x568), the header is below the 640px container breakpoint.
+ * Stack labels above values so long labels do not squeeze the value column.
  */
 export const MetaStacksOnMobile = {
   parameters: {
@@ -248,11 +237,8 @@ export const MetaStacksOnMobile = {
 };
 
 /**
- * Wide two-column contract
- * (docs/plans/2026-06-05-004-fix-plan-header-mobile-responsive-plan.md).
- * Pinned to the desktop preset so the ctsPlanHeader inline-size
- * container is deterministically above the 640px threshold — the
- * two-track assertion must not depend on the default canvas width.
+ * Use the desktop preset to keep the header above the 640px breakpoint.
+ * This makes the two-column assertion independent of the default canvas size.
  */
 export const MetaTwoColumnOnDesktop = {
   parameters: {
