@@ -4,11 +4,16 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
+import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.Condition.ConditionResult;
@@ -17,31 +22,38 @@ import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.oauth.statuslists.TokenStatusList;
 import net.openid.conformance.testmodule.Environment;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigInteger;
 import java.time.Instant;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class VerifyStatusListTokenSignatureUsingEmbeddedJwk_UnitTest {
+public class VerifyStatusListTokenSignature_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
-	private VerifyStatusListTokenSignatureUsingEmbeddedJwk cond;
+	private VerifyStatusListTokenSignature cond;
 
 	@BeforeEach
 	public void setUp() {
-		cond = new VerifyStatusListTokenSignatureUsingEmbeddedJwk();
+		cond = new VerifyStatusListTokenSignature();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
@@ -87,6 +99,29 @@ public class VerifyStatusListTokenSignatureUsingEmbeddedJwk_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_verifiesSignatureWithTheX5cLeafCertificate() throws Exception {
+		ECKey signingKey = new ECKeyGenerator(Curve.P_256).keyID("credential-signer").generate();
+		RSAKey serverKey = new RSAKeyGenerator(2048).keyID("server-key").generate();
+
+		// the issuer's published JWK set does not hold the credential key: the x5c header is what identifies it
+		env.putObject("server_jwks",
+			JsonParser.parseString(new JWKSet(serverKey.toPublicJWK()).toString()).getAsJsonObject());
+		putStatusListToken(createStatusListTokenWithX5c(signingKey, signingKey));
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_rejectsX5cLeafCertificateThatDidNotSign() throws Exception {
+		ECKey signingKey = new ECKeyGenerator(Curve.P_256).keyID("credential-signer").generate();
+		ECKey otherKey = new ECKeyGenerator(Curve.P_256).keyID("other-key").generate();
+
+		putStatusListToken(createStatusListTokenWithX5c(signingKey, otherKey));
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
 	public void testEvaluate_rejectsWhenNeitherEmbeddedJwkNorServerJwks() throws Exception {
 		RSAKey signingKey = new RSAKeyGenerator(2048)
 			.keyID("status-list-key")
@@ -105,21 +140,47 @@ public class VerifyStatusListTokenSignatureUsingEmbeddedJwk_UnitTest {
 	}
 
 	private String createSignedStatusListToken(RSAKey signingKey) throws Exception {
+		SignedJWT jwt = new SignedJWT(
+			new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(signingKey.getKeyID()).build(),
+			statusListClaims());
+		jwt.sign(new RSASSASigner(signingKey.toPrivateKey()));
+		return jwt.serialize();
+	}
+
+	/** A token signed with {@code signingKey} whose x5c header carries a self-signed certificate of {@code certifiedKey}. */
+	private String createStatusListTokenWithX5c(ECKey signingKey, ECKey certifiedKey) throws Exception {
+		SignedJWT jwt = new SignedJWT(
+			new JWSHeader.Builder(JWSAlgorithm.ES256)
+				.keyID(signingKey.getKeyID())
+				.x509CertChain(List.of(Base64.encode(selfSignedCertDer(certifiedKey))))
+				.build(),
+			statusListClaims());
+		jwt.sign(new ECDSASigner(signingKey.toECPrivateKey()));
+		return jwt.serialize();
+	}
+
+	private static byte[] selfSignedCertDer(ECKey key) throws Exception {
+		X500Name name = new X500Name("CN=Status list signer unit test");
+		X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
+			name,
+			BigInteger.valueOf(System.nanoTime()),
+			new Date(System.currentTimeMillis() - 60_000),
+			new Date(System.currentTimeMillis() + 3600_000),
+			name,
+			SubjectPublicKeyInfo.getInstance(key.toECPublicKey().getEncoded()));
+		return builder.build(new JcaContentSignerBuilder("SHA256withECDSA").build(key.toECPrivateKey())).getEncoded();
+	}
+
+	private static JWTClaimsSet statusListClaims() {
 		TokenStatusList tokenStatusList = TokenStatusList.create(
 			new byte[] { (byte) TokenStatusList.Status.VALID.getTypeValue() }, 1);
 		Instant now = Instant.now();
 
-		JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+		return new JWTClaimsSet.Builder()
 			.subject("https://issuer.example.com/statuslists/1")
-			.issueTime(java.util.Date.from(now))
-			.expirationTime(java.util.Date.from(now.plusSeconds(300)))
+			.issueTime(Date.from(now))
+			.expirationTime(Date.from(now.plusSeconds(300)))
 			.claim("status_list", Map.of("bits", 1L, "lst", tokenStatusList.encodeStatusList()))
 			.build();
-
-		SignedJWT jwt = new SignedJWT(
-			new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(signingKey.getKeyID()).build(),
-			claimsSet);
-		jwt.sign(new RSASSASigner(signingKey.toPrivateKey()));
-		return jwt.serialize();
 	}
 }

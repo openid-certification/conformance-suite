@@ -10,6 +10,7 @@ import net.openid.conformance.condition.as.CreateSdJwtCredential;
 import net.openid.conformance.condition.as.GenerateCredentialNonce;
 import net.openid.conformance.condition.as.GenerateCredentialNonceResponse;
 import net.openid.conformance.condition.client.BuildVCIDCAPIRequest;
+import net.openid.conformance.condition.client.EnsureClientAttestationIssuerConfigured;
 import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
@@ -67,6 +68,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -128,18 +130,8 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		Environment env = module.getEnv();
 		boolean clientAttestation = module.clientAuthType == ClientAuthType.CLIENT_ATTESTATION;
 
-		if (clientAttestation) {
-			// Validate the wallet test config has the client_attestation fields populated.
-			// The fields are declared via @VariantConfigurationFields on AbstractFAPI2SPFinalClientTest
-			// so the schedule-test UI prompts for them; this catches the case where they're left blank.
-			// Each check accepts either the new client_attestation.* key or the legacy vci.* key
-			// during the transition window.
-			if (env.getString("config", "client_attestation.issuer") == null
-				&& env.getString("config", "vci.client_attestation_issuer") == null) {
-				throw new TestFailureException(module.getId(),
-					"'Client Attestation Issuer' field is missing from the 'Client Attestation' section in the test configuration");
-			}
-		}
+		// the status list the issued credentials reference; the wallet path seeds it from its imperative configure
+		initializeStatusListState(env);
 
 		// Pre-populate credential_issuer_metadata + credential_configurations_supported
 		// so the VCI conditions invoked from the credential / nonce endpoints (and the
@@ -171,6 +163,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 			@Override
 			public void evaluate() {
 				if (clientAttestation) {
+					callAndStopOnFailure(EnsureClientAttestationIssuerConfigured.class);
 					callAndStopOnFailure(AddClientAttestationSigningAlgValuesSupportedToServerConfiguration.class, "OAuth2-ATCA07-10.1");
 				}
 				// the credential signing certificate must not be self-signed (HAIP); the built-in one is CA-issued
@@ -558,14 +551,54 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	}
 
 	/**
-	 * Additional SD-JWT claims to inject into the issued credential. Default is none
-	 * ({@code null}). Subclasses for profiles that require specific SD-JWT claims (e.g.
-	 * the HAIP status_list reference, see {@link VCIHaipClientProfileBehavior}) override
-	 * this to return a populated map. Public so the wallet's imperative credential-issuance
-	 * path can read it without duplicating the claim-construction logic.
+	 * Additional SD-JWT claims to inject into the issued credential: the {@code status} claim
+	 * referencing the Token Status List this emulated issuer serves, under every profile, so the
+	 * paired issuer tests exercise the status list checks of each profile. Public so the wallet's
+	 * imperative credential-issuance path can read it without duplicating the claim-construction logic.
 	 */
 	public Map<String, Object> additionalSdJwtClaims() {
-		return null;
+		return buildSdJwtStatusListClaims(module.getEnv());
+	}
+
+	/** The URI of the single status list the emulated issuer serves. */
+	public static String buildStatusListUri(Environment env) {
+		return getStatusListUrl(env, "1");
+	}
+
+	/** The {@code status} claim of an issued SD-JWT VC (draft-ietf-oauth-status-list section 6.2), referencing {@link #buildStatusListUri}. */
+	public static Map<String, Object> buildSdJwtStatusListClaims(Environment env) {
+		String statusListUri = buildStatusListUri(env);
+
+		Map<Object, Object> statusListEntry = new HashMap<>();
+		statusListEntry.put("idx", 0);
+		statusListEntry.put("uri", statusListUri);
+
+		Map<Object, Object> status = new HashMap<>();
+		status.put("status_list", statusListEntry);
+
+		Map<String, Object> additionalClaims = new HashMap<>();
+		additionalClaims.put("status", status);
+		return additionalClaims;
+	}
+
+	/**
+	 * Status list scaffolding shared by the wallet's imperative {@code configure} and the
+	 * FAPI2SP-outer's {@link #additionalServerConfiguration} hook:
+	 * <ul>
+	 *   <li>Seeds {@code env.vci.status_lists.status_list_1} with an empty placeholder so
+	 *       the statuslists endpoint can resolve it. The list contents are populated lazily by
+	 *       credential issuance.</li>
+	 *   <li>Advertises {@code server.status_list_aggregation_endpoint} (issuer +
+	 *       {@code statuslists}) so anything reading from server metadata finds the URL.</li>
+	 * </ul>
+	 */
+	public static void initializeStatusListState(Environment env) {
+		JsonObject statusLists = new JsonObject();
+		statusLists.add("status_list_1", new JsonObject());
+		env.putObject("vci", "status_lists", statusLists);
+
+		String issuer = env.getString("server", "issuer");
+		env.putString("server", "status_list_aggregation_endpoint", issuer + "statuslists");
 	}
 
 	/**

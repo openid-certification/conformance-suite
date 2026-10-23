@@ -289,8 +289,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		}
 
 		callAndStopOnFailure(RegisterClientRequestObjectTrustAnchor.class);
-		if (clientIdPrefix == VP1FinalVerifierClientIdPrefix.X509_SAN_DNS
-			|| clientIdPrefix == VP1FinalVerifierClientIdPrefix.X509_HASH) {
+		if (clientIdPrefix.usesX5cCertificate()) {
 			// register and validate the optionally configured RICAL used as the trust source for
 			// the verifier's request object signing chain (superseding the single trust anchor).
 			// Only these prefixes reference a certificate in the request object's x5c header, so

@@ -3,11 +3,8 @@ package net.openid.conformance.condition.client;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.MdocUtil;
-import org.bouncycastle.asn1.x500.RDN;
-import org.bouncycastle.asn1.x500.X500Name;
+import net.openid.conformance.util.X509CertificateUtil;
 import org.bouncycastle.asn1.x500.style.BCStyle;
-import org.bouncycastle.asn1.x500.style.IETFUtils;
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.multipaz.cbor.DataItem;
 
 import java.security.cert.X509Certificate;
@@ -58,9 +55,8 @@ public class ValidateMdocDsCertificateMatchesIssuingCountry extends AbstractVali
 			return env;
 		}
 
-		X500Name subject = X500Name.getInstance(dsCert.getSubjectX500Principal().getEncoded());
-		String certCountry = firstRdnValue(subject, BCStyle.C);
-		String certState = firstRdnValue(subject, BCStyle.ST);
+		String certCountry = X509CertificateUtil.subjectRdnValue(dsCert, BCStyle.C);
+		String certState = X509CertificateUtil.subjectRdnValue(dsCert, BCStyle.ST);
 
 		List<String> violations = new ArrayList<>();
 		if (certCountry == null) {
@@ -88,13 +84,5 @@ public class ValidateMdocDsCertificateMatchesIssuingCountry extends AbstractVali
 			args("issuing_country", issuingCountry,
 				"issuing_jurisdiction", issuingJurisdiction));
 		return env;
-	}
-
-	private static String firstRdnValue(X500Name name, ASN1ObjectIdentifier attribute) {
-		RDN[] rdns = name.getRDNs(attribute);
-		if (rdns.length == 0) {
-			return null;
-		}
-		return IETFUtils.valueToString(rdns[0].getFirst().getValue());
 	}
 }

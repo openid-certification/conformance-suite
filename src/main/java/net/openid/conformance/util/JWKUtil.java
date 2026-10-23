@@ -16,7 +16,6 @@ import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.util.JSONObjectUtils;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import org.openqa.selenium.InvalidArgumentException;
 
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
@@ -444,6 +443,11 @@ public class JWKUtil {
 		}
 	}
 
+	/**
+	 * The one signing key of {@code jwks}: the key with {@code use} {@code sig} or no {@code use}.
+	 *
+	 * @throws IllegalArgumentException when the set has no such key or more than one
+	 */
 	public static JWK getSigningKey(JsonObject jwks) throws ParseException {
 		int count = 0;
 		JWK signingJwk = null;
@@ -459,10 +463,10 @@ public class JWKUtil {
 		}
 
 		if (count == 0) {
-			throw new InvalidArgumentException("Did not find a key with 'use': 'sig' or no 'use' claim, no key available to sign jwt");
+			throw new IllegalArgumentException("Did not find a key with 'use': 'sig' or no 'use' claim, no key available to sign jwt");
 		}
 		if (count > 1) {
-			throw new InvalidArgumentException("Expected only one signing JWK in the set. Please ensure the signing key is the only one in the jwks, or that other keys have a 'use' other than 'sig'.");
+			throw new IllegalArgumentException("Expected only one signing JWK in the set. Please ensure the signing key is the only one in the jwks, or that other keys have a 'use' other than 'sig'.");
 		}
 
 		return signingJwk;
@@ -496,7 +500,7 @@ public class JWKUtil {
 			signingKey = getSigningKey(jwks);
 		} catch (ParseException e) {
 			throw new SigningKeyChainException("could not be parsed as a JWKS", e);
-		} catch (InvalidArgumentException e) {
+		} catch (IllegalArgumentException e) {
 			throw new SigningKeyChainException("does not contain exactly one signing key (" + e.getMessage() + ")", e);
 		}
 		if (signingKey.getX509CertChain() == null || signingKey.getX509CertChain().isEmpty()) {
@@ -517,7 +521,7 @@ public class JWKUtil {
 	public static JsonObject createJwksObjectFromJwkObjects(JsonObject ... keys) {
 
 		if (keys == null) {
-			throw new InvalidArgumentException("keys must not be null");
+			throw new IllegalArgumentException("keys must not be null");
 		}
 
 		JsonObject jwks = new JsonObject();

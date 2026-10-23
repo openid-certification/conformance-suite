@@ -21,7 +21,7 @@ import net.openid.conformance.condition.client.ValidateCredentialJWTNbf;
 import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
 import net.openid.conformance.condition.client.ValidateCredentialValidityInfoIsPresent;
 import net.openid.conformance.condition.client.ValidateStatusListTokenX5cCertificateChain;
-import net.openid.conformance.condition.client.VerifyStatusListTokenSignatureUsingEmbeddedJwk;
+import net.openid.conformance.condition.client.VerifyStatusListTokenSignature;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
 /**
@@ -109,7 +109,7 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 				.onFail(ConditionResult.WARNING)
 				.dontStopOnFailure()
 				.requirements("OTSL-6.2", "OTSL-11.3"));
-			callAndContinueOnFailure(VerifyStatusListTokenSignatureUsingEmbeddedJwk.class,
+			callAndContinueOnFailure(VerifyStatusListTokenSignature.class,
 				ConditionResult.FAILURE, "OTSL-6.2");
 		}
 		callAndContinueOnFailure(CheckCredentialStatus.class,

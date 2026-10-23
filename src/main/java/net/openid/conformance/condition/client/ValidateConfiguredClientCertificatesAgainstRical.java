@@ -1,7 +1,6 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
-import com.nimbusds.jose.jwk.JWK;
 import kotlinx.io.bytestring.ByteString;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.PreEnvironment;
@@ -11,9 +10,9 @@ import org.multipaz.crypto.X509Cert;
 import org.multipaz.mdoc.rical.RicalCertificateInfo;
 import org.multipaz.mdoc.rical.SignedRical;
 import org.multipaz.trustmanagement.TrustResult;
-import org.openqa.selenium.InvalidArgumentException;
 
-import java.text.ParseException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -102,28 +101,20 @@ public class ValidateConfiguredClientCertificatesAgainstRical extends AbstractRi
 	 * its key, so this evaluates the certificate the wallet will actually be presented with.
 	 */
 	private List<X509Cert> x5cChainFromJwks(JsonObject jwks, String fieldLabel) {
-		JWK signingKey;
+		List<X509Certificate> javaChain;
 		try {
-			signingKey = JWKUtil.getSigningKey(jwks);
-		} catch (ParseException e) {
-			throw error("The " + fieldLabel + " of the test configuration could not be parsed as a JWKS", e);
-		} catch (InvalidArgumentException e) {
-			throw error("The " + fieldLabel + " of the test configuration does not contain exactly one signing key, so there is no single certificate chain to evaluate against the RICAL",
-				args("error", e.getMessage()));
-		}
-		List<com.nimbusds.jose.util.Base64> x5c = signingKey.getX509CertChain();
-		if (x5c == null || x5c.isEmpty()) {
-			throw error("The signing key in the " + fieldLabel
-				+ " of the test configuration has no 'x5c' certificate chain, so there is no certificate to evaluate against the RICAL");
+			javaChain = JWKUtil.getSigningKeyCertificateChain(jwks);
+		} catch (JWKUtil.SigningKeyChainException e) {
+			throw error("The " + fieldLabel + " of the test configuration " + e.getMessage()
+				+ ", so there is no certificate chain to evaluate against the RICAL", e);
 		}
 		List<X509Cert> chain = new ArrayList<>();
-		for (com.nimbusds.jose.util.Base64 certB64 : x5c) {
+		for (X509Certificate cert : javaChain) {
 			try {
-				byte[] der = certB64.decode();
+				byte[] der = cert.getEncoded();
 				chain.add(new X509Cert(new ByteString(der, 0, der.length)));
-			} catch (Exception e) {
-				throw error("Failed to parse a certificate in the x5c of the " + fieldLabel
-					+ " of the test configuration", e);
+			} catch (CertificateEncodingException e) {
+				throw error("Failed to re-encode a certificate in the x5c of the " + fieldLabel + " of the test configuration", e);
 			}
 		}
 		return chain;

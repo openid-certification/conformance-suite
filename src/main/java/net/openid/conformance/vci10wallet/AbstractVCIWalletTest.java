@@ -75,6 +75,7 @@ import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestContain
 import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR;
 import net.openid.conformance.condition.client.AbstractCheckEndpointContentTypeReturned;
 import net.openid.conformance.condition.client.AugmentRealJwksWithDecoys;
+import net.openid.conformance.condition.client.EnsureClientAttestationIssuerConfigured;
 import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.EnsureKeyAttestationTrustAnchorConfigured;
@@ -112,7 +113,6 @@ import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.fapi2spfinal.VCIClientProfileBehavior;
-import net.openid.conformance.fapi2spfinal.VCIHaipClientProfileBehavior;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
@@ -431,10 +431,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		callAndStopOnFailure(FAPI2AddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
 
 		if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
-			if (env.getString("config", "client_attestation.issuer") == null
-				&& env.getString("config", "vci.client_attestation_issuer") == null) {
-				throw new TestFailureException(getId(), "client_attestation.issuer must be configured if client_attestation is used as client authentication method.");
-			}
+			callAndStopOnFailure(EnsureClientAttestationIssuerConfigured.class);
 			callAndStopOnFailure(AddClientAttestationSigningAlgValuesSupportedToServerConfiguration.class, "OAuth2-ATCA07-10.1");
 		}
 
@@ -472,10 +469,8 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		configureClients();
 
-		// Status list state is initialised for every VCI wallet profile (matching master).
-		// VCIClientProfileBehavior's aggregation endpoint always advertises statuslists/1,
-		// so the placeholder must exist whether or not HAIP injects a status_list claim.
-		VCIHaipClientProfileBehavior.initializeStatusListState(env);
+		// the status list the issued credentials reference, served at statuslists/1
+		VCIClientProfileBehavior.initializeStatusListState(env);
 
 		onConfigurationCompleted();
 		setStatus(Status.CONFIGURED);
@@ -1430,25 +1425,20 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			", credential_configuration: " + credentialConfiguration +
 			", variant credential_format: " + vciCredentialFormat);
 
+		// The status list references are built with the same static builders as the FAPI2SP-outer
+		// dispatch so both paths produce identical credential shapes. We can't go through
+		// profileBehavior here: the wallet's configure() calls setupPlainFapi() which overwrites
+		// profileBehavior to PlainFAPIClientProfileBehavior, so a cast would CCE.
 		if ("mso_mdoc".equals(requestedFormat)) {
 			// mdoc format - the doctype is in credential_configuration.doctype. Under HAIP the
-			// MSO references the emulated issuer's status list, matching the SD-JWT branch below;
-			// see the comment there for why this can't go through profileBehavior.
+			// MSO references the emulated issuer's status list.
 			String mdocStatusListUri = fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP
-				? VCIHaipClientProfileBehavior.buildStatusListUri(env) : null;
+				? VCIClientProfileBehavior.buildStatusListUri(env) : null;
 			callAndStopOnFailure(new CreateMdocCredentialForVCI(mdocStatusListUri), "OID4VCI-1FINALA-G.1");
 		} else {
-			// SD-JWT VC format (dc+sd-jwt or default). The HAIP status_list reference is
-			// shared with the FAPI2SP-outer dispatch via the static builder so both paths
-			// produce identical credential shapes. We can't go through profileBehavior
-			// here: the wallet's configure() calls setupPlainFapi() which overwrites
-			// profileBehavior to PlainFAPIClientProfileBehavior, so a cast would CCE.
-			if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
-				Map<String, Object> additionalClaims = VCIHaipClientProfileBehavior.buildSdJwtStatusListClaims(env);
-				callAndStopOnFailure(new CreateSdJwtCredential(additionalClaims), "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
-			} else {
-				callAndStopOnFailure(CreateSdJwtCredential.class, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
-			}
+			// SD-JWT VC format (dc+sd-jwt or default); the credential references the emulated issuer's status list
+			Map<String, Object> additionalClaims = VCIClientProfileBehavior.buildSdJwtStatusListClaims(env);
+			callAndStopOnFailure(new CreateSdJwtCredential(additionalClaims), "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
 		}
 	}
 
