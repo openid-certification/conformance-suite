@@ -59,8 +59,8 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 		doAnswer(invocation -> {
 			Callable<?> task = invocation.getArgument(0);
 			task.call();
-			return null;
-		}).when(executionManager).runInBackground(any());
+			return true;
+		}).when(executionManager).tryRunInBackground(any());
 		doAnswer(invocation -> {
 			retryTimeoutTask.set(invocation.getArgument(0));
 			retryTimeoutSeconds.set(invocation.getArgument(1));
@@ -357,9 +357,10 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 		}
 
 		@Override
-		protected void processPingNotificationCallback(JsonObject requestParts) {
+		protected boolean processPingNotificationCallback(JsonObject requestParts) {
 			verifiedCallbacks++;
 			processedCallbacks++;
+			return true;
 		}
 
 		@Override

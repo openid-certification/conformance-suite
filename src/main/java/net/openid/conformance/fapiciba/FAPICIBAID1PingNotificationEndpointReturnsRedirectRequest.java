@@ -30,17 +30,7 @@ public class FAPICIBAID1PingNotificationEndpointReturnsRedirectRequest extends A
 	@Override
 	protected Object handlePingCallback(JsonObject requestParts) {
 
-		getTestExecutionManager().runInBackground(() -> {
-
-			// Wait for 15 second and then process notification callback as normal
-			Thread.sleep(15 * 1000);
-
-			setStatus(Status.RUNNING);
-
-			processNotificationCallback(requestParts);
-
-			return "done";
-		});
+		scheduleNotificationCallback(requestParts, 15);
 
 		setStatus(Status.RUNNING);
 
