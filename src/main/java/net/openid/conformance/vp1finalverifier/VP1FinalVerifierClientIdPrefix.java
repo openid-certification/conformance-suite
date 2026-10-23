@@ -13,6 +13,11 @@ public enum VP1FinalVerifierClientIdPrefix {
 	X509_SAN_DNS,
 	X509_HASH;
 
+	/** Whether a request from a verifier with this prefix is signed with a certificate carried in its x5c header. */
+	public boolean usesX5cCertificate() {
+		return this == X509_SAN_DNS || this == X509_HASH;
+	}
+
 	@Override
 	public String toString() {
 		return name().toLowerCase();

@@ -523,8 +523,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndContinueOnFailure(CheckIfSecondClientIdInX509CertSanDns.class, ConditionResult.FAILURE);
 			}
 		}
-		if (clientIdPrefix == VP1FinalWalletClientIdPrefix.X509_SAN_DNS
-			|| clientIdPrefix == VP1FinalWalletClientIdPrefix.X509_HASH) {
+		if (clientIdPrefix.usesX5cCertificate()) {
 			// register and validate the optionally configured RICAL, then pre-flight check
 			// that the suite's own request signing chains are covered by it - a wallet
 			// trusting the RICAL is expected to reject the request otherwise. A WARNING as

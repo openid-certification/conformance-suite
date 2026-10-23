@@ -10,6 +10,7 @@ import net.openid.conformance.condition.as.CreateSdJwtCredential;
 import net.openid.conformance.condition.as.GenerateCredentialNonce;
 import net.openid.conformance.condition.as.GenerateCredentialNonceResponse;
 import net.openid.conformance.condition.client.BuildVCIDCAPIRequest;
+import net.openid.conformance.condition.client.EnsureClientAttestationIssuerConfigured;
 import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
@@ -128,19 +129,6 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		Environment env = module.getEnv();
 		boolean clientAttestation = module.clientAuthType == ClientAuthType.CLIENT_ATTESTATION;
 
-		if (clientAttestation) {
-			// Validate the wallet test config has the client_attestation fields populated.
-			// The fields are declared via @VariantConfigurationFields on AbstractFAPI2SPFinalClientTest
-			// so the schedule-test UI prompts for them; this catches the case where they're left blank.
-			// Each check accepts either the new client_attestation.* key or the legacy vci.* key
-			// during the transition window.
-			if (env.getString("config", "client_attestation.issuer") == null
-				&& env.getString("config", "vci.client_attestation_issuer") == null) {
-				throw new TestFailureException(module.getId(),
-					"'Client Attestation Issuer' field is missing from the 'Client Attestation' section in the test configuration");
-			}
-		}
-
 		// Pre-populate credential_issuer_metadata + credential_configurations_supported
 		// so the VCI conditions invoked from the credential / nonce endpoints (and the
 		// issuer-initiated credential offer) find them. This is independent of the client
@@ -171,6 +159,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 			@Override
 			public void evaluate() {
 				if (clientAttestation) {
+					callAndStopOnFailure(EnsureClientAttestationIssuerConfigured.class);
 					callAndStopOnFailure(AddClientAttestationSigningAlgValuesSupportedToServerConfiguration.class, "OAuth2-ATCA07-10.1");
 				}
 				// the credential signing certificate must not be self-signed (HAIP); the built-in one is CA-issued
