@@ -122,6 +122,10 @@ public class PaginationRequest {
 			l = 10;
 		}
 
+		if (start < 0 || start % l != 0) {
+			throw new IllegalArgumentException("Page start must be non-negative and aligned to page length.");
+		}
+
 		return PageRequest.of(start / l, l, getSort());
 	}
 
