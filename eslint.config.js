@@ -64,7 +64,6 @@ export default [
       "target/**",
       "scripts/**",
       ".gitlab-ci/**",
-      "docs/**",
       "images/**",
 
       // Frontend-local excludes (mirror .prettierignore)
