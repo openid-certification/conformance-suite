@@ -55,7 +55,7 @@ public class FAPI2SPFinalCdrArrangementAmendmentRevokesOldTokens extends Abstrac
 		} else {
 			eventLog.startBlock("Attempt to use the refresh token from before the amendment - it must have been revoked");
 			env.putString("refresh_token", env.getString("first_consent_refresh_token"));
-			call(new RefreshTokenRequestExpectingErrorSteps(isSecondClient(), addClientAuthentication, isDpop()));
+			call(new RefreshTokenRequestExpectingErrorSteps(addClientAuthentication, isDpop()));
 			eventLog.endBlock();
 
 			eventLog.startBlock("Attempt to use the access token from before the amendment - it must have been revoked");
