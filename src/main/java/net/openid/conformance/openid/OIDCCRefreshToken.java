@@ -124,7 +124,7 @@ public class OIDCCRefreshToken extends AbstractOIDCCMultipleClient {
 		// try client 2's refresh_token with client 1
 		unmapClient();
 		eventLog.startBlock("Attempting to use refresh_token issued to client 2 with client 1");
-		call(new RefreshTokenRequestExpectingErrorSteps(isSecondClient(), addTokenEndpointClientAuthentication));
+		call(new RefreshTokenRequestExpectingErrorSteps(addTokenEndpointClientAuthentication));
 		eventLog.endBlock();
 	}
 }

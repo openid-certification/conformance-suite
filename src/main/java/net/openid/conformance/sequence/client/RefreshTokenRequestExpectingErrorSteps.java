@@ -2,7 +2,6 @@ package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.client.AddScopeToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
@@ -18,26 +17,22 @@ import java.util.stream.Collectors;
 
 public class RefreshTokenRequestExpectingErrorSteps extends AbstractConditionSequence {
 
-	private boolean secondClient;
 	private boolean isDpop;
 	private Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
 
-	public RefreshTokenRequestExpectingErrorSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest) {
-		this(secondClient, addClientAuthenticationToTokenEndpointRequest, false);
+	public RefreshTokenRequestExpectingErrorSteps(Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest) {
+		this(addClientAuthenticationToTokenEndpointRequest, false);
 	}
 
-	public RefreshTokenRequestExpectingErrorSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean isDpop) {
-		this.secondClient = secondClient;
+	public RefreshTokenRequestExpectingErrorSteps(Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean isDpop) {
 		this.isDpop = isDpop;
 		this.addClientAuthenticationToTokenEndpointRequest = addClientAuthenticationToTokenEndpointRequest;
 	}
 
 	@Override
 	public void evaluate() {
+		// Omit scope so the request tests the refresh token without introducing a scope mismatch (RFC6749-6).
 		callAndStopOnFailure(CreateRefreshTokenRequest.class);
-		if (!secondClient) {
-			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class, "RFC6749-6");
-		}
 
 		call(exec().mapKey("request_form_parameters", "token_endpoint_request_form_parameters")
 			.mapKey("request_headers", "token_endpoint_request_headers"));
