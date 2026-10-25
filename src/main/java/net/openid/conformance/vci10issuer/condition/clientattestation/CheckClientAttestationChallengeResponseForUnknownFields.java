@@ -23,6 +23,11 @@ public class CheckClientAttestationChallengeResponseForUnknownFields extends Abs
 
 		Set<String> unknownFields = new HashSet<>(responseObject.keySet());
 		unknownFields.removeAll(KNOWN_FIELDS);
+		String challengeEndpoint = env.getString("server", "challenge_endpoint");
+		String nonceEndpoint = env.getString("vci", "credential_issuer_metadata.nonce_endpoint");
+		if (challengeEndpoint != null && challengeEndpoint.equals(nonceEndpoint)) {
+			unknownFields.remove("c_nonce");
+		}
 		if (!unknownFields.isEmpty()) {
 			// The spec says "The Authorization Server MAY add additional challenges or data",
 			// so additional fields are allowed but worth flagging for sender validation
