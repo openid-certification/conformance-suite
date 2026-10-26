@@ -41,9 +41,6 @@ DOMPurify.addHook("afterSanitizeAttributes", (/** @type {Element} */ node) => {
  * `DOMPurify` before `unsafeHTML`. An `afterSanitizeAttributes` hook forces
  * every surviving link to `target="_blank" rel="noopener noreferrer"`.
  *
- * Origin: docs/plans/2026-05-27-001-feat-autolink-and-format-test-prose-plan.md
- * (supersedes the bespoke paragraph/code formatter from MR-1998 C2).
- *
  * @param {string | null | undefined} text - The raw markdown description
  *   (already split from instructions by `splitTestSummary` when piped through
  *   `cts-test-summary`, so the `\n\n---\n\n` marker never reaches marked).

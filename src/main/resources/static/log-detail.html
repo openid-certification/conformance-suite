@@ -127,26 +127,10 @@
     padding: var(--space-4) var(--space-5);
     font-family: var(--font-sans);
   }
-  /* U8 — wide-viewport rail. The 320px right column matches the rail's
-     intrinsic width budget; the rest of the row flexes for the entries
-     stream. Below 1440px the grid collapses back to a single column,
-     and the rail host hides via `display: none` so it doesn't reserve
-     vertical space.
-
-     The column is reserved unconditionally when `.log-page--with-toc`
-     is set on <main> — independent of whether the rail has data yet.
-     This eliminates the page-load reflow that previously happened when
-     the first `cts-blocks-updated` event flipped the grid from a
-     single column to `1fr 320px` (see
-     docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md
-     U1). The rail itself still hides via its scoped
-     `cts-log-toc[hidden] { display: none }` rule when empty (no blocks
-     AND no failures); the hidden rail simply leaves its 320px grid
-     track as whitespace, which is the explicit trade-off — a stable
-     always-reserved column is
-     preferred to the page-wide horizontal shift on every normal log
-     load. Reverses U2 of
-     docs/plans/2026-05-20-002-fix-cts-log-toc-empty-rail-visible-plan.md. */
+  /* Reserve the rail column from first paint at viewport widths >= 1440px
+     so arriving blocks do not shift the entries horizontally. An empty rail
+     hides itself but leaves its column as whitespace. Below 1440px, use a
+     single column and hide the rail so it takes no vertical space. */
   /* Collapsible rail (feat/log-toc-collapsible, U1). Register the animatable
      rail-width custom property. A registered `<length>` interpolates reliably
      across engines AND recomputes the grid track, which raw

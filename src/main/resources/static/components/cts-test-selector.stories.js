@@ -540,8 +540,7 @@ export const EmptyPlans = {
   },
 };
 
-// Plan: docs/plans/2026-05-27-001-feat-autolink-and-format-test-prose-plan.md
-// (U2). The row summary is a markdown teaser nested inside the plan-row
+// The row summary is a markdown teaser nested inside the plan-row
 // <button>, so it renders inline-only: backtick spans become <code>, but no
 // <a> (interactive nesting is invalid) and no <p> (breaks the one-line teaser).
 const PLAN_WITH_MARKDOWN_SUMMARY = [
