@@ -54,6 +54,7 @@ import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkc
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsStateParameter;
 import net.openid.conformance.condition.as.EnsureClaimsParameterNotPresentInPlainOAuthRequest;
 import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
+import net.openid.conformance.condition.as.EnsureClientIdIsNotEmptyOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureMatchingClientId;
 import net.openid.conformance.condition.as.EnsureMatchingRedirectUriInRequestObject;
@@ -1182,6 +1183,11 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	protected void authenticateParEndpointRequest(String requestId) {
 		call(exec().mapKey("token_endpoint_request", requestId));
 
+		// later client_id checks see the request object's value, not the PAR form's
+		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE,
+			profileBehavior.getParClientIdRequirements());
+		callAndContinueOnFailure(EnsureClientIdIsNotEmptyOnTokenRequestIfPresent.class, ConditionResult.WARNING, "RFC6749-3.1");
+
 		if(clientAuthType == ClientAuthType.MTLS || profileRequiresMtlsEverywhere) {
 			// there is generally no requirement to present an MTLS certificate at the PAR endpoint when using private_key_jwt.
 			// (This differs to the token endpoint, where an MTLS certificate must always be presented, as one is
@@ -1361,7 +1367,9 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			call(exec().mapKey("incoming_request", requestId));
 		}
 
-		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
+		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE,
+			profileBehavior.getTokenEndpointClientIdRequirements());
+		callAndContinueOnFailure(EnsureClientIdIsNotEmptyOnTokenRequestIfPresent.class, ConditionResult.WARNING, "RFC6749-3.2");
 
 		if (clientAuthType == ClientAuthType.MTLS || isMTLSConstrain()  || profileRequiresMtlsEverywhere) {
 			checkMtlsCertificate();
