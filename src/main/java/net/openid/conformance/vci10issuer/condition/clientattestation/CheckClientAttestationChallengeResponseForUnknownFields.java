@@ -1,36 +1,32 @@
 package net.openid.conformance.vci10issuer.condition.clientattestation;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.vci10issuer.condition.AbstractCheckChallengeOrNonceResponseForUnknownFields;
 
-import java.util.HashSet;
 import java.util.Set;
 
-public class CheckClientAttestationChallengeResponseForUnknownFields extends AbstractCondition {
-
-	private static final Set<String> KNOWN_FIELDS = Set.of("attestation_challenge");
+/**
+ * The specification lets the authorization server add further challenges or data to the challenge
+ * response, so unknown fields are permitted; the caller reports them as a warning for sender hygiene.
+ */
+public class CheckClientAttestationChallengeResponseForUnknownFields extends AbstractCheckChallengeOrNonceResponseForUnknownFields {
 
 	@Override
-	@PreEnvironment(required = "endpoint_response")
-	public Environment evaluate(Environment env) {
+	protected Set<String> knownFields() {
+		return Set.of("attestation_challenge");
+	}
 
-		String responseBody = OIDFJSON.getString(env.getElementFromObject("endpoint_response", "body"));
-		JsonObject responseObject = JsonParser.parseString(responseBody).getAsJsonObject();
+	@Override
+	protected String sharedEndpointField() {
+		return "c_nonce";
+	}
 
-		Set<String> unknownFields = new HashSet<>(responseObject.keySet());
-		unknownFields.removeAll(KNOWN_FIELDS);
-		if (!unknownFields.isEmpty()) {
-			// The spec says "The Authorization Server MAY add additional challenges or data",
-			// so additional fields are allowed but worth flagging for sender validation
-			throw error("Challenge endpoint response contains unknown fields",
-				args("unknown_fields", unknownFields, "challenge_response", responseObject));
-		}
+	@Override
+	protected String responseName() {
+		return "Challenge endpoint response";
+	}
 
-		logSuccess("Challenge endpoint response contains no unknown fields");
-		return env;
+	@Override
+	protected String responseArgName() {
+		return "challenge_response";
 	}
 }
