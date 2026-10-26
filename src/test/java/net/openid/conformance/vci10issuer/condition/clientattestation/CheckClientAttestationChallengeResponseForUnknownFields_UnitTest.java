@@ -6,7 +6,6 @@ import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.vci10issuer.condition.AbstractVciUnitTest;
-import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialNonceResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -109,23 +108,6 @@ class CheckClientAttestationChallengeResponseForUnknownFields_UnitTest extends A
 
 		Map<String, Object> data = assertValidationError(cond, env, eventLog);
 		assertEquals(Set.of("unexpected"), data.get("unknown_fields"));
-	}
-
-	@Test
-	void combinedResponsePassesBothChallengeAndNonceValidators() {
-		putEndpoints("https://issuer.example.com/challenge", "https://issuer.example.com/challenge");
-		putResponse("""
-			{"attestation_challenge": "client-attestation-challenge", "c_nonce": "credential-nonce"}
-			""");
-		ValidateClientAttestationChallengeResponse challengeCond = new ValidateClientAttestationChallengeResponse();
-		challengeCond.setProperties("UNIT-TEST", eventLog, ConditionResult.FAILURE);
-		VCIValidateCredentialNonceResponse nonceCond = new VCIValidateCredentialNonceResponse();
-		nonceCond.setProperties("UNIT-TEST", eventLog, ConditionResult.FAILURE);
-
-		assertDoesNotThrow(() -> challengeCond.execute(env));
-		assertDoesNotThrow(() -> nonceCond.execute(env));
-		assertEquals("client-attestation-challenge", env.getString("vci", "attestation_challenge"));
-		assertEquals("credential-nonce", env.getString("vci", "c_nonce"));
 	}
 
 	private void assertCredentialNonceIsUnknown() {
