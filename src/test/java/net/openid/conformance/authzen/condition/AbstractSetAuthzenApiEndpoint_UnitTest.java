@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Covers AbstractSetAuthzenApiEndpoint through its subclasses: a configured endpoint is used as
@@ -63,6 +64,22 @@ class AbstractSetAuthzenApiEndpoint_UnitTest {
 		assertEquals("https://pdp.example.com/tenant1/access/v1/search/subject",
 			endpointFor(new SetAuthzenApiEndpointToSubjectSearchEndpoint(), """
 				{ "policy_decision_point": "https://pdp.example.com/tenant1/" }"""));
+	}
+
+	@Test
+	public void nullEndpoint_usesDefaultPath() {
+		assertEquals("https://pdp.example.com/access/v1/evaluation",
+			endpointFor(new SetAuthzenApiEndpointToAccessEvaluationEndpoint(), """
+				{ "policy_decision_point": "https://pdp.example.com",
+				  "access_evaluation_endpoint": null }"""));
+	}
+
+	@Test
+	public void nonStringEndpoint_fails() {
+		ConditionError e = assertThrows(ConditionError.class, () -> endpointFor(new SetAuthzenApiEndpointToAccessEvaluationEndpoint(), """
+			{ "policy_decision_point": "https://pdp.example.com",
+			  "access_evaluation_endpoint": 42 }"""));
+		assertTrue(e.getMessage().contains("'Access Evaluation API Endpoint' field in the 'AuthZEN' section of the test configuration"), e.getMessage());
 	}
 
 	@Test
