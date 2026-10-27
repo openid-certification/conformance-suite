@@ -19,7 +19,7 @@ public class EnsureNoTopLevelDecisionWhenEvaluationsPresent extends AbstractCond
 		boolean hasEvaluations = response.has("evaluations") && response.get("evaluations").isJsonArray();
 		boolean hasTopLevelDecision = response.has("decision");
 		if (hasEvaluations && hasTopLevelDecision) {
-			throw error("Response contains both `evaluations` and a top-level `decision`; Section 7.2 RECOMMENDED that the top-level decision be omitted when evaluations is returned.",
+			throw error("Response contains both `evaluations` and a top-level `decision`; the top-level decision should be omitted when evaluations is returned.",
 				args("response", response));
 		}
 		logSuccess("Response does not carry a redundant top-level `decision` alongside `evaluations`");
