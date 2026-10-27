@@ -62,9 +62,10 @@ public abstract class AbstractAuthzenPDPEvaluationsTest extends AbstractAuthzenP
 
 	/**
 	 * Returns the `evaluations_semantic` value carried in the request payload, or
-	 * `execute_all` when no value is set. Short-circuit semantics
-	 * (`deny_on_first_deny`, `permit_on_first_permit`) MAY cause the PDP to
-	 * truncate the response, which changes how the response is validated.
+	 * `execute_all` when no value is set. Under a short-circuit semantic
+	 * (`deny_on_first_deny`, `permit_on_first_permit`) the response is validated
+	 * as truncated at the first trigger, see
+	 * {@link EnsureAuthzenEvaluationsResponseValsMatchExpectedValsAsPrefix}.
 	 *
 	 * <p>Cached after first call so idempotency loops do not re-parse the
 	 * payload on every iteration.
