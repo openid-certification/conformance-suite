@@ -170,6 +170,12 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	 */
 	protected static final String VERIFICATION_EVIDENCE_PATH = "verification-evidence";
 
+	/**
+	 * The OpenID Federation configuration endpoint of the emulated credential issuer, whose
+	 * Entity Identifier is this test instance's base url (OpenID Federation 1.0 section 9).
+	 */
+	protected static final String FEDERATION_ENTITY_CONFIGURATION_PATH = ".well-known/openid-federation";
+
 	protected VP1FinalVerifierClientIdPrefix clientIdPrefix;
 	protected VP1FinalVerifierResponseMode responseMode;
 	protected VP1FinalVerifierRequestMethod clientRequestType;
@@ -327,6 +333,14 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			return response;
 		}
 
+		if (FEDERATION_ENTITY_CONFIGURATION_PATH.equals(path)) {
+			// never finishes the test: the lookup happens while the verifier processes the
+			// authorization response, before it decides whether to accept the credential
+			Object response = handleFederationEntityConfigurationRequest();
+			setStatus(Status.WAITING);
+			return response;
+		}
+
 		Object responseObject = handleClientRequestForPath(requestId, path, servletResponse);
 
 		if (finishTestIfAllRequestsAreReceived()) {
@@ -400,6 +414,26 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		return ResponseEntity.ok()
 			.header(HttpHeaders.CONTENT_TYPE, OIDFJSON.getString(served.get("content_type")))
 			.body(Base64.getDecoder().decode(OIDFJSON.getString(served.get("token"))));
+	}
+
+	/**
+	 * Answers a request for the emulated credential issuer's Entity Configuration.
+	 *
+	 * <p>A verifier that trusts credential issuers through OpenID Federation resolves the issuer
+	 * before it falls back to other trust mechanisms, and resolving starts by fetching the
+	 * subject's Entity Configuration (OpenID Federation 1.0 sections 8.3 and 10.1). The fetch can
+	 * come from the verifier or from the resolve endpoint of its Trust Anchor. The emulated issuer
+	 * is not a federation entity, so the request is answered with 404, which tells the verifier to
+	 * use the X.509 trust the credential carries.
+	 */
+	private Object handleFederationEntityConfigurationRequest() {
+		eventLog.log(getName(), args(
+			"msg", "The credential issuer's Entity Configuration was requested, which a verifier "
+				+ "that trusts issuers through OpenID Federation does before it uses other trust "
+				+ "mechanisms. The issuer this test emulates is not a federation entity, so the "
+				+ "request was answered with 404.",
+			"requested_uri", env.getString("base_url") + "/" + FEDERATION_ENTITY_CONFIGURATION_PATH));
+		return ResponseEntity.notFound().build();
 	}
 
 	/**
