@@ -68,6 +68,16 @@ class EnsureAuthzenEvaluationsResponseValsMatchExpectedVals_UnitTest {
 	}
 
 	@Test
+	public void nonBooleanDecision_throws() {
+		put("""
+			{ "evaluations": [ { "decision": true } ] }""",
+			"""
+			{ "evaluations": [ { "decision": "true" } ] }""");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("not a boolean"));
+	}
+
+	@Test
 	public void decisionMismatch_throws() {
 		put("""
 			{ "evaluations": [ { "decision": true } ] }""",
