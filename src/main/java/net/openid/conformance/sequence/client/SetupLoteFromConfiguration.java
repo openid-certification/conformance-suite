@@ -95,7 +95,14 @@ public class SetupLoteFromConfiguration extends AbstractConditionSequence {
 		// re-checks the signature and fails at the same severity
 		unusableListCheck(ParseLote.class, VALUE, "ETSI119602-A.1");
 		unusableListCheck(ValidateLoteSignature.class, PAYLOAD, "ETSI119602-6.8.0");
-		qualityCheck(ValidateLoteSignerCertificate.class, "ETSI119602-6.8.0");
+		// INFO, not WARNING, for the EUDI Wallet Launchpad: every EC development list is signed by a
+		// C=LU certificate while its SchemeTerritory is EU
+		call(condition(ValidateLoteSignerCertificate.class)
+			.skipIfElementMissing(AbstractLoteCondition.LOTE, PAYLOAD)
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.INFO)
+			.dontStopOnFailure()
+			.requirements("ETSI119602-6.8.0"));
 
 		unusableListCheck(ValidateLoteSignerAgainstConfiguredCertificate.class, PAYLOAD, "ETSI119602-6.8.0");
 		call(condition(WarnIfLoteSigningCertificateNotConfigured.class)
