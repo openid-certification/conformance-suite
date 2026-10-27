@@ -41,7 +41,12 @@ public class EnsureAuthzenEvaluationsResponseValsMatchExpectedVals extends Abstr
 				continue;
 			}
 			boolean expectedDecisionVal = OIDFJSON.getBoolean(expectedElem.getAsJsonObject().get("decision"));
-			boolean actualDecisionVal = OIDFJSON.getBoolean(actualElem.getAsJsonObject().get("decision"));
+			JsonElement actualDecision = actualElem.getAsJsonObject().get("decision");
+			if (!actualDecision.isJsonPrimitive() || !actualDecision.getAsJsonPrimitive().isBoolean()) {
+				throw error("An actual evaluations response decision is not a boolean",
+					args("position", i, "decision", actualDecision));
+			}
+			boolean actualDecisionVal = OIDFJSON.getBoolean(actualDecision);
 			if(expectedDecisionVal != actualDecisionVal) {
 				throw error("An actual evaluations response decision does not match expected value",
 					args("position", i, "expected", expectedDecisionVal, "actual", actualDecisionVal));
