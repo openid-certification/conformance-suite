@@ -66,6 +66,21 @@ class AbstractSetAuthzenApiEndpoint_UnitTest {
 	}
 
 	@Test
+	public void nullEndpoint_usesDefaultPath() {
+		assertEquals("https://pdp.example.com/access/v1/evaluation",
+			endpointFor(new SetAuthzenApiEndpointToAccessEvaluationEndpoint(), """
+				{ "policy_decision_point": "https://pdp.example.com",
+				  "access_evaluation_endpoint": null }"""));
+	}
+
+	@Test
+	public void nonStringEndpoint_fails() {
+		assertThrows(ConditionError.class, () -> endpointFor(new SetAuthzenApiEndpointToAccessEvaluationEndpoint(), """
+			{ "policy_decision_point": "https://pdp.example.com",
+			  "access_evaluation_endpoint": 42 }"""));
+	}
+
+	@Test
 	public void noEndpointAndNoIdentifier_fails() {
 		assertThrows(ConditionError.class, () -> endpointFor(new SetAuthzenApiEndpointToSubjectSearchEndpoint(), """
 			{ }"""));
