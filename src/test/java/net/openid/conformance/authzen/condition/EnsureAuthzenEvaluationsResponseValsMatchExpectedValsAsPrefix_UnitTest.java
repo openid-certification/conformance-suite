@@ -55,6 +55,16 @@ class EnsureAuthzenEvaluationsResponseValsMatchExpectedValsAsPrefix_UnitTest {
 	}
 
 	@Test
+	public void nonBooleanDecision_throws() {
+		put(DENY, 3, """
+			{ "evaluations": [ { "decision": true }, { "decision": false } ] }""",
+			"""
+			{ "evaluations": [ { "decision": true }, { "decision": 0 } ] }""");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("not a boolean"), e.getMessage());
+	}
+
+	@Test
 	public void truncatedResponseMatchingPrefix_succeeds() {
 		put(DENY, 3, """
 			{ "evaluations": [ { "decision": true }, { "decision": false } ] }""",
