@@ -282,6 +282,12 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 	public static final String NOTIFICATION_PATH = "notification";
 
+	/**
+	 * The OpenID Federation configuration endpoint of the emulated credential issuer, whose
+	 * Entity Identifier is this test instance's base url (OpenID Federation 1.0 section 9).
+	 */
+	public static final String FEDERATION_ENTITY_CONFIGURATION_PATH = ".well-known/openid-federation";
+
 	// 60 second lifetime per FAPI2-SP-FINAL-5.3.2.1-11 https://openid.net/specs/fapi-security-profile-2_0-final.html#section-5.3.2.1-2.11
 	public static final long AUTHORIZATION_CODE_LIFETIME_SECONDS = 60;
 
@@ -711,6 +717,8 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			} finally {
 				setStatus(Status.WAITING);
 			}
+		} else if (path.equals(FEDERATION_ENTITY_CONFIGURATION_PATH)) {
+			return federationEntityConfigurationEndpoint();
 		} else if (path.equals(".well-known/openid-configuration")) {
 			throw new TestFailureException(getId(), "The wallet has fetched .well-known/openid-configuration instead of .well-known/oauth-authorization-server as per RFC8414.");
 		} else if (path.equals(".well-known/oauth-authorization-server")) {
@@ -777,6 +785,26 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			return notificationEndpoint(requestId);
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+	}
+
+	/**
+	 * Answers a request for the emulated credential issuer's Entity Configuration.
+	 *
+	 * <p>A wallet that trusts credential issuers through OpenID Federation resolves the issuer
+	 * before it falls back to other trust mechanisms, and resolving starts by fetching the
+	 * subject's Entity Configuration (OpenID Federation 1.0 sections 8.3 and 10.1). The fetch can
+	 * come from the wallet or from the resolve endpoint of its Trust Anchor. The emulated issuer
+	 * is not a federation entity, so the request is answered with 404, which tells the wallet to
+	 * use its other trust mechanisms.
+	 */
+	protected Object federationEntityConfigurationEndpoint() {
+		eventLog.log(getName(), args(
+			"msg", "The credential issuer's Entity Configuration was requested, which a wallet "
+				+ "that trusts issuers through OpenID Federation does before it uses other trust "
+				+ "mechanisms. The issuer this test emulates is not a federation entity, so the "
+				+ "request was answered with 404.",
+			"requested_uri", env.getString("base_url") + "/" + FEDERATION_ENTITY_CONFIGURATION_PATH));
+		return ResponseEntity.notFound().build();
 	}
 
 	protected Object credentialOfferEndpoint(String requestId) {
