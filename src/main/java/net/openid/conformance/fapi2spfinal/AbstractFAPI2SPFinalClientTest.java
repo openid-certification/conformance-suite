@@ -781,7 +781,14 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		if (path.startsWith("/.well-known/oauth-authorization-server")) {
 			response = discoveryEndpoint();
 		} else {
-			Object profileResponse = profileBehavior.handleProfileSpecificWellKnown(path);
+			// the profile's handler may call conditions, which need the test running
+			Object profileResponse;
+			setStatus(Status.RUNNING);
+			try {
+				profileResponse = profileBehavior.handleProfileSpecificWellKnown(path);
+			} finally {
+				setStatus(Status.WAITING);
+			}
 			if (profileResponse != null) {
 				response = profileResponse;
 			} else {
