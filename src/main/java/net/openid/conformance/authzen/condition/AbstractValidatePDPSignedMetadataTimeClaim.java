@@ -14,8 +14,8 @@ public abstract class AbstractValidatePDPSignedMetadataTimeClaim extends Abstrac
 
 	/**
 	 * Returns the claim in seconds since the epoch, or null when the JWT does not carry it.
-	 * {@link ExtractPDPSignedMetadata} parses the JWT with Nimbus, which rejects an exp, iat or
-	 * nbf that is not a number, so a claim present here is one.
+	 * {@link ExtractPDPSignedMetadata} rejects an exp, iat or nbf that is null or not a number, so
+	 * a claim present here is one.
 	 */
 	protected Long getTimeClaim(Environment env, String claim) {
 		JsonElement claimEl = env.getElementFromObject("pdp_signed_metadata", "claims." + claim);
