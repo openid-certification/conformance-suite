@@ -137,6 +137,7 @@ import net.openid.conformance.vci10wallet.condition.VCIAddCredentialDataToAuthor
 import net.openid.conformance.vci10wallet.condition.VCIAddNotificationIdToCredentialEndpointResponse;
 import net.openid.conformance.vci10wallet.condition.VCIAddOpenIdCredentialToAuthorizationDetailsSupportedIfScopeIsMissing;
 import net.openid.conformance.vci10wallet.condition.VCICheckForUnknownFieldsInNotificationRequest;
+import net.openid.conformance.vci10wallet.condition.VCICheckCredentialIssuerMetadataRequestAcceptHeaderSyntax;
 import net.openid.conformance.vci10wallet.condition.VCICheckIssuerMetadataRequestUrl;
 import net.openid.conformance.vci10wallet.condition.VCICheckOAuthAuthorizationServerMetadataRequestUrl;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialEndpointResponse;
@@ -155,6 +156,7 @@ import net.openid.conformance.vci10wallet.condition.VCIEnsureRequestedScopeInclu
 import net.openid.conformance.vci10wallet.condition.VCIEnsureRequestedScopeIncludesOfferedCredentialConfiguration;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateCredentialRequestEncryptionJwks;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateIssuerState;
+import net.openid.conformance.vci10wallet.condition.VCIDetermineCredentialIssuerMetadataResponseFormat;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateSignedCredentialIssuerMetadata;
 import net.openid.conformance.vci10wallet.condition.VCIInjectAuthorizationDetailsForPreAuthorizedCodeFlow;
 import net.openid.conformance.vci10wallet.condition.VCIInjectCredentialConfigurationIdHint;
@@ -1625,12 +1627,12 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 	protected Object credentialIssuerMetadataEndpoint(String requestId) {
 
-		JsonElement acceptHeader = env.getElementFromObject(requestId, "headers.accept");
-		String acceptHeaderValue = acceptHeader != null ? OIDFJSON.getString(acceptHeader) : null;
-
 		setStatus(Status.RUNNING);
+		callAndContinueOnFailure(VCICheckCredentialIssuerMetadataRequestAcceptHeaderSyntax.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.2", "RFC9110-12.5.1", "RFC9110-5.6.6");
+		callAndStopOnFailure(VCIDetermineCredentialIssuerMetadataResponseFormat.class, "OID4VCI-1FINAL-12.2.2");
+
 		ResponseEntity<?> responseEntity;
-		if ("application/jwt".equalsIgnoreCase(acceptHeaderValue)) {
+		if (VCIDetermineCredentialIssuerMetadataResponseFormat.SIGNED_MEDIA_TYPE.equals(env.getString(VCIDetermineCredentialIssuerMetadataResponseFormat.ENV_KEY))) {
 			generateSignedCredentialIssuerMetadata();
 			String signedCredentialIssuerMetadata = env.getString("signed_credential_issuer_metadata");
 			responseEntity = ResponseEntity.status(HttpStatus.OK).contentType(MediaType.parseMediaType("application/jwt")).body(signedCredentialIssuerMetadata);
