@@ -18,6 +18,7 @@ import re
 import subprocess
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -54,8 +55,17 @@ def api(method, path, params=None, body=None, content_type="application/json"):
     url = SERVER + "api/" + path + ("?" + urllib.parse.urlencode(params) if params else "")
     request = urllib.request.Request(url, method=method, data=body,
                                      headers={"Authorization": "Bearer " + TOKEN, "Content-Type": content_type})
-    with urllib.request.urlopen(request, timeout=60) as response:
-        return json.loads(response.read() or "null")
+    # retry network errors (not HTTP error responses) a few times; a run takes long enough to meet one
+    for attempt in range(5):
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                return json.loads(response.read() or "null")
+        except urllib.error.HTTPError:
+            raise
+        except (urllib.error.URLError, TimeoutError, ConnectionError):
+            if attempt == 4:
+                raise
+            time.sleep(5)
 
 
 def create_plan(plan, config):
@@ -189,9 +199,9 @@ def open_in_wallet(url):
     adb("shell", "am start -a android.intent.action.VIEW -d '" + url + "'")
 
 
-# Android permission prompts and Chrome's first-run screens, which a fresh emulator shows when the
-# wallet first opens the authorization endpoint in the browser
-DISMISS_LABELS = ("Don’t allow", "Don't allow", "Allow", "Use without an account", "No thanks", "No, thanks",
+# Android permission prompts, "isn't responding" dialogs on a loaded emulator, and Chrome's first-run
+# screens, which a fresh emulator shows when the wallet first opens the authorization endpoint in the browser
+DISMISS_LABELS = ("Don’t allow", "Don't allow", "Allow", "Wait", "Use without an account", "No thanks", "No, thanks",
                   "Accept & continue", "Got it")
 
 
@@ -241,7 +251,7 @@ def onboard():
 
 
 def wallet_handles_offer(url, label):
-    """Open a credential offer and accept it. Returns ('issued' | 'error' | 'timeout', screen text)."""
+    """Open a credential offer and accept it. Returns ('issued' | 'deferred' | 'error' | 'timeout', screen text)."""
     open_in_wallet(url)
     deadline = time.time() + 180
     accepted = False
@@ -259,6 +269,11 @@ def wallet_handles_offer(url, label):
             evidence(label + "-error")
             close_result_screen(nodes)
             return "error", " / ".join(t for t in texts(nodes) if t != WALLET_ERROR)
+        elif shows(nodes, "In progress!") and find(nodes, "OK"):
+            # deferred issuance: the wallet fetches the credential later
+            evidence(label + "-deferred")
+            tap(find(nodes, "OK"))
+            return "deferred", ""
         elif not accepted and shows(nodes, "Issuance request") and find(nodes, "Accept"):
             tap(find(nodes, "Accept"))
             accepted = True
@@ -325,6 +340,15 @@ def run_vci_module(plan_id, entry):
     label = label_for(entry)
     url = next_wallet_url(module_id)
     wallet, detail = wallet_handles_offer(url, label) if url else ("no-url", "")
+    if wallet == "deferred":
+        # give the wallet's background check for deferred credentials a few chances, reopening the app
+        for _ in range(5):
+            status, result = wait_for_module(module_id, 60)
+            if status in ("FINISHED", "INTERRUPTED"):
+                break
+            adb("shell", "monkey", "-p", WALLET_PACKAGE, "-c", "android.intent.category.LAUNCHER", "1")
+            if pin_requested(screen()):
+                type_text(PIN)
     status, result = wait_for_module(module_id, 90)
     return module_id, wallet, detail, status, result
 

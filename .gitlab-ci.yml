@@ -508,7 +508,7 @@ android_wallet_test:
   tags: [android]
   image: eudiw-android:1
   interruptible: true
-  timeout: 90m
+  timeout: 150m
   resource_group: tea-android
   needs:
     - job: deploy-review
