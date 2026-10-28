@@ -220,13 +220,13 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	}
 
 	/**
-	 * Each identical search follows every page, as {@link #runPaginatedSearchLoop} does, and
-	 * leaves the results of all pages in {@code authzen_search_endpoint_aggregated_results} for
-	 * the idempotency comparison.
+	 * Each identical search follows every page, as {@link #runPaginatedSearchLoop} does, logging
+	 * each page in a block named after {@code blockName}, and leaves the results of all pages in
+	 * {@code authzen_search_endpoint_aggregated_results} for the idempotency comparison.
 	 */
 	@Override
-	protected void performIdempotencyIteration() {
-		if (fetchAllSearchPages()) {
+	protected void performIdempotencyIteration(String blockName) {
+		if (fetchAllSearchPages(blockName + ", page ")) {
 			throw new TestFailureException(getId(),
 				"The PDP did not answer the search with HTTP 200, so its results cannot be compared across identical requests");
 		}
@@ -326,7 +326,7 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	protected void runPaginatedSearchLoop() {
 		BaseSearch baseSearch = getBaseSearch();
 		boolean compareWithBaseSearch = baseSearch != null && fetchBaseSearchResults();
-		if (!fetchAllSearchPages()) {
+		if (!fetchAllSearchPages("Page ")) {
 			matchAggregatedSearchResults();
 			if (compareWithBaseSearch) {
 				compareWithBaseSearch(baseSearch);
@@ -344,7 +344,7 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	private boolean fetchBaseSearchResults() {
 		sendingBaseSearch = true;
 		try {
-			if (fetchAllSearchPages()) {
+			if (fetchAllSearchPages("Base search, page ")) {
 				return false;
 			}
 			env.putObject("authzen_search_base_results", env.getObject("authzen_search_endpoint_aggregated_results").deepCopy());
@@ -374,14 +374,15 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	}
 
 	/**
-	 * Sends the search request and then one request per {@code page.next_token}, each in its own
-	 * log block, adding each page's results to {@code authzen_search_endpoint_aggregated_results}.
-	 * A later page that is not a 200 fails the test. When the PDP is still returning a page token
-	 * after {@code MAX_PAGES} pages it stops with a warning, and the pages fetched so far are matched.
+	 * Sends the search request and then one request per {@code page.next_token}, each in a log
+	 * block named {@code pageBlockPrefix} and the page number, adding each page's results to
+	 * {@code authzen_search_endpoint_aggregated_results}. A later page that is not a 200 fails the
+	 * test. When the PDP is still returning a page token after {@code MAX_PAGES} pages it stops
+	 * with a warning, and the pages fetched so far are matched.
 	 *
 	 * @return true when the first response is not a 200, so there are no results to match
 	 */
-	private boolean fetchAllSearchPages() {
+	private boolean fetchAllSearchPages(String pageBlockPrefix) {
 		int pageNum = 0;
 		do {
 			if (pageNum == MAX_PAGES) {
@@ -394,7 +395,7 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 				break;
 			}
 			pageNum++;
-			eventLog.startBlock((sendingBaseSearch ? "Base search, page " : "Page ") + pageNum);
+			eventLog.startBlock(pageBlockPrefix + pageNum);
 			try {
 				createAuthzenApiRequest();
 				if (pageNum > 1 && sendRawRequest()) {
