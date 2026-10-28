@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi2spfinal;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
@@ -11,6 +12,7 @@ import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIWalletAuthorizationCodeFlowVariant;
+import net.openid.conformance.vci10wallet.VCICredentialConfigurations;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOffer;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferRedirectUrl;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferUri;
@@ -128,12 +130,28 @@ public class VCIClientProfileBehavior_UnitTest {
 
 	@Test
 	public void defaultCredentialConfigurationIdFollowsCredentialFormat() {
-		assertThat(VCIClientProfileBehavior.defaultCredentialConfigurationId(VCI1FinalCredentialFormat.MDOC))
+		assertThat(VCIClientProfileBehavior.defaultCredentialConfigurationId(VCI1FinalCredentialFormat.MDOC, false))
 			.isEqualTo("eu.europa.ec.eudi.pid.mdoc.1");
-		assertThat(VCIClientProfileBehavior.defaultCredentialConfigurationId(VCI1FinalCredentialFormat.SD_JWT_VC))
+		assertThat(VCIClientProfileBehavior.defaultCredentialConfigurationId(VCI1FinalCredentialFormat.SD_JWT_VC, false))
 			.isEqualTo("eu.europa.ec.eudi.pid.1");
-		assertThat(VCIClientProfileBehavior.defaultCredentialConfigurationId(null))
+		assertThat(VCIClientProfileBehavior.defaultCredentialConfigurationId(null, false))
 			.isEqualTo("eu.europa.ec.eudi.pid.1");
+	}
+
+	@Test
+	public void keyAttestedDefaultOffersBothKeyAttestedProofTypes() {
+		JsonObject configurations = VCICredentialConfigurations.getDefault("test");
+		for (VCI1FinalCredentialFormat format : new VCI1FinalCredentialFormat[] {VCI1FinalCredentialFormat.MDOC, VCI1FinalCredentialFormat.SD_JWT_VC}) {
+			String id = VCIClientProfileBehavior.defaultCredentialConfigurationId(format, true);
+			assertThat(configurations.has(id)).as(id).isTrue();
+			JsonObject proofTypes = configurations.getAsJsonObject(id).getAsJsonObject("proof_types_supported");
+			assertThat(proofTypes.keySet()).as(id).containsExactlyInAnyOrder("jwt", "attestation");
+			for (String proofType : proofTypes.keySet()) {
+				assertThat(proofTypes.getAsJsonObject(proofType).has("key_attestations_required")).as(id + " " + proofType).isTrue();
+			}
+		}
+		assertThat(new VCIHaipClientProfileBehavior().offersKeyAttestedCredentialByDefault()).isTrue();
+		assertThat(new VCIClientProfileBehavior().offersKeyAttestedCredentialByDefault()).isFalse();
 	}
 
 	@Test

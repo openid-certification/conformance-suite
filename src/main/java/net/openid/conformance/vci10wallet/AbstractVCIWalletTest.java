@@ -481,7 +481,8 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	}
 
 	protected String getDefaultCredentialConfigurationId() {
-		return VCIClientProfileBehavior.defaultCredentialConfigurationId(vciCredentialFormat);
+		// HAIP 1.0 section 4.5.1: Wallets MUST support key attestations
+		return VCIClientProfileBehavior.defaultCredentialConfigurationId(vciCredentialFormat, fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP);
 	}
 
 	protected void configureOauthAuthorizationServerMetadata() {

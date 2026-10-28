@@ -198,6 +198,31 @@ public class VCICredentialConfigurations {
 					},
 					"scope": "eudi.pid.mdoc.1.attestation.keyattest"
 				},
+				"eu.europa.ec.eudi.pid.mdoc.1.jwt_and_attestation.keyattest": {
+					"format": "mso_mdoc",
+					"doctype": "eu.europa.ec.eudi.pid.1",
+					"cryptographic_binding_methods_supported": [ "cose_key" ],
+					"credential_signing_alg_values_supported": [ -7 ],
+					"proof_types_supported": {
+						"jwt": {
+							"proof_signing_alg_values_supported": [ "ES256" ],
+							"key_attestations_required": {}
+						},
+						"attestation": {
+							"proof_signing_alg_values_supported": [ "ES256" ],
+							"key_attestations_required": {}
+						}
+					},
+					"credential_metadata": {
+						"display": [
+						{
+							"name": "Fake PID (mdoc): JWT and Attestation Proof with Key Attestation ${testId}",
+							"description": "OpenID Conformance Test Fake PID in mso_mdoc format"
+						}
+						]
+					},
+					"scope": "eudi.pid.mdoc.1.jwt_and_attestation.keyattest"
+				},
 				"org.iso.18013.5.1.mDL": {
 					"format": "mso_mdoc",
 					"doctype": "org.iso.18013.5.1.mDL",
