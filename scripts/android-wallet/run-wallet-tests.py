@@ -149,6 +149,9 @@ def onboard():
         if "Type a PIN" in shown or "Confirm PIN" in shown:
             type_text(PIN)
             time.sleep(3)
+        elif "EU Digital Identity Wallet" in shown and find(nodes, "Continue"):
+            tap(find(nodes, "Continue"))
+            time.sleep(3)
         elif find(nodes, "GO TO HOME"):
             tap(find(nodes, "GO TO HOME"))
             time.sleep(3)
