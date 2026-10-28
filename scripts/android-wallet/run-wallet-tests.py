@@ -40,6 +40,10 @@ VP_PLAN = ("oid4vp-1final-wallet-haip-test-plan", {
 })
 
 WALLET_ERROR = "Oups! Something went wrong"
+BLOCKED = "Presentation blocked"
+# The demo flavour presents each PID instance only once (CredentialPolicy.OnceOnly), and the suite's
+# issuance module issues one, so the VP plan needs a PID issued for every module that presents one
+EXTRA_PIDS = int(os.environ.get("EXTRA_PIDS", "14"))
 NOT_IN_WALLET = "The requested document is not available in your EUDI Wallet."
 
 
@@ -92,6 +96,12 @@ def next_wallet_url(module_id, timeout=60):
         if time.time() > deadline or module_status(module_id)[0] in ("FINISHED", "INTERRUPTED"):
             return None
         time.sleep(2)
+
+
+def findings(module_id):
+    """The module's FAILURE and WARNING log entries, as 'condition: message'."""
+    return [e.get("src", "") + ": " + str(e.get("msg", ""))[:300]
+            for e in api("GET", "log/" + module_id) if e.get("result") in ("FAILURE", "WARNING")]
 
 
 def upload_screenshot(module_id, png):
@@ -260,8 +270,8 @@ def wallet_handles_offer(url, label):
 def wallet_handles_request(url, label):
     """Open a presentation request. Shares when the wallet offers to, else captures the wallet's screen.
 
-    Returns (outcome, screen text, screenshot or None); outcome is 'shared', 'error', 'not-in-wallet',
-    'share-failed' or 'timeout'.
+    Returns (outcome, screen text, screenshot or None); outcome is 'shared', 'error', 'blocked',
+    'not-in-wallet', 'share-failed' or 'timeout'.
     """
     open_in_wallet(url)
     deadline = time.time() + 120
@@ -285,6 +295,10 @@ def wallet_handles_request(url, label):
             png = evidence(label + "-error")
             close_result_screen(nodes)
             return "error", shown, png
+        elif shows(nodes, BLOCKED):
+            png = evidence(label + "-blocked")
+            close_result_screen(nodes)
+            return "blocked", shown, png
         elif shows(nodes, NOT_IN_WALLET):
             png = evidence(label + "-not-in-wallet")
             back()
@@ -342,10 +356,25 @@ def run_plan(plan, config, run_module, skip):
             results.append({"key": key, "wallet": "not-run", "detail": reason})
             continue
         module_id, wallet, detail, status, result = run_module(plan_doc["_id"], entry)
+        found = findings(module_id)
         print("  wallet:", wallet, detail[:200], "| suite:", status, result)
+        for f in found:
+            print("    " + f[:250])
         results.append({"key": key, "module_id": module_id, "wallet": wallet, "detail": detail,
-                        "status": status, "result": result})
-    return results
+                        "status": status, "result": result, "findings": found})
+    return plan_doc, results
+
+
+def issue_extra_pids(plan_doc, count):
+    """Run the plain issuance module again so the wallet holds a PID for every VP module."""
+    entry = next(m for m in plan_doc["modules"]
+                 if m["testModule"] == "oid4vci-1_0-wallet-test-credential-issuance" and skip_vci(m) is None
+                 and m["variant"].get("vci_credential_issuance_mode") == "immediate")
+    issued = 0
+    for _ in range(count):
+        if run_vci_module(plan_doc["_id"], entry)[1] == "issued":
+            issued += 1
+    print("issued %d of %d extra PIDs" % (issued, count))
 
 
 def skip_vci(entry):
@@ -380,8 +409,11 @@ def main():
     run = os.environ.get("CI_JOB_ID", str(int(time.time())))
     os.makedirs(ARTIFACTS, exist_ok=True)
     onboard()
-    results = run_plan(VCI_PLAN, load_config(vci_config_path, "android-ci-vci-" + run), run_vci_module, skip_vci)
-    results += run_plan(VP_PLAN, load_config(vp_config_path, "android-ci-vp-" + run), run_vp_module, lambda e: None)
+    vci_plan, results = run_plan(VCI_PLAN, load_config(vci_config_path, "android-ci-vci-" + run), run_vci_module,
+                                 skip_vci)
+    issue_extra_pids(vci_plan, EXTRA_PIDS)
+    results += run_plan(VP_PLAN, load_config(vp_config_path, "android-ci-vp-" + run), run_vp_module,
+                        lambda e: None)[1]
     with open(os.path.join(ARTIFACTS, "results.json"), "w") as f:
         json.dump(results, f, indent=1)
     with open(os.path.join(ARTIFACTS, "logcat.txt"), "wb") as f:
