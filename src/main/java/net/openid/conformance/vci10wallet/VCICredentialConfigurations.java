@@ -34,7 +34,8 @@ public class VCICredentialConfigurations {
 					"credential_signing_alg_values_supported": [ "ES256" ],
 					"proof_types_supported": {
 						"attestation": {
-							"proof_signing_alg_values_supported": [ "ES256" ]
+							"proof_signing_alg_values_supported": [ "ES256" ],
+							"key_attestations_required": {}
 						}
 					},
 					"credential_metadata": {
@@ -141,7 +142,8 @@ public class VCICredentialConfigurations {
 					"credential_signing_alg_values_supported": [ -7 ],
 					"proof_types_supported": {
 						"attestation": {
-							"proof_signing_alg_values_supported": [ "ES256" ]
+							"proof_signing_alg_values_supported": [ "ES256" ],
+							"key_attestations_required": {}
 						}
 					},
 					"credential_metadata": {
@@ -243,7 +245,8 @@ public class VCICredentialConfigurations {
 					"credential_signing_alg_values_supported": [ -7 ],
 					"proof_types_supported": {
 						"attestation": {
-							"proof_signing_alg_values_supported": [ "ES256" ]
+							"proof_signing_alg_values_supported": [ "ES256" ],
+							"key_attestations_required": {}
 						}
 					},
 					"credential_metadata": {
@@ -277,7 +280,8 @@ public class VCICredentialConfigurations {
 					"credential_signing_alg_values_supported": [ "ES256" ],
 					"proof_types_supported": {
 						"attestation": {
-							"proof_signing_alg_values_supported": [ "ES256" ]
+							"proof_signing_alg_values_supported": [ "ES256" ],
+							"key_attestations_required": {}
 						}
 					},
 					"credential_metadata": {
@@ -297,7 +301,8 @@ public class VCICredentialConfigurations {
 					"credential_signing_alg_values_supported": [ -7 ],
 					"proof_types_supported": {
 						"attestation": {
-							"proof_signing_alg_values_supported": [ "ES256" ]
+							"proof_signing_alg_values_supported": [ "ES256" ],
+							"key_attestations_required": {}
 						}
 					},
 					"credential_metadata": {
