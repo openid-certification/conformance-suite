@@ -501,6 +501,45 @@ vc_test:
     - set_up_for_running_test_plan
     - run_vc_test_plan
 
+# The EC reference wallet in an emulator on the tea runner (tag android: KVM, the Android SDK and the
+# wallet APK mounted read-only at /eudiw), driven over adb against this pipeline's deployment.
+android_wallet_test:
+  stage: test
+  tags: [android]
+  image: eudiw-android:1
+  interruptible: true
+  timeout: 45m
+  resource_group: tea-android
+  needs:
+    - job: deploy-review
+      optional: true
+    - job: deploy-normal
+      optional: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_COMMIT_BRANCH
+      when: manual
+      allow_failure: true
+  variables:
+    GIT_DEPTH: "10"
+    ANDROID_HOME: /eudiw/sdk
+    WALLET_APK: /eudiw/out/app-demo-debug-logging.apk
+    ANDROID_WORK_DIR: $CI_PROJECT_DIR/.android-work
+    ARTIFACT_DIR: $CI_PROJECT_DIR/android-wallet-artifacts
+  script:
+    - apt-get update -qq && apt-get install -y -qq python3 > /dev/null
+    - echo "Running the EC reference wallet against $CONFORMANCE_SERVER"
+    - scripts/android-wallet/start-emulator.sh
+    - export HOME=$ANDROID_WORK_DIR/home PATH=$ANDROID_HOME/platform-tools:$PATH
+    - scripts/android-wallet/run-wallet-tests.py vci-issuance scripts/android-wallet/vci-ec-wallet-config.json
+  after_script:
+    - cp .android-work/emulator.log android-wallet-artifacts/ 2>/dev/null || true
+  artifacts:
+    access: developer
+    when: always
+    paths:
+      - android-wallet-artifacts/
+
 ssf_test:
   <<: *deployment_test
   script:
