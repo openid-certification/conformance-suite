@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
-"""Run conformance suite wallet test modules against an Android wallet in an emulator, driven over adb.
+"""Run conformance suite wallet test plans against an Android wallet in an emulator, driven over adb.
 
 Uses only the standard library. Needs a booted emulator with the wallet installed (see start-emulator.sh),
-CONFORMANCE_SERVER and CONFORMANCE_TOKEN. Screenshots, UI dumps and the wallet's logcat go to ARTIFACT_DIR.
+CONFORMANCE_SERVER and CONFORMANCE_TOKEN. Screenshots, screen texts and the wallet's logcat go to ARTIFACT_DIR,
+with results.json listing every module run.
 
-    run-wallet-tests.py vci-issuance <config.json>
+    run-wallet-tests.py <vci-config.json> <vp-config.json> <expected.json>
+
+The VCI plan runs first, so that the wallet holds the PIDs the VP plan asks for. Each module's outcome is
+the suite's status and result plus what the wallet showed; the run fails when any outcome differs from
+expected.json.
 """
+import base64
 import json
 import os
 import re
@@ -21,13 +27,20 @@ PIN = os.environ.get("WALLET_PIN", "147258")
 ARTIFACTS = os.environ.get("ARTIFACT_DIR", "android-wallet-artifacts")
 WALLET_PACKAGE = os.environ.get("WALLET_PACKAGE", "eu.europa.ec.euidi")
 
-VCI_HAIP_PLAN = "oid4vci-1_0-wallet-haip-test-plan"
-VCI_PLAN_VARIANT = {
+VCI_PLAN = ("oid4vci-1_0-wallet-haip-test-plan", {
     "credential_format": "sd_jwt_vc",
     "vci_authorization_code_flow_variant": "issuer_initiated",
     "grant_management": "disabled",
     "vci_credential_offer_variant": "by_value",
-}
+})
+VP_PLAN = ("oid4vp-1final-wallet-haip-test-plan", {
+    "credential_type": "eudi_pid",
+    "credential_format": "sd_jwt_vc",
+    "response_mode": "direct_post.jwt",
+})
+
+WALLET_ERROR = "Oups! Something went wrong"
+NOT_IN_WALLET = "The requested document is not available in your EUDI Wallet."
 
 
 # --- suite API ---------------------------------------------------------------------------------
@@ -40,34 +53,56 @@ def api(method, path, params=None, body=None, content_type="application/json"):
         return json.loads(response.read() or "null")
 
 
-def create_plan(plan_name, variant, config):
-    return api("POST", "plan", {"planName": plan_name, "variant": json.dumps(variant)}, json.dumps(config).encode())
+def create_plan(plan, config):
+    name, variant = plan
+    plan_id = api("POST", "plan", {"planName": name, "variant": json.dumps(variant)}, json.dumps(config).encode())["id"]
+    print("plan", name, SERVER + "plan-detail.html?plan=" + plan_id)
+    return api("GET", "plan/" + plan_id)
 
 
-def start_module(plan_id, test_module, variant):
-    return api("POST", "runner", {"test": test_module, "plan": plan_id, "variant": json.dumps(variant)})["id"]
+def start_module(plan_id, entry):
+    module_id = api("POST", "runner", {"test": entry["testModule"], "plan": plan_id,
+                                       "variant": json.dumps(entry["variant"])})["id"]
+    print("module", entry["testModule"], SERVER + "log-detail.html?log=" + module_id)
+    return module_id
 
 
-def module_info(module_id):
-    return api("GET", "info/" + module_id)
+def module_status(module_id):
+    info = api("GET", "info/" + module_id)
+    return info.get("status"), info.get("result")
 
 
-def wait_for_module(module_id, statuses, timeout):
+def wait_for_module(module_id, timeout):
     deadline = time.time() + timeout
     while True:
-        info = module_info(module_id)
-        if info.get("status") in statuses or time.time() > deadline:
-            return info
+        status, result = module_status(module_id)
+        if status in ("FINISHED", "INTERRUPTED") or time.time() > deadline:
+            return status, result
         time.sleep(3)
 
 
-def wallet_urls(module_id):
-    deadline = time.time() + 60
+def next_wallet_url(module_id, timeout=60):
+    """The first URL the module wants a wallet to open that it has not opened yet, or None."""
+    deadline = time.time() + timeout
     while True:
-        urls = api("GET", "runner/browser/" + module_id).get("urls") or []
-        if urls or time.time() > deadline:
-            return urls
+        browser = api("GET", "runner/browser/" + module_id)
+        pending = [u for u in browser.get("urls") or [] if u not in (browser.get("visited") or [])]
+        if pending:
+            return pending[0]
+        if time.time() > deadline or module_status(module_id)[0] in ("FINISHED", "INTERRUPTED"):
+            return None
         time.sleep(2)
+
+
+def upload_screenshot(module_id, png):
+    """Fill the module's open image placeholders with a screenshot of the wallet's error screen."""
+    data = ("data:image/png;base64," + base64.b64encode(png).decode()).encode()
+    filled = 0
+    for entry in api("GET", "log/" + module_id + "/images"):
+        if entry.get("upload") and not entry.get("img"):
+            api("POST", "log/" + module_id + "/images/" + entry["upload"], body=data, content_type="text/plain")
+            filled += 1
+    return filled
 
 
 # --- wallet over adb ---------------------------------------------------------------------------
@@ -86,6 +121,7 @@ def attr(node, name):
 
 def screen():
     """The visible UI as a list of (text, content-desc, class, (x, y) centre)."""
+    xml = ""
     for _ in range(5):
         adb("shell", "uiautomator", "dump", "/sdcard/ui.xml")
         xml = adb("exec-out", "cat", "/sdcard/ui.xml").decode("utf-8", "replace")
@@ -105,6 +141,10 @@ def texts(nodes):
     return [t for t, _, _, _ in nodes if t]
 
 
+def shows(nodes, fragment):
+    return any(fragment in t for t in texts(nodes))
+
+
 def find(nodes, label):
     for text, desc, _, centre in nodes:
         if label in (text, desc):
@@ -120,12 +160,22 @@ def type_text(value):
     adb("shell", "input", "text", value)
 
 
+def back():
+    adb("shell", "input", "keyevent", "4")
+
+
 def evidence(label):
     os.makedirs(ARTIFACTS, exist_ok=True)
+    png = adb("exec-out", "screencap", "-p")
     with open(os.path.join(ARTIFACTS, label + ".png"), "wb") as f:
-        f.write(adb("exec-out", "screencap", "-p"))
+        f.write(png)
     with open(os.path.join(ARTIFACTS, label + ".txt"), "w") as f:
         f.write("\n".join(texts(screen())) + "\n")
+    return png
+
+
+def open_in_wallet(url):
+    adb("shell", "am start -a android.intent.action.VIEW -d '" + url + "'")
 
 
 # Android permission prompts and Chrome's first-run screens, which a fresh emulator shows when the
@@ -143,6 +193,19 @@ def dismiss_system_dialogs(nodes):
     return False
 
 
+def pin_requested(nodes):
+    return any(t in ("Welcome back", "Type a PIN", "Confirm PIN", "Enter your PIN") for t in texts(nodes)) \
+        or any(t.startswith("Please enter your PIN") for t in texts(nodes))
+
+
+def close_result_screen(nodes):
+    centre = find(nodes, "Close")
+    if centre:
+        tap(centre)
+    else:
+        back()
+
+
 def onboard():
     """Set the PIN on a freshly installed wallet; a no-op if it is already set up."""
     adb("shell", "monkey", "-p", WALLET_PACKAGE, "-c", "android.intent.category.LAUNCHER", "1")
@@ -152,90 +215,182 @@ def onboard():
         if dismiss_system_dialogs(nodes):
             continue
         shown = texts(nodes)
-        if "Type a PIN" in shown or "Confirm PIN" in shown:
-            type_text(PIN)
-            time.sleep(3)
-        elif "EU Digital Identity Wallet" in shown and find(nodes, "Continue"):
+        if "EU Digital Identity Wallet" in shown and find(nodes, "Continue"):
             tap(find(nodes, "Continue"))
-            time.sleep(3)
+        elif pin_requested(nodes):
+            type_text(PIN)
         elif find(nodes, "GO TO HOME"):
             tap(find(nodes, "GO TO HOME"))
-            time.sleep(3)
-        elif "Welcome back" in shown:
-            type_text(PIN)
-            time.sleep(3)
         elif "Welcome" in shown or "Documents" in shown or "Home" in shown:
             print("wallet onboarded")
             return
-        else:
-            time.sleep(3)
+        time.sleep(3)
     evidence("onboard-timeout")
     raise SystemExit("wallet onboarding did not reach the home screen within 180 s")
 
 
-def accept_offer(offer_url, label):
-    """Open a credential offer in the wallet and accept it. Returns 'issued' or the error text shown."""
-    adb("shell", "am start -a android.intent.action.VIEW -d '" + offer_url + "'")
+def wallet_handles_offer(url, label):
+    """Open a credential offer and accept it. Returns ('issued' | 'error' | 'timeout', screen text)."""
+    open_in_wallet(url)
     deadline = time.time() + 180
     accepted = False
     while time.time() < deadline:
         nodes = screen()
         if dismiss_system_dialogs(nodes):
             continue
-        shown = texts(nodes)
-        if "Welcome back" in shown:
+        if pin_requested(nodes):
             type_text(PIN)
-        elif "Document issued" in shown:
+        elif shows(nodes, "Document issued") or shows(nodes, "Documents issued"):
             evidence(label + "-issued")
-            tap(find(nodes, "Close"))
-            return "issued"
-        elif "Oups! Something went wrong" in shown:
+            close_result_screen(nodes)
+            return "issued", ""
+        elif shows(nodes, WALLET_ERROR):
             evidence(label + "-error")
-            message = " / ".join(t for t in shown if t != "Oups! Something went wrong")
-            close = find(nodes, "Close")
-            if close:
-                tap(close)
-            return "wallet error: " + message
-        elif not accepted and "Issuance request" in shown and find(nodes, "Accept"):
-            evidence(label + "-offer")
+            close_result_screen(nodes)
+            return "error", " / ".join(t for t in texts(nodes) if t != WALLET_ERROR)
+        elif not accepted and shows(nodes, "Issuance request") and find(nodes, "Accept"):
             tap(find(nodes, "Accept"))
             accepted = True
         time.sleep(2)
     evidence(label + "-timeout")
-    return "wallet did not finish within 180 s"
+    back()
+    return "timeout", ""
 
 
-# --- test runs ---------------------------------------------------------------------------------
+def wallet_handles_request(url, label):
+    """Open a presentation request. Shares when the wallet offers to, else captures the wallet's screen.
 
-def vci_issuance(config_path):
-    alias = "android-ci-" + os.environ.get("CI_JOB_ID", str(int(time.time())))
-    config = json.loads(open(config_path).read().replace("{ALIAS}", alias))
-    plan = api("GET", "plan/" + create_plan(VCI_HAIP_PLAN, VCI_PLAN_VARIANT, config)["id"])
-    print("plan", SERVER + "plan-detail.html?plan=" + plan["_id"])
-    entry = next(m for m in plan["modules"]
-                 if m["testModule"] == "oid4vci-1_0-wallet-test-credential-issuance"
-                 and m["variant"].get("vci_credential_encryption") == "encrypted"
-                 and m["variant"].get("vci_credential_issuance_mode") == "immediate")
-    module_id = start_module(plan["_id"], entry["testModule"], entry["variant"])
-    print("module", SERVER + "log-detail.html?log=" + module_id)
-    urls = wallet_urls(module_id)
-    if not urls:
-        raise SystemExit("the module offered no credential offer URL")
-    wallet_result = accept_offer(urls[0], "vci-issuance")
-    info = wait_for_module(module_id, ("FINISHED", "INTERRUPTED"), 90)
-    print("wallet:", wallet_result)
-    print("module:", info.get("status"), info.get("result"))
-    return info.get("status") == "FINISHED" and info.get("result") in ("PASSED", "WARNING")
+    Returns (outcome, screen text, screenshot or None); outcome is 'shared', 'error', 'not-in-wallet',
+    'share-failed' or 'timeout'.
+    """
+    open_in_wallet(url)
+    deadline = time.time() + 120
+    shared = False
+    pin_typed = False
+    while time.time() < deadline:
+        nodes = screen()
+        if dismiss_system_dialogs(nodes):
+            continue
+        shown = " / ".join(texts(nodes))
+        if pin_requested(nodes) or (shared and not pin_typed and any("EditText" in c for _, _, c, _ in nodes)):
+            type_text(PIN)
+            pin_typed = shared
+        elif shared and find(nodes, "Close"):
+            # the wallet opens the direct_post redirect_uri only when Close is tapped on its result screen
+            outcome = "shared" if shows(nodes, "successful") else "share-failed"
+            evidence(label + "-" + outcome)
+            tap(find(nodes, "Close"))
+            return outcome, shown, None
+        elif shows(nodes, WALLET_ERROR):
+            png = evidence(label + "-error")
+            close_result_screen(nodes)
+            return "error", shown, png
+        elif shows(nodes, NOT_IN_WALLET):
+            png = evidence(label + "-not-in-wallet")
+            back()
+            return "not-in-wallet", shown, png
+        elif not shared and find(nodes, "Share"):
+            evidence(label + "-request")
+            tap(find(nodes, "Share"))
+            shared = True
+        time.sleep(2)
+    png = evidence(label + "-timeout")
+    back()
+    return "timeout", "", png
+
+
+# --- plans -------------------------------------------------------------------------------------
+
+def label_for(entry):
+    return entry["testModule"].replace("oid4vci-1_0-wallet-test-", "vci-").replace("oid4vp-1final-wallet-", "vp-")
+
+
+def run_vci_module(plan_id, entry):
+    module_id = start_module(plan_id, entry)
+    label = label_for(entry)
+    url = next_wallet_url(module_id)
+    wallet, detail = wallet_handles_offer(url, label) if url else ("no-url", "")
+    status, result = wait_for_module(module_id, 90)
+    return module_id, wallet, detail, status, result
+
+
+def run_vp_module(plan_id, entry):
+    module_id = start_module(plan_id, entry)
+    label = label_for(entry)
+    wallet, detail, png = "no-url", "", None
+    # a module can send the wallet more than one request (for example a retry after an error response)
+    for round_ in range(3):
+        url = next_wallet_url(module_id, timeout=30 if round_ else 60)
+        if not url:
+            break
+        wallet, detail, png = wallet_handles_request(url, label + ("-" + str(round_ + 1) if round_ else ""))
+        if module_status(module_id)[0] in ("FINISHED", "INTERRUPTED"):
+            break
+    if png and upload_screenshot(module_id, png):
+        print("  uploaded the wallet's screen for review")
+    status, result = wait_for_module(module_id, 60)
+    return module_id, wallet, detail, status, result
+
+
+def run_plan(plan, config, run_module, skip):
+    plan_doc = create_plan(plan, config)
+    results = []
+    for entry in plan_doc["modules"]:
+        key = entry["testModule"] + " " + json.dumps(entry["variant"], sort_keys=True)
+        reason = skip(entry)
+        if reason:
+            results.append({"key": key, "wallet": "not-run", "detail": reason})
+            continue
+        module_id, wallet, detail, status, result = run_module(plan_doc["_id"], entry)
+        print("  wallet:", wallet, detail[:200], "| suite:", status, result)
+        results.append({"key": key, "module_id": module_id, "wallet": wallet, "detail": detail,
+                        "status": status, "result": result})
+    return results
+
+
+def skip_vci(entry):
+    if entry["variant"].get("vci_credential_encryption") == "plain":
+        return "the wallet requires an encrypted credential response"
+    return None
+
+
+def load_config(path, alias):
+    return json.loads(open(path).read().replace("{ALIAS}", alias))
+
+
+def compare(results, expected):
+    """Lines describing every result that differs from expected.json (keyed like results.json)."""
+    problems = []
+    for r in results:
+        want = expected.get(r["key"])
+        got = {"wallet": r["wallet"], "status": r.get("status"), "result": r.get("result")}
+        if want is None:
+            problems.append("no expectation for " + r["key"] + ": got " + json.dumps(got))
+        elif any(want.get(k) != v for k, v in got.items() if k in want):
+            problems.append(r["key"] + ": expected " + json.dumps(want) + ", got " + json.dumps(got))
+    for key in set(expected) - {r["key"] for r in results}:
+        problems.append("expected module did not run: " + key)
+    return problems
 
 
 def main():
-    if len(sys.argv) != 3 or sys.argv[1] != "vci-issuance":
+    if len(sys.argv) != 4:
         raise SystemExit(__doc__)
+    vci_config_path, vp_config_path, expected_path = sys.argv[1:]
+    run = os.environ.get("CI_JOB_ID", str(int(time.time())))
+    os.makedirs(ARTIFACTS, exist_ok=True)
     onboard()
-    ok = vci_issuance(sys.argv[2])
+    results = run_plan(VCI_PLAN, load_config(vci_config_path, "android-ci-vci-" + run), run_vci_module, skip_vci)
+    results += run_plan(VP_PLAN, load_config(vp_config_path, "android-ci-vp-" + run), run_vp_module, lambda e: None)
+    with open(os.path.join(ARTIFACTS, "results.json"), "w") as f:
+        json.dump(results, f, indent=1)
     with open(os.path.join(ARTIFACTS, "logcat.txt"), "wb") as f:
         f.write(adb("logcat", "-d", timeout=120))
-    sys.exit(0 if ok else 1)
+    problems = compare(results, json.load(open(expected_path)))
+    print("\n%d modules, %d unexpected outcomes" % (len(results), len(problems)))
+    for p in problems:
+        print("UNEXPECTED", p)
+    sys.exit(1 if problems else 0)
 
 
 if __name__ == "__main__":

@@ -508,7 +508,7 @@ android_wallet_test:
   tags: [android]
   image: eudiw-android:1
   interruptible: true
-  timeout: 45m
+  timeout: 90m
   resource_group: tea-android
   needs:
     - job: deploy-review
@@ -532,7 +532,9 @@ android_wallet_test:
     - echo "Running the EC reference wallet against $CONFORMANCE_SERVER"
     - scripts/android-wallet/start-emulator.sh
     - export HOME=$ANDROID_WORK_DIR/home PATH=$ANDROID_HOME/platform-tools:$PATH
-    - scripts/android-wallet/run-wallet-tests.py vci-issuance scripts/android-wallet/vci-ec-wallet-config.json
+    - >-
+      scripts/android-wallet/run-wallet-tests.py scripts/android-wallet/vci-ec-wallet-config.json
+      scripts/android-wallet/vp-ec-wallet-config.json scripts/android-wallet/expected-ec-wallet.json
   after_script:
     - cp .android-work/emulator.log android-wallet-artifacts/ 2>/dev/null || true
   artifacts:
