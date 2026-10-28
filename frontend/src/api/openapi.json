@@ -1013,6 +1013,32 @@
         "security": []
       }
     },
+    "/status-lists/issued-credentials": {
+      "get": {
+        "tags": ["Server"],
+        "summary": "Returns the status list of the credentials the suite issues",
+        "description": "Returns the Token Status List that credentials issued with the suite's built-in certificates reference. The JWT form (the default) is signed by a certificate issued by the CA at /trust-anchors/pid-provider-ca.pem; the CWT form, returned when the Accept header asks for application/statuslist+cwt, by a certificate issued by the CA at /trust-anchors/mdoc-iaca-root.pem.",
+        "operationId": "issuedCredentialStatusList",
+        "responses": {
+          "200": {
+            "description": "The signed status list",
+            "content": {
+              "application/statuslist+jwt": {
+                "schema": { "type": "string", "description": "A compact JWS" }
+              },
+              "application/statuslist+cwt": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary",
+                  "description": "A tagged COSE_Sign1"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
     "/mdoc-iaca.crl": {
       "get": {
         "tags": ["Server"],

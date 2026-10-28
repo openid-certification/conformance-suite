@@ -390,6 +390,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/status-lists/issued-credentials": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Returns the status list of the credentials the suite issues
+     * @description Returns the Token Status List that credentials issued with the suite's built-in certificates reference. The JWT form (the default) is signed by a certificate issued by the CA at /trust-anchors/pid-provider-ca.pem; the CWT form, returned when the Accept header asks for application/statuslist+cwt, by a certificate issued by the CA at /trust-anchors/mdoc-iaca-root.pem.
+     */
+    get: operations["issuedCredentialStatusList"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/mdoc-iaca.crl": {
     parameters: {
       query?: never;
@@ -2785,6 +2805,27 @@ export interface operations {
         };
         content: {
           "application/statuslist+jwt": string;
+        };
+      };
+    };
+  };
+  issuedCredentialStatusList: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The signed status list */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/statuslist+jwt": string;
+          "application/statuslist+cwt": string;
         };
       };
     };
