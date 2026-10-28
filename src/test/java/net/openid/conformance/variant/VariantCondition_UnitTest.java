@@ -54,6 +54,7 @@ class VariantCondition_UnitTest {
 			"oid4vp-1final-wallet-optional-credential-set",
 			"oid4vp-1final-wallet-no-claims-in-dcql-query",
 			"oid4vp-1final-wallet-negative-test-invalid-request-object-signature",
+			"oid4vp-1final-wallet-negative-test-untrusted-access-certificate",
 			"oid4vp-1final-wallet-negative-test-invalid-request-object-typ",
 			"oid4vp-1final-wallet-negative-test-missing-request-object-typ",
 			"oid4vp-1final-wallet-negative-test-mismatched-client-id",
@@ -91,6 +92,7 @@ class VariantCondition_UnitTest {
 
 		assertTrue(byRequestMethod.containsKey("request_uri_unsigned"), "should have unsigned modules");
 		assertTrue(byRequestMethod.containsKey("request_uri_signed"), "should have signed modules");
+		assertTrue(byRequestMethod.containsKey("request_uri_multisigned"), "should have multi-signed modules");
 
 		// All unsigned modules use web-origin; all signed modules use x509_hash (HAIP §5).
 		for (Plan.Module module : byRequestMethod.get("request_uri_unsigned")) {
@@ -134,6 +136,7 @@ class VariantCondition_UnitTest {
 			"oid4vp-1final-wallet-optional-credential-set",
 			"oid4vp-1final-wallet-no-claims-in-dcql-query",
 			"oid4vp-1final-wallet-negative-test-invalid-request-object-signature",
+			"oid4vp-1final-wallet-negative-test-untrusted-access-certificate",
 			"oid4vp-1final-wallet-negative-test-invalid-request-object-typ",
 			"oid4vp-1final-wallet-negative-test-missing-request-object-typ",
 			"oid4vp-1final-wallet-negative-test-missing-nonce",
@@ -144,6 +147,14 @@ class VariantCondition_UnitTest {
 			"oid4vp-1final-wallet-negative-test-claim-not-in-credential",
 			"oid4vp-1final-wallet-ignores-unusable-encryption-key"
 		), signedModules);
+
+		// every signature of a multi-signed request can be untrusted, so the untrusted access certificate
+		// test runs multi-signed too
+		Set<String> multiSignedModules = byRequestMethod.get("request_uri_multisigned").stream()
+			.map(Plan.Module::getTestModule)
+			.collect(Collectors.toSet());
+		assertTrue(multiSignedModules.contains("oid4vp-1final-wallet-negative-test-untrusted-access-certificate"),
+			"multi-signed modules: " + multiSignedModules);
 	}
 
 	@Test

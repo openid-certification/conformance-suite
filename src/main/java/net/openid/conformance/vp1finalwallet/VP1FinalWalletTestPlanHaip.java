@@ -33,6 +33,7 @@ public class VP1FinalWalletTestPlanHaip implements TestPlan {
 		unsignedTestModules.remove(VP1FinalWalletMissingRequestObjectTyp.class); // excluded due to @VariantNotApplicable with request_uri_unsigned
 		unsignedTestModules.remove(VP1FinalWalletMultiSignedOneInvalidSignature.class); // excluded due to @VariantNotApplicable with request_uri_unsigned
 		unsignedTestModules.remove(VP1FinalWalletWrongExpectedOrigins.class); // excluded due to @VariantNotApplicable with request_uri_unsigned
+		unsignedTestModules.remove(VP1FinalWalletUntrustedAccessCertificate.class); // excluded due to @VariantNotApplicable with request_uri_unsigned
 
 		var multiSignedTestModules = new ArrayList<>(testModules);
 		multiSignedTestModules.remove(VP1FinalWalletMismatchedClientIdInRequestObject.class); // excluded due to @VariantNotApplicable with request_uri_multisigned

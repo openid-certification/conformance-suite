@@ -355,11 +355,8 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 		if (clientIdPrefix.usesX5cCertificate()) {
 			// the built-in certificates go into the configuration before anything reads it: the x509_hash client
-			// identifier is derived from the signing certificate. A built-in certificate is only trusted outside
-			// this instance when the deployment has the published CA's key.
-			callAndContinueOnFailure(WarnIfBuiltInAccessCertificateIsEphemeral.class, ConditionResult.WARNING);
-			callAndStopOnFailure(AddBuiltInAccessCertificateToClientConfiguration.class);
-			callAndStopOnFailure(AddBuiltInRegistrationCertificateToClientConfiguration.class);
+			// identifier is derived from the signing certificate
+			addBuiltInCertificatesToClientConfiguration();
 		}
 
 		switch (clientIdPrefix) {
@@ -421,6 +418,17 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		setStatus(Status.CONFIGURED);
 
 		fireSetupDone();
+	}
+
+	/**
+	 * Fills in the built-in access and registration certificates where the test configuration has none.
+	 * A built-in certificate is only trusted outside this instance when the deployment has the published
+	 * CA's key.
+	 */
+	protected void addBuiltInCertificatesToClientConfiguration() {
+		callAndContinueOnFailure(WarnIfBuiltInAccessCertificateIsEphemeral.class, ConditionResult.WARNING);
+		callAndStopOnFailure(AddBuiltInAccessCertificateToClientConfiguration.class);
+		callAndStopOnFailure(AddBuiltInRegistrationCertificateToClientConfiguration.class);
 	}
 
 	protected void onConfigure(JsonObject config, String baseUrl) {
@@ -524,20 +532,25 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 			}
 		}
 		if (clientIdPrefix.usesX5cCertificate()) {
-			// register and validate the optionally configured RICAL, then pre-flight check
-			// that the suite's own request signing chains are covered by it - a wallet
-			// trusting the RICAL is expected to reject the request otherwise. A WARNING as
-			// this reports on the test configuration, not on the wallet under test.
-			call(sequence(SetupRicalFromConfiguration.class));
-			// likewise the optionally configured WRPAC providers list of trusted entities
-			call(new CheckOwnCertificatesAgainstLotes(env, ValidateOwnRequestSigningCertificateAgainstWrpacLote.class, LoteSlot.WRPAC));
-			call(condition(ValidateConfiguredClientCertificatesAgainstRical.class)
-				.skipIfObjectsMissing("rical")
-				.onSkip(ConditionResult.INFO)
-				.onFail(ConditionResult.WARNING)
-				.dontStopOnFailure()
-				.requirements("ISO18013-5-F.3.2.6"));
+			checkOwnRequestSigningCertificatesAgainstTrustLists();
 		}
+	}
+
+	/**
+	 * Registers and validates the optionally configured RICAL, then pre-flight checks that the suite's own
+	 * request signing chains are covered by it - a wallet trusting the RICAL is expected to reject the
+	 * request otherwise. Likewise the optionally configured WRPAC providers list of trusted entities.
+	 * WARNINGs as these report on the test configuration, not on the wallet under test.
+	 */
+	protected void checkOwnRequestSigningCertificatesAgainstTrustLists() {
+		call(sequence(SetupRicalFromConfiguration.class));
+		call(new CheckOwnCertificatesAgainstLotes(env, ValidateOwnRequestSigningCertificateAgainstWrpacLote.class, LoteSlot.WRPAC));
+		call(condition(ValidateConfiguredClientCertificatesAgainstRical.class)
+			.skipIfObjectsMissing("rical")
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.WARNING)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-F.3.2.6"));
 	}
 
 	@Override

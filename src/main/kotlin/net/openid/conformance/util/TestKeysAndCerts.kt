@@ -399,7 +399,11 @@ MEUCIQDSqd1rf++s6eTJ+XL2BUviwUH66yNixTSpu3E+81sW0gIgQenBimeuREfz
 				nameBuilder.addRDN(attribute.type, attribute.value)
 			}
 		}
-		val name = nameBuilder.build()
+		return mintSelfSignedIdentity(nameBuilder.build(), ca)
+	}
+
+	/** A freshly minted self-signed P-256 certificate for [name], a CA when [ca], with its key; held only in memory. */
+	private fun mintSelfSignedIdentity(name: X500Name, ca: Boolean): SigningIdentity {
 		val keyPair = KeyPairGenerator.getInstance("EC").apply { initialize(ECGenParameterSpec("secp256r1")) }.generateKeyPair()
 		val now = System.currentTimeMillis()
 		val builder = JcaX509v3CertificateBuilder(
@@ -552,6 +556,27 @@ MEUCIQDSqd1rf++s6eTJ+XL2BUviwUH66yNixTSpu3E+81sW0gIgQenBimeuREfz
 		get() = rotatingWrprcSigner.get()
 
 	/**
+	 * A self-signed CA that nobody trusts: minted in memory at first use, never written anywhere and
+	 * never published. It is not a [SuiteCa], so neither /trust-anchors, /crl nor the suite's lists of
+	 * trusted entities name it. It issues [untrustedWrpac].
+	 */
+	@JvmStatic
+	val untrustedAccessCa: SigningIdentity by lazy {
+		mintSelfSignedIdentity(legalPersonSubject("certification.openid.net untrusted access CA"), true)
+	}
+
+	/**
+	 * A twin of [wrpac] issued by [untrustedAccessCa]: the same subject, subject alternative name,
+	 * certificate policy and key usages, with its own key. Its authority information access and CRL
+	 * distribution point name URLs under a slug the suite does not serve. A wallet that validates the
+	 * trust chain of the request signing certificate rejects requests signed with it, and has no other
+	 * reason to.
+	 */
+	@JvmStatic
+	val untrustedWrpac: MintedLeaf
+		get() = rotatingUntrustedWrpac.get()
+
+	/**
 	 * A leaf key that is re-minted daily (and so never served anywhere near its certificate's
 	 * expiry): frequent rotation keeps regeneration a routine event, so nothing can quietly start
 	 * depending on one specific leaf certificate — the CAs are the only stable things to pin.
@@ -587,10 +612,11 @@ MEUCIQDSqd1rf++s6eTJ+XL2BUviwUH66yNixTSpu3E+81sW0gIgQenBimeuREfz
 	private val rotatingWalletAttestationSigner = DailyRotatedKey { mintWalletAttestationSigner() }
 	private val rotatingWrpac = DailyRotatedKey { mintWrpac() }
 	private val rotatingWrprcSigner = DailyRotatedKey { mintWrprcSigner() }
+	private val rotatingUntrustedWrpac = DailyRotatedKey { mintUntrustedWrpac() }
 
 	private val rotatingLeaves = listOf(
 		rotatingDocumentSigner, rotatingStatusListSigner, rotatingSdJwtPidSigner,
-		rotatingWalletAttestationSigner, rotatingWrpac, rotatingWrprcSigner
+		rotatingWalletAttestationSigner, rotatingWrpac, rotatingWrprcSigner, rotatingUntrustedWrpac
 	)
 
 	/**
@@ -659,6 +685,23 @@ MEUCIQDSqd1rf++s6eTJ+XL2BUviwUH66yNixTSpu3E+81sW0gIgQenBimeuREfz
 		ca: SuiteCa,
 		subject: X500Name,
 		addProfileExtensions: (X509v3CertificateBuilder) -> Unit
+	): MintedLeaf = mintLeaf(leafIssuer(ca), subject, addProfileExtensions = addProfileExtensions)
+
+	private fun leafIssuer(ca: SuiteCa): LeafIssuer = LeafIssuer(ca.holder, ca.privateKey, ca.caIssuersUrl, ca.crlUrl)
+
+	/** The CA a leaf is minted under, and the URLs the leaf's authority information access and CRL distribution point name. */
+	private class LeafIssuer(
+		val holder: X509CertificateHolder,
+		val privateKey: PrivateKey,
+		val caIssuersUrl: String,
+		val crlUrl: String
+	)
+
+	private fun mintLeaf(
+		ca: LeafIssuer,
+		subject: X500Name,
+		keyUsage: KeyUsage? = KeyUsage(KeyUsage.digitalSignature),
+		addProfileExtensions: (X509v3CertificateBuilder) -> Unit
 	): MintedLeaf {
 		val leafEcKey = ECKeyGenerator(Curve.P_256).keyIDFromThumbprint(true).generate()
 
@@ -688,7 +731,9 @@ MEUCIQDSqd1rf++s6eTJ+XL2BUviwUH66yNixTSpu3E+81sW0gIgQenBimeuREfz
 			Extension.authorityKeyIdentifier, false,
 			AuthorityKeyIdentifier(caSki.keyIdentifier)
 		)
-		builder.addExtension(Extension.keyUsage, true, KeyUsage(KeyUsage.digitalSignature))
+		if (keyUsage != null) {
+			builder.addExtension(Extension.keyUsage, true, keyUsage)
+		}
 		builder.addExtension(
 			Extension.authorityInfoAccess, false,
 			AuthorityInformationAccess(
@@ -832,7 +877,47 @@ MEUCIQDSqd1rf++s6eTJ+XL2BUviwUH66yNixTSpu3E+81sW0gIgQenBimeuREfz
 	 * usages.
 	 */
 	private fun mintWrpac(): MintedLeaf =
-		mintLeaf(SuiteCa.ACCESS, legalPersonSubject("certification.openid.net relying party")) { builder ->
+		mintWrpac(leafIssuer(SuiteCa.ACCESS))
+
+	/** [untrustedWrpac]: the access certificate profile under [untrustedAccessCa]. */
+	private fun mintUntrustedWrpac(): MintedLeaf = mintWrpac(untrustedLeafIssuer())
+
+	/** [untrustedAccessCa], with authority information access and CRL distribution point URLs the suite does not serve. */
+	private fun untrustedLeafIssuer(): LeafIssuer =
+		LeafIssuer(
+			untrustedAccessCa.holder, untrustedAccessCa.privateKey,
+			"$trustAnchorsUrl/$UNTRUSTED_ACCESS_CA_SLUG.crt", "$plainHttpBaseUrl/crl/$UNTRUSTED_ACCESS_CA_SLUG.crl"
+		)
+
+	/** Extensions [mintUntrustedTwin] mints for the twin instead of copying: they name its key and its issuer. */
+	private val TWIN_MINTED_EXTENSIONS = setOf(
+		Extension.subjectKeyIdentifier, Extension.authorityKeyIdentifier,
+		Extension.authorityInfoAccess, Extension.cRLDistributionPoints
+	)
+
+	/**
+	 * A twin of [original] issued by [untrustedAccessCa]: the same subject and every extension of [original]
+	 * (subject alternative name, key usage, certificate policies, extended key usages and any others), with
+	 * its own P-256 key and the subject and authority key identifiers, authority information access and CRL
+	 * distribution point a leaf of [untrustedAccessCa] has. An x509_san_dns client identifier that matches
+	 * [original] matches the twin, and a wallet that validates the trust chain of the request signing
+	 * certificate rejects requests signed with it. Minted afresh on each call and held only in memory.
+	 */
+	@JvmStatic
+	fun mintUntrustedTwin(original: X509Certificate): MintedLeaf {
+		val originalHolder = X509CertificateHolder(original.encoded)
+		val copiedExtensions = originalHolder.extensions?.extensionOIDs.orEmpty().filterNot { it in TWIN_MINTED_EXTENSIONS }
+		return mintLeaf(untrustedLeafIssuer(), originalHolder.subject, keyUsage = null) { builder ->
+			for (oid in copiedExtensions) {
+				builder.copyAndAddExtension(oid, originalHolder.getExtension(oid).isCritical, originalHolder)
+			}
+		}
+	}
+
+	private const val UNTRUSTED_ACCESS_CA_SLUG = "untrusted-access-ca"
+
+	private fun mintWrpac(issuer: LeafIssuer): MintedLeaf =
+		mintLeaf(issuer, legalPersonSubject("certification.openid.net relying party")) { builder ->
 			addCertificatePolicy(builder, NCP_L_EUDIWRP_POLICY_OID)
 			builder.addExtension(
 				Extension.subjectAlternativeName, false,
