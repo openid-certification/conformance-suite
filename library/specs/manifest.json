@@ -1031,6 +1031,22 @@
         }
       ]
     },
+    "rfc9110": {
+      "link_url": "https://tools.ietf.org/html/rfc9110",
+      "prefixes": [
+        "RFC9110-"
+      ],
+      "versions": [
+        {
+          "fetched": "2026-10-28",
+          "file": "ietf/rfc9110.txt",
+          "role": "linked",
+          "sha256": "21c1cdce6ab0e5509b04d84a28000836c7a087cf786efe6f04877ebfff47232a",
+          "source_format": "txt",
+          "source_url": "https://www.rfc-editor.org/rfc/rfc9110.txt"
+        }
+      ]
+    },
     "rfc9126": {
       "link_url": "https://www.rfc-editor.org/rfc/rfc9126.html",
       "prefixes": [
