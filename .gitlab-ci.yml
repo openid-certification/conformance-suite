@@ -1,22 +1,15 @@
-# Throwaway: does a GitLab-hosted Linux runner expose KVM (needed for an accelerated Android emulator)?
-.probe:
-  image: alpine:3.20
+# Throwaway: can a job on the tea runner (tag android) use KVM for an accelerated Android emulator?
+probe-tea-android:
+  tags: [android]
+  image: python:3.12-alpine
+  timeout: 10m
   script:
-    - uname -a; nproc; free -m | head -2
+    - uname -a; nproc; free -m | head -2; df -h / /dev/shm | tail -2
     - grep -m1 "model name" /proc/cpuinfo
     - echo "vmx/svm flags:" $(grep -cE '\b(vmx|svm)\b' /proc/cpuinfo)
-    - ls -l /dev/kvm || echo "NO /dev/kvm in job container"
-    - "[ -e /sys/module/kvm ] && echo 'kvm module loaded on host' || echo 'kvm module not visible'"
-    - "cat /sys/module/kvm_intel/parameters/nested 2>/dev/null || cat /sys/module/kvm_amd/parameters/nested 2>/dev/null || echo 'no nested param visible'"
-probe-small:
-  extends: .probe
-  tags: [saas-linux-small-amd64]
-probe-medium:
-  extends: .probe
-  tags: [saas-linux-medium-amd64]
-probe-large:
-  extends: .probe
-  tags: [saas-linux-large-amd64]
-probe-xlarge:
-  extends: .probe
-  tags: [saas-linux-xlarge-amd64]
+    - id; ls -ln /dev/kvm
+    # KVM_GET_API_VERSION = _IO(0xAE, 0x00); a usable /dev/kvm answers 12
+    - python3 -c 'import fcntl,os; fd=os.open("/dev/kvm",os.O_RDWR); print("KVM API version", fcntl.ioctl(fd,0xAE00))'
+    # KVM_CREATE_VM = _IO(0xAE, 0x01); proves the job may create a VM, not just open the device
+    - python3 -c 'import fcntl,os; fd=os.open("/dev/kvm",os.O_RDWR); vm=fcntl.ioctl(fd,0xAE01,0); print("KVM_CREATE_VM fd", vm)'
+    - wget -q -O /dev/null -S https://demo.certification.openid.net/ 2>&1 | head -1
