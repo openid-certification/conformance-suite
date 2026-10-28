@@ -40,12 +40,14 @@ import net.openid.conformance.vci10wallet.VCICredentialConfigurations;
 import net.openid.conformance.vci10wallet.VCICredentialIssuerMetadataBuilder;
 import net.openid.conformance.vci10wallet.condition.CheckForUnexpectedParametersInCredentialRequest;
 import net.openid.conformance.vci10wallet.condition.VCIAddNotificationIdToCredentialEndpointResponse;
+import net.openid.conformance.vci10wallet.condition.VCICheckCredentialIssuerMetadataRequestAcceptHeaderSyntax;
 import net.openid.conformance.vci10wallet.condition.VCICheckForUnknownFieldsInNotificationRequest;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialEndpointResponse;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOffer;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferRedirectUrl;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferUri;
 import net.openid.conformance.vci10wallet.condition.VCIDecryptCredentialRequest;
+import net.openid.conformance.vci10wallet.condition.VCIDetermineCredentialIssuerMetadataResponseFormat;
 import net.openid.conformance.vci10wallet.condition.VCIEncryptCredentialResponse;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialRequestEncryptedIfResponseEncryptionRequested;
@@ -54,6 +56,7 @@ import net.openid.conformance.vci10wallet.condition.VCIEnsureJwtProofKidIsNotAnA
 import net.openid.conformance.vci10wallet.condition.VCIExtractCredentialRequestProof;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateCredentialRequestEncryptionJwks;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateIssuerState;
+import net.openid.conformance.vci10wallet.condition.VCIGenerateSignedCredentialIssuerMetadata;
 import net.openid.conformance.vci10wallet.condition.VCIInjectCredentialConfigurationIdHint;
 import net.openid.conformance.vci10wallet.condition.VCIPreparePreAuthorizationCode;
 import net.openid.conformance.vci10wallet.condition.VCIResolveRequestedCredentialConfigurationFromRequest;
@@ -392,13 +395,34 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		module.exposeEnvStringForBehavior("credential_issuer");
 	}
 
+	/**
+	 * Serves the credential issuer metadata as the VCI wallet modules do: signed (a JWT whose x5c is
+	 * the built-in access certificate, unless a 'Signing JWK' is configured) when the wallet's Accept
+	 * header lists application/jwt, otherwise plain JSON.
+	 */
 	@Override
 	public Object handleProfileSpecificWellKnown(String path) {
 		if (path.startsWith("/.well-known/openid-credential-issuer")) {
-			JsonObject metadata = module.getEnv().getObject("credential_issuer_metadata");
-			return ResponseEntity.status(HttpStatus.OK)
-				.contentType(MediaType.APPLICATION_JSON)
-				.body(metadata);
+			Environment env = module.getEnv();
+			module.doCall(module.doExec().startBlock("Credential issuer metadata endpoint"));
+			module.doCallAndContinueOnFailure(VCICheckCredentialIssuerMetadataRequestAcceptHeaderSyntax.class, ConditionResult.FAILURE,
+				"OID4VCI-1FINAL-12.2.2", "RFC9110-12.5.1", "RFC9110-5.6.6");
+			module.doCallAndContinueOnFailure(VCIDetermineCredentialIssuerMetadataResponseFormat.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.2");
+			ResponseEntity<?> response;
+			if (VCIDetermineCredentialIssuerMetadataResponseFormat.SIGNED_MEDIA_TYPE.equals(
+					env.getString(VCIDetermineCredentialIssuerMetadataResponseFormat.ENV_KEY))) {
+				module.doCallAndContinueOnFailure(VCIGenerateSignedCredentialIssuerMetadata.class, ConditionResult.FAILURE,
+					"OID4VCI-1FINAL-11.2.3", "HAIP-4.1");
+				response = ResponseEntity.status(HttpStatus.OK)
+					.contentType(MediaType.parseMediaType(VCIDetermineCredentialIssuerMetadataResponseFormat.SIGNED_MEDIA_TYPE))
+					.body(env.getString("signed_credential_issuer_metadata"));
+			} else {
+				response = ResponseEntity.status(HttpStatus.OK)
+					.contentType(MediaType.APPLICATION_JSON)
+					.body(env.getObject("credential_issuer_metadata"));
+			}
+			module.doCall(module.doExec().endBlock());
+			return response;
 		}
 		return null;
 	}
