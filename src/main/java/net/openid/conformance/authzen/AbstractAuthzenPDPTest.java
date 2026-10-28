@@ -269,13 +269,8 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 			Class<? extends Condition> match) {
 		final int iterations = 3;
 		for (int i = 1; i <= iterations; i++) {
-			eventLog.startBlock("Idempotency iteration " + i + " of " + iterations + ": send the " + apiFamilyLabel + " request");
-			try {
-				resetStateBetweenIdenticalRequests();
-				performIdempotencyIteration();
-			} finally {
-				eventLog.endBlock();
-			}
+			resetStateBetweenIdenticalRequests();
+			performIdempotencyIteration("Idempotency iteration " + i + " of " + iterations + ": send the " + apiFamilyLabel + " request");
 			eventLog.startBlock(i == 1
 				? "Idempotency iteration 1: record the first answer"
 				: "Idempotency iteration " + i + ": compare with the first answer");
@@ -297,14 +292,20 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 	}
 
 	/**
-	 * Sends one of the identical requests of {@link #runIdempotencyLoop} and validates the
-	 * response, leaving it where the loop's capture and match conditions read it.
+	 * Sends one of the identical requests of {@link #runIdempotencyLoop} in a log block named
+	 * {@code blockName} and validates the response, leaving it where the loop's capture and match
+	 * conditions read it.
 	 */
-	protected void performIdempotencyIteration() {
-		createAuthzenApiRequest();
-		performSingleApiRequest();
-		processAuthApiEndpointResponse();
-		validateAuthApiEndpointResponse();
+	protected void performIdempotencyIteration(String blockName) {
+		eventLog.startBlock(blockName);
+		try {
+			createAuthzenApiRequest();
+			performSingleApiRequest();
+			processAuthApiEndpointResponse();
+			validateAuthApiEndpointResponse();
+		} finally {
+			eventLog.endBlock();
+		}
 	}
 
 	/**
