@@ -219,7 +219,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 					+ "'" + grantType + "' is not supported in combination with the issuer-initiated flow here.");
 		}
 		VCI1FinalCredentialFormat credentialFormat = module.getVariantOrDefault(VCI1FinalCredentialFormat.class, null);
-		String fallbackCredentialConfigurationId = defaultCredentialConfigurationId(credentialFormat);
+		String fallbackCredentialConfigurationId = defaultCredentialConfigurationId(credentialFormat, offersKeyAttestedCredentialByDefault());
 		return new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
@@ -230,15 +230,27 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	}
 
 	/**
+	 * Whether the default credential configuration requires a key attestation; see
+	 * {@link #defaultCredentialConfigurationId(VCI1FinalCredentialFormat, boolean)}.
+	 */
+	protected boolean offersKeyAttestedCredentialByDefault() {
+		return false;
+	}
+
+	/**
 	 * The {@code credential_configuration_id} offered / expected when the test configuration
 	 * doesn't pin one via {@code vci.credential_configuration_id}. Shared with
 	 * {@code AbstractVCIWalletTest.getDefaultCredentialConfigurationId()}.
+	 *
+	 * <p>With {@code keyAttested} (HAIP, where wallets MUST support key attestations) it is a
+	 * configuration that accepts both the jwt proof with a key_attestation and the attestation
+	 * proof, so the wallet can use whichever of the two forms it supports.
 	 */
-	public static String defaultCredentialConfigurationId(VCI1FinalCredentialFormat credentialFormat) {
+	public static String defaultCredentialConfigurationId(VCI1FinalCredentialFormat credentialFormat, boolean keyAttested) {
 		if (credentialFormat == VCI1FinalCredentialFormat.MDOC) {
-			return "eu.europa.ec.eudi.pid.mdoc.1";
+			return keyAttested ? "eu.europa.ec.eudi.pid.mdoc.1.jwt_and_attestation.keyattest" : "eu.europa.ec.eudi.pid.mdoc.1";
 		}
-		return "eu.europa.ec.eudi.pid.1";
+		return keyAttested ? "eu.europa.ec.eudi.pid.1.jwt_and_attestation.keyattest" : "eu.europa.ec.eudi.pid.1";
 	}
 
 	/**

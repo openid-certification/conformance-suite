@@ -11,6 +11,12 @@ package net.openid.conformance.fapi2spfinal;
  */
 public class VCIHaipClientProfileBehavior extends VCIClientProfileBehavior {
 
+	/** HAIP 1.0 section 4.5.1: Wallets MUST support key attestations. */
+	@Override
+	protected boolean offersKeyAttestedCredentialByDefault() {
+		return true;
+	}
+
 	/**
 	 * Reference the same Token Status List from the MSO's status element of issued mdoc
 	 * credentials (ISO/IEC 18013-5 12.3.6.2), so mdoc and SD-JWT credentials carry equivalent
