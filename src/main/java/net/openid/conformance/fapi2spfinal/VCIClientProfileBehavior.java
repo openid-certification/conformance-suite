@@ -10,6 +10,7 @@ import net.openid.conformance.condition.as.CreateSdJwtCredential;
 import net.openid.conformance.condition.as.GenerateCredentialNonce;
 import net.openid.conformance.condition.as.GenerateCredentialNonceResponse;
 import net.openid.conformance.condition.as.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
+import net.openid.conformance.condition.client.AbstractCheckEndpointContentTypeReturned;
 import net.openid.conformance.condition.client.BuildVCIDCAPIRequest;
 import net.openid.conformance.condition.client.EnsureClientAttestationIssuerConfigured;
 import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
@@ -31,6 +32,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.util.SuiteIssuedCredentialStatusList;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VCI1FinalCredentialFormat;
+import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIWalletAuthorizationCodeFlowVariant;
@@ -43,10 +45,14 @@ import net.openid.conformance.vci10wallet.condition.VCICreateCredentialEndpointR
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOffer;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferRedirectUrl;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferUri;
+import net.openid.conformance.vci10wallet.condition.VCIDecryptCredentialRequest;
+import net.openid.conformance.vci10wallet.condition.VCIEncryptCredentialResponse;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureBearerAccessTokenNotInParams;
+import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialRequestEncryptedIfResponseEncryptionRequested;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialSigningCertificateIsNotSelfSigned;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureJwtProofKidIsNotAnAttestedKeyIndex;
 import net.openid.conformance.vci10wallet.condition.VCIExtractCredentialRequestProof;
+import net.openid.conformance.vci10wallet.condition.VCIGenerateCredentialRequestEncryptionJwks;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateIssuerState;
 import net.openid.conformance.vci10wallet.condition.VCIInjectCredentialConfigurationIdHint;
 import net.openid.conformance.vci10wallet.condition.VCIPreparePreAuthorizationCode;
@@ -87,7 +93,9 @@ import java.util.Map;
  * <p>Scope of this behavior:
  * <ul>
  *   <li>Immediate credential issuance (deferred is not implemented here)</li>
- *   <li>Plain (non-encrypted) credential responses</li>
+ *   <li>Credential request and response encryption under {@code vci_credential_encryption=encrypted}:
+ *       advertised with {@code encryption_required} false, so a plaintext request is accepted,
+ *       and the response is encrypted when the request asks for it</li>
  *   <li>JWT and attestation proof types (di_vp passes through to the existing condition)</li>
  *   <li>Both mso_mdoc and SD-JWT VC formats</li>
  *   <li>HAIP-style status list claim included in SD-JWT credentials</li>
@@ -107,8 +115,8 @@ import java.util.Map;
  * module's variant map, so they are read via {@code getVariantOrDefault} here and fall back
  * to the variant's default when the module runs outside that plan.
  *
- * <p>End-to-end credential issuance with encryption / deferred issuance lives on
- * {@code AbstractVCIWalletTest}'s own modules ({@code oid4vci-1_0-wallet-test-credential-issuance}).
+ * <p>Deferred issuance lives on {@code AbstractVCIWalletTest}'s own modules
+ * ({@code oid4vci-1_0-wallet-test-credential-issuance}).
  */
 public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 
@@ -135,6 +143,12 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		// the status list the issued credentials reference; the wallet path seeds it from its imperative configure
 		initializeStatusListState(env);
 
+		// the metadata references the request encryption key, so it is generated first
+		boolean encryption = credentialEncryptionEnabled();
+		if (encryption) {
+			module.doCallAndContinueOnFailure(VCIGenerateCredentialRequestEncryptionJwks.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10");
+		}
+
 		// Pre-populate credential_issuer_metadata + credential_configurations_supported
 		// so the VCI conditions invoked from the credential / nonce endpoints (and the
 		// issuer-initiated credential offer) find them. This is independent of the client
@@ -150,7 +164,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 					/* useMtlsForResources */ module.isMTLSConstrain(),
 					/* notificationsEnabled */ true,
 					/* deferredEnabled */ false,
-					/* encryptionEnabled */ false,
+					/* encryptionEnabled */ encryption,
 					/* batchSize */ null));
 		} catch (IllegalStateException e) {
 			throw new TestFailureException(module.getId(), e.getMessage());
@@ -176,6 +190,22 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				}
 			}
 		};
+	}
+
+	/**
+	 * Whether the plan this module runs in selected credential request and response encryption
+	 * ({@code vci_credential_encryption}, plan-level context for these modules; plain outside a VCI plan).
+	 */
+	private boolean credentialEncryptionEnabled() {
+		return module.getVariantOrDefault(VCICredentialEncryption.class, VCICredentialEncryption.PLAIN)
+			== VCICredentialEncryption.ENCRYPTED;
+	}
+
+	/** Whether the credential request being handled is a JWE ({@code application/jwt}) rather than JSON. */
+	private boolean credentialRequestIsEncrypted() {
+		String contentType = module.getEnv().getString("incoming_request", "headers.content-type");
+		return contentType != null
+			&& "application/jwt".equalsIgnoreCase(AbstractCheckEndpointContentTypeReturned.getMimeTypeFromContentType(contentType));
 	}
 
 	// --- Issuer-initiated authorization code flow (credential offer) ---
@@ -690,6 +720,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	private PathDispatch buildCredentialDispatch() {
 		final Map<String, Object> additionalClaims = additionalSdJwtClaims();
 		final String mdocStatusListUri = additionalMdocStatusListUri();
+		final boolean encryption = credentialEncryptionEnabled();
 		ConditionSequence sequence = new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
@@ -718,6 +749,25 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				// the wallet's credential endpoint at AbstractVCIWalletTest.credentialEndpoint.
 				callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.2");
 				callAndContinueOnFailure(VCIEnsureBearerAccessTokenNotInParams.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.4-2");
+
+				// With encryption advertised (encryption_required false) the wallet may send a JWE or
+				// plaintext JSON; this sequence is evaluated per request, so the branch sees this one.
+				if (encryption && credentialRequestIsEncrypted()) {
+					call(condition(VCIDecryptCredentialRequest.class)
+						.skipIfElementPresent("vci", "credential_error_response")
+						.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
+						.onFail(ConditionResult.FAILURE)
+						.requirements("OID4VCI-1FINAL-10.2")
+						.dontStopOnFailure());
+				} else if (encryption) {
+					// a plaintext request must not ask for an encrypted response (§ 8.2)
+					call(condition(VCIEnsureCredentialRequestEncryptedIfResponseEncryptionRequested.class)
+						.skipIfElementPresent("vci", "credential_error_response")
+						.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
+						.onFail(ConditionResult.FAILURE)
+						.requirements("OID4VCI-1FINAL-8.2")
+						.dontStopOnFailure());
+				}
 				call(condition(VCIValidateCredentialRequestStructure.class)
 					.skipIfElementPresent("vci", "credential_error_response")
 					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
@@ -844,6 +894,15 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 					.skipIfElementPresent("vci", "credential_error_response")
 					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.onFail(ConditionResult.FAILURE));
+				if (encryption) {
+					// encrypts only when the request carries credential_response_encryption
+					call(condition(VCIEncryptCredentialResponse.class)
+						.skipIfElementPresent("vci", "credential_error_response")
+						.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
+						.onFail(ConditionResult.FAILURE)
+						.requirements("OID4VCI-1FINAL-10", "OID4VCI-1FINAL-8.3.1.2")
+						.dontStopOnFailure());
+				}
 			}
 		};
 		return new PathDispatch("Credential endpoint", sequence, m -> {
@@ -875,14 +934,20 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 			// schedule the delayed test finish so paired issuer tests can keep talking
 			// to us (notification, deferred etc.) before the wallet test marks itself
 			// FINISHED.
-			JsonObject body = m.getEnv().getObject("credential_endpoint_response");
 			JsonObject headers = m.getEnv().getObject("credential_endpoint_response_headers");
-			ResponseEntity<JsonObject> response = ResponseEntity.status(HttpStatus.OK)
+			String encryptedBody = m.getEnv().getString("encrypted_credential_response");
+			m.scheduleDelayedFinishForAdditionalRequests();
+			if (encryptedBody != null) {
+				return ResponseEntity.status(HttpStatus.OK)
+					.headers(headersFromJson(headers))
+					.contentType(MediaType.valueOf("application/jwt"))
+					.body(encryptedBody);
+			}
+			JsonObject body = m.getEnv().getObject("credential_endpoint_response");
+			return ResponseEntity.status(HttpStatus.OK)
 				.contentType(MediaType.APPLICATION_JSON)
 				.headers(headersFromJson(headers))
 				.body(body);
-			m.scheduleDelayedFinishForAdditionalRequests();
-			return response;
 		});
 	}
 
