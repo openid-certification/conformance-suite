@@ -140,6 +140,18 @@ public class CreateMdocCredentialForVCI_UnitTest {
 		assertThat(statusList.getIdx()).isBetween(0, 254);
 	}
 
+	@Test
+	public void testEvaluate_bindsToKeyResolvedByProofValidationWithoutHeaderJwk() {
+		putCredentialRequest();
+		env.removeObject("proof_jwt");
+		// a proof identified by kid or x5c has no header.jwk; validation stores the key it resolved as jwk
+		env.putObjectFromJsonString("proof_jwt", "jwk", DEVICE_PUBLIC_KEY_JWK);
+
+		cond.execute(env);
+
+		assertThat(env.getObject("credential_issuance").getAsJsonArray("credentials")).hasSize(1);
+	}
+
 	private void putCredentialRequest() {
 		env.putString("proof_type", "jwt");
 		env.putObjectFromJsonString("proof_jwt", "header.jwk", DEVICE_PUBLIC_KEY_JWK);
