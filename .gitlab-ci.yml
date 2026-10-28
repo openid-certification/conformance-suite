@@ -526,6 +526,7 @@ android_wallet_test:
     WALLET_APK: /eudiw/out/app-demo-debug-logging.apk
     ANDROID_WORK_DIR: $CI_PROJECT_DIR/.android-work
     ARTIFACT_DIR: $CI_PROJECT_DIR/android-wallet-artifacts
+    PYTHONUNBUFFERED: "1"
   script:
     - apt-get update -qq && apt-get install -y -qq python3 > /dev/null
     - echo "Running the EC reference wallet against $CONFORMANCE_SERVER"

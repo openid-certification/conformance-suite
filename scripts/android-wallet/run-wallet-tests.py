@@ -128,8 +128,14 @@ def evidence(label):
         f.write("\n".join(texts(screen())) + "\n")
 
 
+# Android permission prompts and Chrome's first-run screens, which a fresh emulator shows when the
+# wallet first opens the authorization endpoint in the browser
+DISMISS_LABELS = ("Don’t allow", "Don't allow", "Allow", "Use without an account", "No thanks", "No, thanks",
+                  "Accept & continue", "Got it")
+
+
 def dismiss_system_dialogs(nodes):
-    for label in ("Don’t allow", "Don't allow", "Allow"):
+    for label in DISMISS_LABELS:
         centre = find(nodes, label)
         if centre:
             tap(centre)
