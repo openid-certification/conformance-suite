@@ -1,15 +1,25 @@
-# Throwaway: can a job on the tea runner (tag android) use KVM for an accelerated Android emulator?
-probe-tea-android:
+# Throwaway: run the EC reference wallet in an emulator on the tea runner against the suite on demo.
+android_wallet_test:
   tags: [android]
-  image: python:3.12-alpine
-  timeout: 10m
+  image: eudiw-android:1
+  timeout: 45m
+  variables:
+    GIT_DEPTH: "10"
+    ANDROID_HOME: /eudiw/sdk
+    WALLET_APK: /eudiw/out/app-demo-debug-logging.apk
+    ANDROID_WORK_DIR: $CI_PROJECT_DIR/.android-work
+    ARTIFACT_DIR: $CI_PROJECT_DIR/android-wallet-artifacts
+    CONFORMANCE_SERVER: https://demo.certification.openid.net/
   script:
-    - uname -a; nproc; free -m | head -2; df -h / /dev/shm | tail -2
-    - grep -m1 "model name" /proc/cpuinfo
-    - echo "vmx/svm flags:" $(grep -cE '\b(vmx|svm)\b' /proc/cpuinfo)
-    - id; ls -ln /dev/kvm
-    # KVM_GET_API_VERSION = _IO(0xAE, 0x00); a usable /dev/kvm answers 12
-    - python3 -c 'import fcntl,os; fd=os.open("/dev/kvm",os.O_RDWR); print("KVM API version", fcntl.ioctl(fd,0xAE00))'
-    # KVM_CREATE_VM = _IO(0xAE, 0x01); proves the job may create a VM, not just open the device
-    - python3 -c 'import fcntl,os; fd=os.open("/dev/kvm",os.O_RDWR); vm=fcntl.ioctl(fd,0xAE01,0); print("KVM_CREATE_VM fd", vm)'
-    - wget -q -O /dev/null -S https://demo.certification.openid.net/ 2>&1 | head -1
+    - apt-get update -qq && apt-get install -y -qq python3 > /dev/null
+    - export CONFORMANCE_TOKEN=${CONFORMANCE_TOKEN:-$CI_TOKEN}
+    - '[ -n "$CONFORMANCE_TOKEN" ] || { echo "Neither CONFORMANCE_TOKEN nor CI_TOKEN is set for this branch"; exit 1; }'
+    - scripts/android-wallet/start-emulator.sh
+    - export HOME=$ANDROID_WORK_DIR/home PATH=$ANDROID_HOME/platform-tools:$PATH
+    - scripts/android-wallet/run-wallet-tests.py vci-issuance scripts/android-wallet/vci-ec-wallet-config.json
+  after_script:
+    - cp .android-work/emulator.log android-wallet-artifacts/ 2>/dev/null || true
+  artifacts:
+    when: always
+    paths:
+      - android-wallet-artifacts/

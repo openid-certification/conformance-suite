@@ -1,0 +1,37 @@
+{
+    "alias": "{ALIAS}",
+    "description": "EC reference wallet in an emulator on the tea android runner (CI)",
+    "server": {
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "EC",
+                    "crv": "P-256",
+                    "kid": "tea-vci-server",
+                    "use": "sig",
+                    "alg": "ES256",
+                    "x": "YoDST6jWUeDR47XYfIWrufIXYZXBFNIFHRzxw-Agq2w",
+                    "y": "U6NegcI3127vS7c-6Fg6J07BoYKg7Sg28HptB11DwcM",
+                    "d": "yOasxcJLmicgmIq-QoupVJRu4uu1YWZvSeIR-vFVwOU"
+                }
+            ]
+        }
+    },
+    "client": {
+        "client_id": "eudiw-abca",
+        "redirect_uri": "eu.europa.ec.euidi://authorization"
+    },
+    "client_attestation": {
+        "issuer": "https://wallet-provider.eudiw.dev",
+        "wallet_lote_url": "https://development.trust.tech.ec.europa.eu/lists/eudiw/wallet-providers.json"
+    },
+    "vci": {
+        "credential_offer_endpoint": "openid-credential-offer://"
+    },
+    "credential": {
+        "pid_lote_url": "https://development.trust.tech.ec.europa.eu/lists/eudiw/pid-providers.json"
+    },
+    "lote": {
+        "signing_certificate_pem": "-----BEGIN CERTIFICATE-----\nMIIGzzCCBLegAwIBAgIDCx7mMA0GCSqGSIb3DQEBCwUAMDcxHDAaBgNVBAoME0V1\ncm9wZWFuIENvbW1pc3Npb24xFzAVBgNVBAMMDkNvbW1pc1NpZ24gLSAyMB4XDTI1\nMTEyMDA5MzEyNloXDTI4MTEyMDA5MzEyNlowgZcxCzAJBgNVBAYTAkxVMRIwEAYD\nVQQLDAlESUdJVC5CLjMxHDAaBgNVBAoME0V1cm9wZWFuIENvbW1pc3Npb24xMzAx\nBgkqhkiG9w0BCQEWJERJR0lULUVVLVRSVVNULU5PTi1QUk9EQGVjLmV1cm9wYS5l\ndTEhMB8GA1UEAwwYVEVTVCBFdXJvcGVhbiBDb21taXNzaW9uMIICIjANBgkqhkiG\n9w0BAQEFAAOCAg8AMIICCgKCAgEAkij7bkMVg45Ki0zqbrxJNOo7PoHp6EQrs5/q\nKEFzu6mTvow550P06NmaeTonfxa/504EiQuTksosupku+MPSF9oAmbo5ezlz43UW\nFY3IBWI4EEnmemoakY4ZZcSiNxDN7zkts2mlQAIkc6QDFA/e624yF+UiCLpbsyMW\nYmez2bYMMduO+bnD7pztGZPgih9yzYK7efeZ2LgNd3+jWCtBXr4/+91XA1F0IEux\nTN/Yu20uO4yA4dL/+6or+pQfG96kpyLJMaliblJ7/8lBe8h3jM1BpbrodomjncHT\nbvBO+TlanZhvEMcp4dFaYu3OODqQ1NP+lo8g1fr80N8pL3wuI4TC3XqAjCG54bW8\ndzqrilT4RDapVrWFWWp8YzftkidYffoyXacrxtSSGQ3mQvMtUOk8JPl9NlrEAe2d\nIGRVuMj4gu4XCgeC3nQbp6SKJTsUO7K4RJl5ODc1gvwT+1LULDGLGkaCjP4bTSK3\nlKVjijWn3EivplbnmUmL2pWvb9RqIvvmHIMOwnhmzikF35R1HnCuyJISU1EcFcWq\n/CJAFfo09HiWcitjACSsluQIshGDFEKwMtCujSjgY22dENXejxi1whxY2bDF/X35\n3eQGD4GwU1FIQEmXwUP0zSch/8ktCo6wulN3VV4DQNRw61aAErqSi5Ji+0oLsiuo\ngR4hvzMCAwEAAaOCAYEwggF9MB0GA1UdDgQWBBQOq28wkzABsoIf+BBH5oJqgTQP\n+jAfBgNVHSMEGDAWgBSa+492ZpjcrCzXdzZxbbrjZ0eR9jAOBgNVHQ8BAf8EBAMC\nBkAwLwYDVR0RBCgwJoEkRElHSVQtRVUtVFJVU1QtTk9OLVBST0RAZWMuZXVyb3Bh\nLmV1MCMGCCsGAQUFBwEDBBcwFTATBgYEAI5GAQYwCQYHBACORgEGAjBJBgNVHR8E\nQjBAMD6gPKA6hjhodHRwOi8vY29tbWlzc2lnbi5wa2kuZWMuZXVyb3BhLmV1L2lu\nZm8vY3JsL29ubGluZUNBLmNybDCBiQYIKwYBBQUHAQEEfTB7MEQGCCsGAQUFBzAC\nhjhodHRwOi8vY29tbWlzc2lnbi5wa2kuZWMuZXVyb3BhLmV1L2luZm8vYWlhL29u\nbGluZUNBLmNydDAzBggrBgEFBQcwAYYnaHR0cDovL2NvbW1pc3NpZ24ucGtpLmVj\nLmV1cm9wYS5ldS9vY3NwMA0GCSqGSIb3DQEBCwUAA4ICAQCVp/Sw2OcDCaGitFGP\n3zoyjiOzTPjf/or5KwwZ6P2opbSOdD8M9h05QlXPjeE/29JeJ/B1I0ZhBEXsrg69\nJB7iLqsm+3TDDhZ7m6DkMuImmeW5ihMp+E28a20ndFnDIj//XI8F41oJBw0/2Uy/\nyXloAIXx8o6UeItSI3pe3mV5cU02XmIfql80nBmK9vy14ZXbKeMRpAHH0GD8CWzM\n00+pyzzbQFuYNm/JrjmlrfNJmBUUwtZm8G9nDQBI7kcl7TbFKcllQJ5H0G00y46U\n+1ytE7r76aramBmbHhCmSWWqO8y/54Z+R/SdAt1mK4dZIXyB02aEg9KGMiNlQwfK\ngLYazlTU/KxJnjBoRYWKfPDJoRAdMaFk3gRJNij50ZENOb2zpaH0WF/0BHB+84um\nyQ09ITLPlFESo6Y5MBUENVLnYR50rmBTfKky0I3P+KGXuMvfPZc8ZB6ID5IIqi/2\nLiN6swwPGGq8s5YAC9cYjIQsV3wIhFG8FoGS4zNT8qa2eIp6WFYxjrGOelrp1Uv0\neYZaCcKo0KATBvxWalRypA5cdyyGTXBchiElpEgVnIUc0VKPyrCpY+N1rgdSD8DO\nMSixluG17QElAxdOFv/zrHisakj1Lw+AgRyErOopC625I65Tb3EM9GNqSHXuWpMm\nfzZSoYeOr+5g22edP5vvDjuZYg==\n-----END CERTIFICATE-----\n"
+    }
+}
