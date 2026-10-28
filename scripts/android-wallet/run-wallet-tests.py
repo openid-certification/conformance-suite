@@ -27,7 +27,8 @@ PIN = os.environ.get("WALLET_PIN", "147258")
 ARTIFACTS = os.environ.get("ARTIFACT_DIR", "android-wallet-artifacts")
 WALLET_PACKAGE = os.environ.get("WALLET_PACKAGE", "eu.europa.ec.euidi")
 
-VCI_PLAN = ("oid4vci-1_0-wallet-haip-test-plan", {
+# every module of this plan uses credential encryption, which the EC reference wallet requires
+VCI_PLAN = ("oid4vci-1_0-wallet-haip-encrypted-test-plan", {
     "credential_format": "sd_jwt_vc",
     "vci_authorization_code_flow_variant": "issuer_initiated",
     "grant_management": "disabled",
