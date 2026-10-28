@@ -252,6 +252,12 @@ compare_vc:
   script:
     - run_compare vc_test
 
+compare_android_wallet:
+  <<: *compare
+  needs: ["android_wallet_test"]
+  script:
+    - run_compare android_wallet_test
+
 compare_ssf:
   <<: *compare
   needs: ["ssf_test"]
@@ -500,6 +506,52 @@ vc_test:
   script:
     - set_up_for_running_test_plan
     - run_vc_test_plan
+
+# The EC reference wallet in an emulator on the tea runner (tag android: KVM, the Android SDK and the
+# wallet APKs mounted read-only at /eudiw), driven over adb against this pipeline's deployment.
+# See scripts/android-wallet/README.md.
+android_wallet_test:
+  stage: test
+  tags: [android]
+  image: eudiw-android:1
+  interruptible: true
+  timeout: 150m
+  resource_group: tea-android
+  rules:
+    - if: $CI_COMMIT_BRANCH == "demo"
+      when: manual
+      allow_failure: true
+    - if: $CI_COMMIT_BRANCH
+      when: on_success
+  variables:
+    GIT_DEPTH: "10"
+    ANDROID_HOME: /eudiw/sdk
+    WALLET_APK_DIR: /eudiw/out
+    # built by scripts/android-wallet/wallet/build-wallet.sh; the file is ec-wallet-<first 16 hex digits>.apk
+    WALLET_APK_SHA256: 391a85b76f51089b30687310b052fd8a08edef07e6a7f32297e5c73fa52566dd
+    ANDROID_WORK_DIR: $CI_PROJECT_DIR/.android-work
+    ARTIFACT_DIR: $CI_PROJECT_DIR/android-wallet-artifacts
+    # a deferred issuance stays pending in the wallet, which later retries it with that module's refresh
+    # token and DPoP key against whichever module is then running, interrupting it
+    SKIP_DEFERRED: "1"
+    PYTHONUNBUFFERED: "1"
+  script:
+    - echo "Running the EC reference wallet against $CONFORMANCE_SERVER"
+    - mkdir -p "$ARTIFACT_DIR"
+    - scripts/android-wallet/run-wallet-tests.py --check-expected scripts/android-wallet/expected-ec-wallet.json
+    - scripts/android-wallet/start-emulator.sh
+    - export HOME=$ANDROID_WORK_DIR/home PATH=$ANDROID_HOME/platform-tools:$PATH
+    - >-
+      scripts/android-wallet/run-wallet-tests.py scripts/android-wallet/vci-ec-wallet-config.json
+      scripts/android-wallet/vp-ec-wallet-config.json scripts/android-wallet/expected-ec-wallet.json
+  after_script:
+    - cp .android-work/emulator.log android-wallet-artifacts/ || true
+  artifacts:
+    access: developer
+    when: always
+    paths:
+      - android-wallet-artifacts/
+      - "*.zip"
 
 ssf_test:
   <<: *deployment_test

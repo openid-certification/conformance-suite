@@ -1,0 +1,51 @@
+diff --git a/business-logic/src/main/java/eu/europa/ec/businesslogic/extension/FlowExtensions.kt b/business-logic/src/main/java/eu/europa/ec/businesslogic/extension/FlowExtensions.kt
+index 4a44051..8f35061 100644
+--- a/business-logic/src/main/java/eu/europa/ec/businesslogic/extension/FlowExtensions.kt
++++ b/business-logic/src/main/java/eu/europa/ec/businesslogic/extension/FlowExtensions.kt
+@@ -26,5 +26,8 @@ fun <T> Flow<T>.safeAsync(
+     dispatcher: CoroutineDispatcher = Dispatchers.IO,
+     with: (Throwable) -> (T)
+ ): Flow<T> {
+-    return this.flowOn(dispatcher).catch { emit(with(it)) }
++    return this.flowOn(dispatcher).catch {
++        android.util.Log.e("LaunchpadDebug", "safeAsync caught", it)
++        emit(with(it))
++    }
+ }
+\ No newline at end of file
+diff --git a/core-logic/src/main/java/eu/europa/ec/corelogic/controller/WalletCoreDocumentsController.kt b/core-logic/src/main/java/eu/europa/ec/corelogic/controller/WalletCoreDocumentsController.kt
+index 716b03d..c0c0322 100644
+--- a/core-logic/src/main/java/eu/europa/ec/corelogic/controller/WalletCoreDocumentsController.kt
++++ b/core-logic/src/main/java/eu/europa/ec/corelogic/controller/WalletCoreDocumentsController.kt
+@@ -674,6 +674,7 @@ class WalletCoreDocumentsControllerImpl(
+             manager.resolveDocumentOffer(offerUri) { result ->
+                 when (result) {
+                     is OfferResult.Failure -> {
++                        android.util.Log.e("LaunchpadDebug", "resolveDocumentOffer failed", result.cause)
+                         val untrustedReason = result.cause.toUntrustedIssuerReasonOrNull()
+ 
+                         trySendBlocking(
+@@ -735,6 +736,7 @@ class WalletCoreDocumentsControllerImpl(
+                     onIssueResult = { deferredIssuanceResult ->
+                         when (deferredIssuanceResult) {
+                             is DeferredIssueResult.DocumentFailed -> {
++                                android.util.Log.e("LaunchpadDebug", "deferred DocumentFailed", deferredIssuanceResult.cause)
+                                 trySendBlocking(
+                                     if (deferredIssuanceResult.cause.toUntrustedIssuerReasonOrNull() != null) {
+                                         IssueDeferredDocumentPartialState.IssuerNotTrusted(
+@@ -909,6 +911,7 @@ class WalletCoreDocumentsControllerImpl(
+         val listener = OpenId4VciManager.OnIssueEvent { event ->
+             when (event) {
+                 is IssueEvent.DocumentFailed -> {
++                    android.util.Log.e("LaunchpadDebug", "issue DocumentFailed ${event.docType}", event.cause)
+                     if (event.cause.toUntrustedIssuerReasonOrNull() != null) {
+                         untrustedDocuments[event.docType] = event.name
+                     } else {
+@@ -989,6 +992,7 @@ class WalletCoreDocumentsControllerImpl(
+                 }
+ 
+                 is IssueEvent.Failure -> {
++                    android.util.Log.e("LaunchpadDebug", "issue Failure", event.cause)
+                     val untrustedReason = event.cause.toUntrustedIssuerReasonOrNull()
+ 
+                     trySendBlocking(

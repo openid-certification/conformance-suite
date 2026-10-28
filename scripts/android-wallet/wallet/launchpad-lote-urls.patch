@@ -1,0 +1,17 @@
+diff --git a/core-logic/src/demo/java/eu/europa/ec/corelogic/config/WalletCoreConfigImpl.kt b/core-logic/src/demo/java/eu/europa/ec/corelogic/config/WalletCoreConfigImpl.kt
+index 85efd2f..fdeb764 100644
+--- a/core-logic/src/demo/java/eu/europa/ec/corelogic/config/WalletCoreConfigImpl.kt
++++ b/core-logic/src/demo/java/eu/europa/ec/corelogic/config/WalletCoreConfigImpl.kt
+@@ -97,9 +97,9 @@ internal class WalletCoreConfigImpl(
+                     configureEtsiTrust {
+                         loteLocations(
+                             SupportedLists(
+-                                pidProviders = Uri("https://trustedlist.serviceproviders.eudiw.dev/LOTE/json/PIDProviders.jwt"),
+-                                wrpacProviders = Uri("https://trustedlist.serviceproviders.eudiw.dev/LOTE/json/WRPACProviders.jwt"),
+-                                wrprcProviders = Uri("https://trustedlist.serviceproviders.eudiw.dev/LOTE/json/WRPRCProviders.jwt"),
++                                pidProviders = Uri("https://development.trust.tech.ec.europa.eu/lists/eudiw/pid-providers.json"),
++                                wrpacProviders = Uri("https://development.trust.tech.ec.europa.eu/lists/eudiw/wrpac-providers.json"),
++                                wrprcProviders = Uri("https://development.trust.tech.ec.europa.eu/lists/eudiw/wrprc-providers.json"),
+                                 pubEaaProviders = Uri("https://trustedlist.serviceproviders.eudiw.dev/LOTE/json/PubEAAProviders.jwt"),
+                             )
+                         )
