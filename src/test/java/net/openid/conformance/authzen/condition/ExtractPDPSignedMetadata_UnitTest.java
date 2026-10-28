@@ -86,6 +86,18 @@ class ExtractPDPSignedMetadata_UnitTest {
 	}
 
 	@Test
+	public void nullClaim_fails() {
+		// The parser keeps a JSON null, so the condition must reject it for the claim checks.
+		for (String claim : new String[] {"iss", "exp", "iat", "nbf"}) {
+			String iss = "iss".equals(claim) ? "" : "\"iss\":\"https://pdp.example.com\",";
+			putSignedMetadata(new JsonPrimitive(jws("{\"alg\":\"HS256\"}", "{" + iss + "\"" + claim + "\":null}")));
+			ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+			assertTrue(e.getMessage().contains("`" + claim + "` claim of the discovery metadata `signed_metadata` JWT is null"),
+				e.getMessage());
+		}
+	}
+
+	@Test
 	public void missingSignedMetadata_fails() {
 		putSignedMetadata(null);
 		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
