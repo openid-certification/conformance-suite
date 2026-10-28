@@ -1795,7 +1795,7 @@ def run_tests():
                      f"HTTP {resp.status_code} {resp.headers.get('content-type')}")
         # everything else the suite publishes stays https-only, including the other PKI routes
         for path in ("mdoc-iaca-root.pem", "trust-anchors", "trust-anchors/access-ca.pem", "lote/pid-providers.jwt",
-                     "status-lists/wrprc.jwt"):
+                     "status-lists/wrprc.jwt", "status-lists/issued-credentials"):
             resp = unauthenticated_get(http_base_url, path, verify_ssl)
             runner.check(f"Metadata: /{path} is rejected over plain http",
                          resp.status_code != 200, f"HTTP {resp.status_code}")
@@ -1877,6 +1877,26 @@ def run_tests():
         except Exception as e:  # noqa: BLE001 - any decoding problem fails the check
             ok, detail = False, f"undecodable: {e}"
     runner.check("Metadata: /status-lists/wrprc.jwt is a publicly reachable status list JWS", ok, detail)
+    # the status list credentials issued with the suite's built-in certificates point to is public too:
+    # verifiers check a credential's status after the test that issued it has finished
+    resp = unauthenticated_get(base_url, "status-lists/issued-credentials", verify_ssl)
+    ok = resp.status_code == 200 and resp.headers.get("content-type", "").startswith("application/statuslist+jwt")
+    detail = f"HTTP {resp.status_code} {resp.headers.get('content-type')}"
+    if ok:
+        try:
+            parts, header, payload = decode_jws(resp.text)
+            ok = (len(parts) == 3 and header.get("typ") == "statuslist+jwt" and len(header.get("x5c", [])) >= 1
+                  and payload.get("sub", "").endswith("/status-lists/issued-credentials") and "status_list" in payload)
+            detail = f"typ={header.get('typ')} sub={payload.get('sub')}"
+        except Exception as e:  # noqa: BLE001 - any decoding problem fails the check
+            ok, detail = False, f"undecodable: {e}"
+    runner.check("Metadata: /status-lists/issued-credentials is a publicly reachable status list JWS", ok, detail)
+    with httpx.Client(verify=verify_ssl, timeout=10) as client:
+        resp = client.get(f"{base_url}status-lists/issued-credentials", headers={"Accept": "application/statuslist+cwt"})
+    runner.check("Metadata: /status-lists/issued-credentials returns the CWT form when asked for it",
+                 resp.status_code == 200 and resp.headers.get("content-type", "").startswith("application/statuslist+cwt")
+                 and len(resp.content) > 0 and resp.content[0] == 0xd2,
+                 f"HTTP {resp.status_code} {resp.headers.get('content-type')}")
 
     resp = unauthenticated_get(base_url, "lote/no-such-list.jwt", verify_ssl)
     runner.check_status("Metadata: unknown LoTE name returns 404", resp, 404)

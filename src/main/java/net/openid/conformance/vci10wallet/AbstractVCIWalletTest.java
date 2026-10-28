@@ -1438,7 +1438,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			// mdoc format - the doctype is in credential_configuration.doctype. Under HAIP the
 			// MSO references the emulated issuer's status list.
 			String mdocStatusListUri = fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP
-				? VCIClientProfileBehavior.buildStatusListUri(env) : null;
+				? VCIClientProfileBehavior.buildMdocStatusListUri() : null;
 			callAndStopOnFailure(new CreateMdocCredentialForVCI(mdocStatusListUri), "OID4VCI-1FINALA-G.1");
 		} else {
 			// SD-JWT VC format (dc+sd-jwt or default); the credential references the emulated issuer's status list

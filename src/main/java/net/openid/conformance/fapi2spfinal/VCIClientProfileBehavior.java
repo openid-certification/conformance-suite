@@ -9,6 +9,7 @@ import net.openid.conformance.condition.as.CreateMdocCredentialForVCI;
 import net.openid.conformance.condition.as.CreateSdJwtCredential;
 import net.openid.conformance.condition.as.GenerateCredentialNonce;
 import net.openid.conformance.condition.as.GenerateCredentialNonceResponse;
+import net.openid.conformance.condition.as.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.condition.client.BuildVCIDCAPIRequest;
 import net.openid.conformance.condition.client.EnsureClientAttestationIssuerConfigured;
 import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
@@ -18,12 +19,16 @@ import net.openid.conformance.condition.rs.CreateResourceEndpointDpopErrorRespon
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsGet;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.frontchannel.BrowserControl;
+import net.openid.conformance.oauth.statuslists.JwtStatusListTokenClaimsBuilder;
+import net.openid.conformance.oauth.statuslists.StatusListCwt;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.ValidateStatusListRequest;
+import net.openid.conformance.sequence.client.SetupWalletTrustSources;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.util.SuiteIssuedCredentialStatusList;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
@@ -40,7 +45,7 @@ import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferRedi
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferUri;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialSigningCertificateIsNotSelfSigned;
-import net.openid.conformance.sequence.client.SetupWalletTrustSources;
+import net.openid.conformance.vci10wallet.condition.VCIEnsureJwtProofKidIsNotAnAttestedKeyIndex;
 import net.openid.conformance.vci10wallet.condition.VCIExtractCredentialRequestProof;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateIssuerState;
 import net.openid.conformance.vci10wallet.condition.VCIInjectCredentialConfigurationIdHint;
@@ -48,7 +53,6 @@ import net.openid.conformance.vci10wallet.condition.VCIPreparePreAuthorizationCo
 import net.openid.conformance.vci10wallet.condition.VCIResolveRequestedCredentialConfigurationFromRequest;
 import net.openid.conformance.vci10wallet.condition.VCISetCredentialFormatFlag;
 import net.openid.conformance.vci10wallet.condition.VCISetProofTypeFlag;
-import net.openid.conformance.vci10wallet.condition.VCIEnsureJwtProofKidIsNotAnAttestedKeyIndex;
 import net.openid.conformance.vci10wallet.condition.VCIValidateAttestedKeysInKeyAttestationFromJwtProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestAttestationProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestDiVpProof;
@@ -58,9 +62,6 @@ import net.openid.conformance.vci10wallet.condition.VCIValidateNotificationReque
 import net.openid.conformance.vci10wallet.condition.VCIVerifyCredentialOfferRequestId;
 import net.openid.conformance.vci10wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
 import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationX5cCertificateChain;
-import net.openid.conformance.condition.as.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
-import net.openid.conformance.oauth.statuslists.JwtStatusListTokenClaimsBuilder;
-import net.openid.conformance.oauth.statuslists.StatusListCwt;
 import net.openid.conformance.vci10wallet.condition.statuslist.VCIGenerateCwtStatusListToken;
 import net.openid.conformance.vci10wallet.condition.statuslist.VCIGenerateJwtStatusListToken;
 import org.springframework.http.HttpHeaders;
@@ -494,8 +495,11 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		if (path.equals(STATUSLISTS_PATH) || path.equals(STATUSLISTS_PATH + "/")) {
 			JsonObject aggregatedStatusList = new JsonObject();
 			JsonArray statusLists = new JsonArray();
-			// we only support one list for now
+			// the instance's own list, and the suite-wide one when credentials reference it
 			statusLists.add(getStatusListUrl(env, "1"));
+			if (!getStatusListUrl(env, "1").equals(buildStatusListUri(env))) {
+				statusLists.add(buildStatusListUri(env));
+			}
 			aggregatedStatusList.add("statuslists", statusLists);
 			response = ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -573,9 +577,23 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		return buildSdJwtStatusListClaims(module.getEnv());
 	}
 
-	/** The URI of the single status list the emulated issuer serves. */
+	/**
+	 * The status list URI an issued SD-JWT VC references. With the built-in signing certificate
+	 * (no 'Signing JWK' in the test configuration) it is the suite-wide list, which outlives the
+	 * test so the credential's status can still be checked when it is presented later; a
+	 * configured key can only sign the test instance's own list.
+	 */
 	public static String buildStatusListUri(Environment env) {
-		return getStatusListUrl(env, "1");
+		return env.getElementFromObject("config", "credential.signing_jwk") == null
+			? SuiteIssuedCredentialStatusList.url() : getStatusListUrl(env, "1");
+	}
+
+	/**
+	 * The status list URI an issued mdoc's MSO references: always the suite-wide list, since
+	 * mdoc credentials are always signed under the suite's IACA root.
+	 */
+	public static String buildMdocStatusListUri() {
+		return SuiteIssuedCredentialStatusList.url();
 	}
 
 	/** The {@code status} claim of an issued SD-JWT VC (draft-ietf-oauth-status-list section 6.2), referencing {@link #buildStatusListUri}. */

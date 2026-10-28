@@ -7,7 +7,9 @@ import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsGet;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.TestExecutionUnit;
+import net.openid.conformance.util.SuiteIssuedCredentialStatusList;
 import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
 import net.openid.conformance.variant.VCIGrantType;
@@ -136,6 +138,20 @@ public class VCIClientProfileBehavior_UnitTest {
 			.isEqualTo("eu.europa.ec.eudi.pid.1");
 		assertThat(VCIClientProfileBehavior.defaultCredentialConfigurationId(null, false))
 			.isEqualTo("eu.europa.ec.eudi.pid.1");
+	}
+
+	@Test
+	public void issuedCredentialsReferenceTheSuiteWideStatusListUnlessASigningKeyIsConfigured() {
+		Environment env = new Environment();
+		env.putString("server", "issuer", "https://suite.example.com/test/a/alias/");
+		env.putObject("config", new JsonObject());
+		assertThat(VCIClientProfileBehavior.buildStatusListUri(env)).isEqualTo(SuiteIssuedCredentialStatusList.url());
+
+		env.putObjectFromJsonString("config", "credential.signing_jwk", "{\"kty\":\"EC\"}");
+		assertThat(VCIClientProfileBehavior.buildStatusListUri(env))
+			.isEqualTo("https://suite.example.com/test/a/alias/statuslists/1");
+
+		assertThat(VCIClientProfileBehavior.buildMdocStatusListUri()).isEqualTo(SuiteIssuedCredentialStatusList.url());
 	}
 
 	@Test

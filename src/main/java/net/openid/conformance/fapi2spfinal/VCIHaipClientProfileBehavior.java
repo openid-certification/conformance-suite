@@ -24,6 +24,6 @@ public class VCIHaipClientProfileBehavior extends VCIClientProfileBehavior {
 	 */
 	@Override
 	public String additionalMdocStatusListUri() {
-		return buildStatusListUri(module.getEnv());
+		return buildMdocStatusListUri();
 	}
 }
