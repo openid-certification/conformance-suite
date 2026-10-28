@@ -19,7 +19,7 @@ SERVER = os.environ["CONFORMANCE_SERVER"].rstrip("/") + "/"
 TOKEN = os.environ["CONFORMANCE_TOKEN"]
 PIN = os.environ.get("WALLET_PIN", "147258")
 ARTIFACTS = os.environ.get("ARTIFACT_DIR", "android-wallet-artifacts")
-WALLET_PACKAGE = os.environ.get("WALLET_PACKAGE", "eu.europa.ec.euidi.dev")
+WALLET_PACKAGE = os.environ.get("WALLET_PACKAGE", "eu.europa.ec.euidi")
 
 VCI_HAIP_PLAN = "oid4vci-1_0-wallet-haip-test-plan"
 VCI_PLAN_VARIANT = {
