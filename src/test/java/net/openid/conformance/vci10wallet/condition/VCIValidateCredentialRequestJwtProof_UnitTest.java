@@ -79,6 +79,32 @@ public class VCIValidateCredentialRequestJwtProof_UnitTest {
 		return jwt.serialize();
 	}
 
+	private String createKeyAttestationProofJwt(ECKey signingKey, String kid, ECKey... attestedKeys) throws Exception {
+		JsonArray attested = new JsonArray();
+		for (ECKey k : attestedKeys) {
+			attested.add(com.google.gson.JsonParser.parseString(k.toPublicJWK().toJSONString()));
+		}
+		ECKey walletProviderKey = new ECKeyGenerator(Curve.P_256).generate();
+		SignedJWT keyAttestation = new SignedJWT(
+			new JWSHeader.Builder(JWSAlgorithm.ES256).type(new JOSEObjectType("key-attestation+jwt")).build(),
+			JWTClaimsSet.parse("{\"iat\":" + (System.currentTimeMillis() / 1000) + ",\"attested_keys\":" + attested + "}"));
+		keyAttestation.sign(new ECDSASigner(walletProviderKey));
+
+		SignedJWT jwt = new SignedJWT(
+			new JWSHeader.Builder(JWSAlgorithm.ES256)
+				.type(new JOSEObjectType("openid4vci-proof+jwt"))
+				.keyID(kid)
+				.customParam("key_attestation", keyAttestation.serialize())
+				.build(),
+			new JWTClaimsSet.Builder()
+				.audience(ISSUER)
+				.issueTime(new Date())
+				.claim("nonce", NONCE)
+				.build());
+		jwt.sign(new ECDSASigner(signingKey));
+		return jwt.serialize();
+	}
+
 	private void putProofJwts(String... jwts) throws Exception {
 		JsonArray items = new JsonArray();
 		for (String jwt : jwts) {
@@ -154,5 +180,48 @@ public class VCIValidateCredentialRequestJwtProof_UnitTest {
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 		assertEquals(NONCE, env.getString("credential_issuer_nonce"),
 			"nonce must not be consumed when validation fails");
+	}
+
+	@Test
+	public void testEvaluate_kidIndexIntoAttestedKeysResolvesThatKey() throws Exception {
+		ECKey other = new ECKeyGenerator(Curve.P_256).generate();
+		ECKey signer = new ECKeyGenerator(Curve.P_256).generate();
+		putProofJwts(createKeyAttestationProofJwt(signer, "1", other, signer));
+
+		assertDoesNotThrow(() -> cond.execute(env));
+
+		assertEquals("1", env.getString(AbstractVCIValidateCredentialRequestProof.KID_ATTESTED_KEY_INDEX_ENV_KEY));
+		assertEquals(signer.toPublicJWK().computeThumbprint().toString(),
+			com.nimbusds.jose.jwk.JWK.parse(
+				env.getElementFromObject("proof_jwt", "jwk").getAsJsonObject().toString())
+				.computeThumbprint().toString());
+	}
+
+	@Test
+	public void testEvaluate_kidIndexPointingAtWrongAttestedKeyFails() throws Exception {
+		ECKey other = new ECKeyGenerator(Curve.P_256).generate();
+		ECKey signer = new ECKeyGenerator(Curve.P_256).generate();
+		putProofJwts(createKeyAttestationProofJwt(signer, "0", other, signer));
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_kidIndexOutOfRangeFails() throws Exception {
+		ECKey signer = new ECKeyGenerator(Curve.P_256).generate();
+		putProofJwts(createKeyAttestationProofJwt(signer, "1", signer));
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertNull(env.getString(AbstractVCIValidateCredentialRequestProof.KID_ATTESTED_KEY_INDEX_ENV_KEY));
+	}
+
+	@Test
+	public void testEvaluate_jwkHeaderClearsEarlierKidIndexFlag() throws Exception {
+		env.putString(AbstractVCIValidateCredentialRequestProof.KID_ATTESTED_KEY_INDEX_ENV_KEY, "0");
+		ECKey key1 = new ECKeyGenerator(Curve.P_256).generate();
+		putProofJwts(createProofJwt(key1, key1, NONCE));
+
+		assertDoesNotThrow(() -> cond.execute(env));
+		assertNull(env.getString(AbstractVCIValidateCredentialRequestProof.KID_ATTESTED_KEY_INDEX_ENV_KEY));
 	}
 }

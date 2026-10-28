@@ -173,6 +173,7 @@ import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationNonce;
 import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationX5cCertificateChain;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestAttestationProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestDiVpProof;
+import net.openid.conformance.vci10wallet.condition.VCIEnsureJwtProofKidIsNotAnAttestedKeyIndex;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestJwtProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestStructure;
 import net.openid.conformance.vci10wallet.condition.VCIValidateDeferredCredentialRequest;
@@ -1046,6 +1047,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 				if (errorResponse != null) {
 					return errorResponse;
 				}
+				callAndContinueOnFailure(VCIEnsureJwtProofKidIsNotAnAttestedKeyIndex.class, ConditionResult.WARNING, "OID4VCI-1FINALA-F.1");
 				if (Boolean.TRUE.equals(env.getBoolean("has_nested_key_attestation"))) {
 					errorResponse = validateKeyAttestationJwt();
 					if (errorResponse != null) {

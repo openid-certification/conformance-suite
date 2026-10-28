@@ -48,6 +48,7 @@ import net.openid.conformance.vci10wallet.condition.VCIPreparePreAuthorizationCo
 import net.openid.conformance.vci10wallet.condition.VCIResolveRequestedCredentialConfigurationFromRequest;
 import net.openid.conformance.vci10wallet.condition.VCISetCredentialFormatFlag;
 import net.openid.conformance.vci10wallet.condition.VCISetProofTypeFlag;
+import net.openid.conformance.vci10wallet.condition.VCIEnsureJwtProofKidIsNotAnAttestedKeyIndex;
 import net.openid.conformance.vci10wallet.condition.VCIValidateAttestedKeysInKeyAttestationFromJwtProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestAttestationProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestDiVpProof;
@@ -732,6 +733,13 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 					.skipIfElementMissing("vci", "proof_type_jwt")
 					.onFail(ConditionResult.FAILURE)
 					.requirements("OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4")
+					.dontStopOnFailure());
+				call(condition(VCIEnsureJwtProofKidIsNotAnAttestedKeyIndex.class)
+					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
+					.skipIfElementMissing("vci", "proof_type_jwt")
+					.onFail(ConditionResult.WARNING)
+					.requirements("OID4VCI-1FINALA-F.1")
 					.dontStopOnFailure());
 				call(condition(VCIValidateAttestedKeysInKeyAttestationFromJwtProof.class)
 					.skipIfElementPresent("vci", "credential_error_response")

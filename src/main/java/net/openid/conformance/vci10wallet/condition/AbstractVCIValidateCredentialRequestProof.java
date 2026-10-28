@@ -1,5 +1,6 @@
 package net.openid.conformance.vci10wallet.condition;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSHeader;
@@ -13,6 +14,7 @@ import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
+import net.openid.conformance.util.JWTUtil;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 import net.openid.conformance.vci10issuer.util.VCICredentialErrorResponseUtil;
 
@@ -25,8 +27,16 @@ import java.util.List;
 
 public abstract class AbstractVCIValidateCredentialRequestProof extends AbstractValidateX5cCertificateChain {
 
+	/**
+	 * Set to the proof JWT's kid when it was resolved as an index into the attested_keys of its
+	 * key_attestation header; {@link VCIEnsureJwtProofKidIsNotAnAttestedKeyIndex} reports it.
+	 */
+	public static final String KID_ATTESTED_KEY_INDEX_ENV_KEY = "proof_jwt_kid_attested_key_index";
+
 	@Override
 	public Environment evaluate(Environment env) {
+
+		env.removeNativeValue(KID_ATTESTED_KEY_INDEX_ENV_KEY);
 
 		String proofType = env.getString("proof_type");
 
@@ -86,6 +96,13 @@ public abstract class AbstractVCIValidateCredentialRequestProof extends Abstract
 			throw error("JWT proof validation failed: Empty Key ID (kid) in header", args("jwt", jwt));
 		}
 
+		// eudi-lib-jvm-openid4vci-kt puts the index of the signing key within the key attestation's
+		// attested_keys in kid; OpenID4VCI 1.0 does not define this, so the caller flags it
+		JWK attestedKey = findAttestedKeyByKidIndex(env, header, jwt);
+		if (attestedKey != null) {
+			return attestedKey;
+		}
+
 		JWKSet publicKeysJwks;
 		try {
 			JsonObject clientJwks = env.getObject("client_jwks");
@@ -103,6 +120,36 @@ public abstract class AbstractVCIValidateCredentialRequestProof extends Abstract
 
 		log("Found public key by kid", args("kid", header.getKeyID()));
 		return walletPublicKey;
+	}
+
+	protected JWK findAttestedKeyByKidIndex(Environment env, JWSHeader header, String jwt) {
+		String kid = header.getKeyID();
+		if (!(header.getCustomParam("key_attestation") instanceof String keyAttestationJwt) || !kid.matches("\\d{1,9}")) {
+			return null;
+		}
+		JsonArray attestedKeys;
+		try {
+			JsonObject claims = JWTUtil.jwtStringToJsonObjectForEnvironment(keyAttestationJwt).getAsJsonObject("claims");
+			attestedKeys = claims.has("attested_keys") && claims.get("attested_keys").isJsonArray() ? claims.getAsJsonArray("attested_keys") : null;
+		} catch (ParseException e) {
+			return null;
+		}
+		int index = Integer.parseInt(kid);
+		if (attestedKeys == null || index >= attestedKeys.size()) {
+			return null;
+		}
+		JWK attestedKey;
+		try {
+			attestedKey = JWK.parse(attestedKeys.get(index).toString()).toPublicJWK();
+		} catch (ParseException e) {
+			String errorDescription = "JWT proof validation failed: attested_keys[" + index + "] in the key_attestation header is not a valid JWK";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+			throw error(errorDescription, e, args("jwt", jwt, "attested_keys", attestedKeys));
+		}
+		env.putString(KID_ATTESTED_KEY_INDEX_ENV_KEY, kid);
+		log("Resolved the proof JWT's kid as an index into the attested_keys of its key_attestation header",
+			args("kid", kid, "attested_key", attestedKey.toJSONObject()));
+		return attestedKey;
 	}
 
 	protected JWK extractPublicJwkFromX5c(Environment env, String jwt, List<Base64> x5c) {
