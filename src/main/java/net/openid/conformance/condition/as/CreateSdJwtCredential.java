@@ -139,10 +139,11 @@ public class CreateSdJwtCredential extends AbstractCreateSdJwtCredential {
 				JsonArray proofJwtsArray = proofJwtsWrapper.getAsJsonArray("items");
 				for (JsonElement proofJwtEl : proofJwtsArray) {
 					JsonObject proofJwt = proofJwtEl.getAsJsonObject();
-					JsonElement publicJWK = proofJwt.has("header") ?
-						proofJwt.getAsJsonObject("header").get("jwk") : null;
+					// jwk is the key the proof validation resolved from the header's jwk, x5c or kid
+					JsonElement publicJWK = proofJwt.has("jwk") ? proofJwt.get("jwk")
+						: proofJwt.has("header") ? proofJwt.getAsJsonObject("header").get("jwk") : null;
 					if (publicJWK == null) {
-						throw error("Couldn't find public JWK in proof_jwt header.jwk",
+						throw error("Couldn't find the public JWK of the jwt proof",
 							args("proof_type", proofType, "proof_jwt", proofJwt));
 					}
 					publicJWKs.add(parseJwk(publicJWK));
@@ -151,9 +152,12 @@ public class CreateSdJwtCredential extends AbstractCreateSdJwtCredential {
 					args("keys", publicJWKs));
 			} else {
 				// Fallback to single proof_jwt for backward compatibility
-				JsonElement publicJWK = env.getElementFromObject("proof_jwt", "header.jwk");
+				JsonElement publicJWK = env.getElementFromObject("proof_jwt", "jwk");
 				if (publicJWK == null) {
-					throw error("Couldn't find public JWK in proof_jwt header.jwk for proof type: " + proofType,
+					publicJWK = env.getElementFromObject("proof_jwt", "header.jwk");
+				}
+				if (publicJWK == null) {
+					throw error("Couldn't find the public JWK of the jwt proof for proof type: " + proofType,
 						args("proof_type", proofType));
 				}
 				publicJWKs.add(parseJwk(publicJWK));
