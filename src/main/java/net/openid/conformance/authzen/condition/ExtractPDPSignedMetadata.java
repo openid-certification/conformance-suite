@@ -10,6 +10,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWTUtil;
 
 import java.text.ParseException;
+import java.util.List;
 
 public class ExtractPDPSignedMetadata extends AbstractCondition {
 
@@ -25,6 +26,17 @@ public class ExtractPDPSignedMetadata extends AbstractCondition {
 			throw error("`signed_metadata` must be a JWT string", args("signed_metadata", signedMetadataElem));
 		}
 		JsonObject signedMetadata = parseJwt("signed_metadata", OIDFJSON.getString(signedMetadataElem));
+		// The parser rejects a non-numeric time claim and a non-string iss, but keeps a JSON null,
+		// which the claim checks after this one would not be able to read.
+		JsonObject claims = signedMetadata.getAsJsonObject("claims");
+		for (String claim : List.of("iss", "exp", "iat", "nbf")) {
+			JsonElement value = claims.get(claim);
+			if (value != null && value.isJsonNull()) {
+				throw error("The `" + claim + "` claim of the discovery metadata `signed_metadata` JWT is null; RFC 7519 requires "
+						+ ("iss".equals(claim) ? "a string" : "a NumericDate"),
+					args("claim", claim, "claims", claims));
+			}
+		}
 		env.putObject("pdp_signed_metadata", signedMetadata);
 
 		logSuccess("Extracted PDP signed_metadata", args("pdp_signed_metadata", signedMetadata));

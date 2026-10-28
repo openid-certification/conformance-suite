@@ -15,9 +15,8 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
  * claims in {@code pdp_signed_metadata.claims} for
  * {@link ApplySignedMetadataPrecedence}. An expired or not-yet-valid JWT aborts the
  * test — its values must never be applied — whereas an implausible {@code iat}, such as
- * one in the future, is reported as a warning. A time claim that is not a number, or an
- * {@code iss} that is not a string, fails {@link ExtractPDPSignedMetadata}, whose JWT
- * parser rejects them.
+ * one in the future, is reported as a warning. A time claim that is null or not a number,
+ * or an {@code iss} that is null or not a string, fails {@link ExtractPDPSignedMetadata}.
  *
  * <p>{@code iss} identifies the party attesting to the metadata, which AuthZEN
  * (§11.8) allows to differ from the PDP itself, so the issuer it is checked against is
@@ -43,7 +42,7 @@ public class ValidateDiscoverySignedMetadata extends AbstractConditionSequence {
 		// it names MUST NOT be used for the rest of the test.
 		callAndStopOnFailure(ValidatePDPSignedMetadataExp.class, "RFC7519-4.1.4");
 		callAndStopOnFailure(ValidatePDPSignedMetadataNbf.class, "RFC7519-4.1.5");
-		// RFC 7519 requires iat to be a NumericDate, which ExtractPDPSignedMetadata's parser checks,
+		// RFC 7519 requires iat to be a NumericDate, which ExtractPDPSignedMetadata checks,
 		// but gives it no validity role, so an iat in the future is only flagged here.
 		callAndContinueOnFailure(CheckPDPSignedMetadataTimeClaimsArePlausible.class, Condition.ConditionResult.WARNING, "RFC7519-2");
 		callAndContinueOnFailure(EnsurePDPSignedMetadataDoesNotContainSignedMetadata.class, Condition.ConditionResult.WARNING, "AUTHZEN-9.1.3");
