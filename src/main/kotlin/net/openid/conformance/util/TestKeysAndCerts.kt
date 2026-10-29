@@ -543,6 +543,16 @@ MEUCIQDSqd1rf++s6eTJ+XL2BUviwUH66yNixTSpu3E+81sW0gIgQenBimeuREfz
 		get() = rotatingWrpac.get()
 
 	/**
+	 * A second wallet-relying-party access certificate (and key) with the same profile and issuer as
+	 * [wrpac] but its own key and common name: the second signer of a multi-signed OpenID4VP request
+	 * when the test configuration supplies no second client JWKS, so the two signatures carry two
+	 * distinct x509_hash client identifiers.
+	 */
+	@JvmStatic
+	val secondWrpac: MintedLeaf
+		get() = rotatingSecondWrpac.get()
+
+	/**
 	 * The certificate (and key) the suite signs its wallet-relying-party registration certificate and
 	 * that certificate's status list with, issued by [SuiteCa.WRPRC_PROVIDER]. ETSI TS 119 475 defines
 	 * no profile for it beyond being the provider's signing certificate, so it is a plain leaf.
@@ -585,12 +595,13 @@ MEUCIQDSqd1rf++s6eTJ+XL2BUviwUH66yNixTSpu3E+81sW0gIgQenBimeuREfz
 	private val rotatingStatusListSigner = DailyRotatedKey { mintStatusListSigner() }
 	private val rotatingSdJwtPidSigner = DailyRotatedKey { mintSdJwtPidSigner() }
 	private val rotatingWalletAttestationSigner = DailyRotatedKey { mintWalletAttestationSigner() }
-	private val rotatingWrpac = DailyRotatedKey { mintWrpac() }
+	private val rotatingWrpac = DailyRotatedKey { mintWrpac("certification.openid.net relying party") }
+	private val rotatingSecondWrpac = DailyRotatedKey { mintWrpac("certification.openid.net relying party 2") }
 	private val rotatingWrprcSigner = DailyRotatedKey { mintWrprcSigner() }
 
 	private val rotatingLeaves = listOf(
 		rotatingDocumentSigner, rotatingStatusListSigner, rotatingSdJwtPidSigner,
-		rotatingWalletAttestationSigner, rotatingWrpac, rotatingWrprcSigner
+		rotatingWalletAttestationSigner, rotatingWrpac, rotatingSecondWrpac, rotatingWrprcSigner
 	)
 
 	/**
@@ -831,8 +842,8 @@ MEUCIQDSqd1rf++s6eTJ+XL2BUviwUH66yNixTSpu3E+81sW0gIgQenBimeuREfz
 	 * client identifier prefix matches, and the critical mdoc reader authentication extended key
 	 * usages.
 	 */
-	private fun mintWrpac(): MintedLeaf =
-		mintLeaf(SuiteCa.ACCESS, legalPersonSubject("certification.openid.net relying party")) { builder ->
+	private fun mintWrpac(commonName: String): MintedLeaf =
+		mintLeaf(SuiteCa.ACCESS, legalPersonSubject(commonName)) { builder ->
 			addCertificatePolicy(builder, NCP_L_EUDIWRP_POLICY_OID)
 			builder.addExtension(
 				Extension.subjectAlternativeName, false,

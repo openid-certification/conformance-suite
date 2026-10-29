@@ -1,0 +1,44 @@
+{
+    "alias": "oidf-vp-test-verifier-dcapi-no-client2",
+    "description": "OID4VP wallet test - DC API mock response (SD-JWT), built-in second signer for multi-signed requests",
+    "server": {
+    },
+    "client": {
+        "jwks": {
+            "keys": [
+                {vp-signing-jwk.json}
+            ]
+        },
+        "dcql": {
+            "credentials": [
+                {
+                    "id": "my_credential",
+                    "format": "dc+sd-jwt",
+                    "meta": {
+                        "vct_values": [
+                            "urn:eudi:pid:1"
+                        ]
+                    },
+                    "claims": [
+                        {
+                            "path": [
+                                "given_name"
+                            ]
+                        },
+                        {
+                            "path": [
+                                "family_name"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "credential": {
+        "signing_jwk": {vp-signing-jwk.json},
+        "trust_anchor_pem": "{vp-signing-ca.crt}",
+        "status_list_trust_anchor_pem": "{vp-signing-ca.crt}"
+    },
+    "mock_wallet_response": true
+}

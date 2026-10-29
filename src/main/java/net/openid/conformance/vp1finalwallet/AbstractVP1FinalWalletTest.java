@@ -47,8 +47,10 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInVpA
 import net.openid.conformance.condition.client.CheckIatInBindingJwt;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.AddBuiltInAccessCertificateToClientConfiguration;
+import net.openid.conformance.condition.client.AddBuiltInSecondAccessCertificateToClient2Configuration;
 import net.openid.conformance.condition.client.AddBuiltInRegistrationCertificateToClientConfiguration;
 import net.openid.conformance.condition.client.WarnIfBuiltInAccessCertificateIsEphemeral;
+import net.openid.conformance.condition.client.WarnIfBuiltInSecondAccessCertificateIsEphemeral;
 import net.openid.conformance.condition.client.CheckIfClientIdInX509CertSanDns;
 import net.openid.conformance.condition.client.lote.LoteSlot;
 import net.openid.conformance.condition.client.lote.ValidateOwnRequestSigningCertificateAgainstWrpacLote;
@@ -360,6 +362,13 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 			callAndContinueOnFailure(WarnIfBuiltInAccessCertificateIsEphemeral.class, ConditionResult.WARNING);
 			callAndStopOnFailure(AddBuiltInAccessCertificateToClientConfiguration.class);
 			callAndStopOnFailure(AddBuiltInRegistrationCertificateToClientConfiguration.class);
+		}
+		if (clientIdPrefix == VP1FinalWalletClientIdPrefix.X509_HASH
+			&& requestMethod == VP1FinalWalletRequestMethod.REQUEST_URI_MULTISIGNED) {
+			// x509_hash derives the second client identifier from the second signer's certificate, so a
+			// built-in one needs no further configuration; x509_san_dns would need a second dNSName
+			callAndContinueOnFailure(WarnIfBuiltInSecondAccessCertificateIsEphemeral.class, ConditionResult.WARNING);
+			callAndStopOnFailure(AddBuiltInSecondAccessCertificateToClient2Configuration.class);
 		}
 
 		switch (clientIdPrefix) {

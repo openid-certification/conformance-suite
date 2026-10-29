@@ -75,6 +75,29 @@ public class WarnIfBuiltInCertificateAuthorityIsEphemeral_UnitTest {
 	}
 
 	@Test
+	public void theSecondAccessCertificateWarningNamesTheAccessCaWhenOnlyTheFirstSignerIsConfigured() {
+		assumeNoKeyFor(TestKeysAndCerts.SuiteCa.ACCESS);
+		env.putObject("config", "client.jwks", someJwks());
+
+		assertThatThrownBy(() -> cond(new WarnIfBuiltInSecondAccessCertificateIsEphemeral()).execute(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("SUITE_CA_KEY_ACCESS_CA");
+	}
+
+	@Test
+	public void theSecondAccessCertificateWarningLeavesAnUnconfiguredFirstSignerToTheAccessCertificateWarning() {
+		assertThatCode(() -> cond(new WarnIfBuiltInSecondAccessCertificateIsEphemeral()).execute(env)).doesNotThrowAnyException();
+	}
+
+	@Test
+	public void aConfiguredSecondClientJwksMeansNoBuiltInSecondSigner() {
+		env.putObject("config", "client.jwks", someJwks());
+		env.putObject("config", "client2.jwks", someJwks());
+
+		assertThatCode(() -> cond(new WarnIfBuiltInSecondAccessCertificateIsEphemeral()).execute(env)).doesNotThrowAnyException();
+	}
+
+	@Test
 	public void theCredentialSignerWarningNamesThePidProviderCa() {
 		assumeNoKeyFor(TestKeysAndCerts.SuiteCa.PID_PROVIDER);
 

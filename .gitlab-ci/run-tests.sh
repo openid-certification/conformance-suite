@@ -534,6 +534,8 @@ makeVcTests() {
     # entries: unsigned (web-origin), signed (x509_hash), and multi-signed (x509_hash).
     DCAPIJWT="response_mode=dc_api.jwt"
     TESTS="${TESTS} oid4vp-1final-wallet-haip-test-plan[$SDJWT][$DCAPIJWT]:oid4vp-1final-wallet-alternate-happy-flow,oid4vp-1final-wallet-alternate-happy-flow,oid4vp-1final-wallet-alternate-happy-flow ${CONFIGS}/vp-wallet-test-config-dcql-sdjwt-dcapi-mock.json"
+    # same, without a second client: multi-signed requests use the built-in second access certificate
+    TESTS="${TESTS} oid4vp-1final-wallet-haip-test-plan[$SDJWT][$DCAPIJWT]:oid4vp-1final-wallet-alternate-happy-flow,oid4vp-1final-wallet-alternate-happy-flow,oid4vp-1final-wallet-alternate-happy-flow ${CONFIGS}/vp-wallet-test-config-dcql-sdjwt-dcapi-mock-no-client2.json"
 
     # VP 1.0 Final - request_uri_method=post
     TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-verifier-request-uri-method-post{oid4vp-1final-wallet-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-wallet-request-uri-method-post}${CONFIGS}/vp-wallet-test-config-dcql-sdjwt.json ${CONFIGS}/vp-verifier-test-config.json"

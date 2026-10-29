@@ -69,6 +69,7 @@ public class SuitePki_UnitTest {
 	private static X509Certificate sdJwtPidSignerCert;
 	private static X509Certificate walletAttestationSignerCert;
 	private static X509Certificate wrpacCert;
+	private static X509Certificate secondWrpacCert;
 	private static X509Certificate wrprcSignerCert;
 
 	@BeforeAll
@@ -82,6 +83,7 @@ public class SuitePki_UnitTest {
 		sdJwtPidSignerCert = javaCert(TestKeysAndCerts.getSdJwtPidSigner().getCert());
 		walletAttestationSignerCert = javaCert(TestKeysAndCerts.getWalletAttestationSigner().getCert());
 		wrpacCert = javaCert(TestKeysAndCerts.getWrpac().getCert());
+		secondWrpacCert = javaCert(TestKeysAndCerts.getSecondWrpac().getCert());
 		wrprcSignerCert = javaCert(TestKeysAndCerts.getWrprcSigner().getCert());
 	}
 
@@ -248,13 +250,14 @@ public class SuitePki_UnitTest {
 		assertIssuedBy(sdJwtPidSignerCert, TestKeysAndCerts.SuiteCa.PID_PROVIDER);
 		assertIssuedBy(walletAttestationSignerCert, TestKeysAndCerts.SuiteCa.WALLET_PROVIDER);
 		assertIssuedBy(wrpacCert, TestKeysAndCerts.SuiteCa.ACCESS);
+		assertIssuedBy(secondWrpacCert, TestKeysAndCerts.SuiteCa.ACCESS);
 		assertIssuedBy(wrprcSignerCert, TestKeysAndCerts.SuiteCa.WRPRC_PROVIDER);
 	}
 
 	@Test
 	public void everyLeafHasTheLegalPersonSubjectOfEn319412_3() {
 		// LEG-4.2.1-2: countryName, organizationName, organizationIdentifier and commonName, once each
-		for (X509Certificate cert : List.of(dsCert, sdJwtPidSignerCert, walletAttestationSignerCert, wrpacCert, wrprcSignerCert)) {
+		for (X509Certificate cert : List.of(dsCert, sdJwtPidSignerCert, walletAttestationSignerCert, wrpacCert, secondWrpacCert, wrprcSignerCert)) {
 			X500Name subject = subject(cert);
 			assertThat(rdnValue(subject, BCStyle.C)).isEqualTo("US");
 			assertThat(rdnValue(subject, BCStyle.O)).isEqualTo(TestKeysAndCerts.ORGANIZATION_NAME);
@@ -270,7 +273,7 @@ public class SuitePki_UnitTest {
 	@Test
 	public void everyLeafHasDigitalSignatureOnlyKeyUsageAndNoBasicConstraints() {
 		// EN 319 412-2 Table 1 type C, which TS 119 412-6 PID-4.4.1-02 allows; ISO/IEC 18013-5 Annex B
-		for (X509Certificate cert : List.of(dsCert, sdJwtPidSignerCert, walletAttestationSignerCert, wrpacCert, wrprcSignerCert)) {
+		for (X509Certificate cert : List.of(dsCert, sdJwtPidSignerCert, walletAttestationSignerCert, wrpacCert, secondWrpacCert, wrprcSignerCert)) {
 			assertThat(cert.getCriticalExtensionOIDs()).contains("2.5.29.15");
 			boolean[] keyUsage = cert.getKeyUsage();
 			assertThat(keyUsage[0]).isTrue();
@@ -288,6 +291,7 @@ public class SuitePki_UnitTest {
 		assertCaIssuersUrl(sdJwtPidSignerCert, TestKeysAndCerts.SuiteCa.PID_PROVIDER);
 		assertCaIssuersUrl(walletAttestationSignerCert, TestKeysAndCerts.SuiteCa.WALLET_PROVIDER);
 		assertCaIssuersUrl(wrpacCert, TestKeysAndCerts.SuiteCa.ACCESS);
+		assertCaIssuersUrl(secondWrpacCert, TestKeysAndCerts.SuiteCa.ACCESS);
 		assertCaIssuersUrl(wrprcSignerCert, TestKeysAndCerts.SuiteCa.WRPRC_PROVIDER);
 	}
 
@@ -297,6 +301,7 @@ public class SuitePki_UnitTest {
 		assertThat(crlDistributionPointUri(sdJwtPidSignerCert)).isEqualTo(PLAIN_HTTP_BASE_URL + "/crl/pid-provider-ca.crl");
 		assertThat(crlDistributionPointUri(walletAttestationSignerCert)).isEqualTo(PLAIN_HTTP_BASE_URL + "/crl/wallet-provider-ca.crl");
 		assertThat(crlDistributionPointUri(wrpacCert)).isEqualTo(PLAIN_HTTP_BASE_URL + "/crl/access-ca.crl");
+		assertThat(crlDistributionPointUri(secondWrpacCert)).isEqualTo(PLAIN_HTTP_BASE_URL + "/crl/access-ca.crl");
 		assertThat(crlDistributionPointUri(wrprcSignerCert)).isEqualTo(PLAIN_HTTP_BASE_URL + "/crl/wrprc-provider-ca.crl");
 	}
 
@@ -306,13 +311,14 @@ public class SuitePki_UnitTest {
 		assertAkiMatchesCa(sdJwtPidSignerCert, TestKeysAndCerts.SuiteCa.PID_PROVIDER);
 		assertAkiMatchesCa(walletAttestationSignerCert, TestKeysAndCerts.SuiteCa.WALLET_PROVIDER);
 		assertAkiMatchesCa(wrpacCert, TestKeysAndCerts.SuiteCa.ACCESS);
+		assertAkiMatchesCa(secondWrpacCert, TestKeysAndCerts.SuiteCa.ACCESS);
 		assertAkiMatchesCa(wrprcSignerCert, TestKeysAndCerts.SuiteCa.WRPRC_PROVIDER);
 	}
 
 	@Test
 	public void everyLeafIsCurrentlyValidForAtMost457Days() {
 		Date now = new Date();
-		for (X509Certificate cert : List.of(dsCert, sdJwtPidSignerCert, walletAttestationSignerCert, wrpacCert, wrprcSignerCert)) {
+		for (X509Certificate cert : List.of(dsCert, sdJwtPidSignerCert, walletAttestationSignerCert, wrpacCert, secondWrpacCert, wrprcSignerCert)) {
 			assertThat(cert.getNotBefore()).isBefore(now);
 			assertThat(cert.getNotAfter()).isAfter(now);
 			assertThat(cert.getNotAfter().getTime() - cert.getNotBefore().getTime())
@@ -323,7 +329,7 @@ public class SuitePki_UnitTest {
 	@Test
 	public void everyMintedLeafExposesAPrivateJwkWhoseX5cIsTheCertificate() throws Exception {
 		for (TestKeysAndCerts.MintedLeaf leaf : List.of(TestKeysAndCerts.getSdJwtPidSigner(),
-				TestKeysAndCerts.getWalletAttestationSigner(), TestKeysAndCerts.getWrpac())) {
+				TestKeysAndCerts.getWalletAttestationSigner(), TestKeysAndCerts.getWrpac(), TestKeysAndCerts.getSecondWrpac())) {
 			ECKey jwk = leaf.getJwk();
 			assertThat(jwk.isPrivate()).isTrue();
 			assertThat(jwk.getKeyID()).isNotBlank();
@@ -438,6 +444,24 @@ public class SuitePki_UnitTest {
 	public void wrpacCarriesNoQcType() {
 		// an access certificate is neither a PID provider's nor a wallet provider's sign/seal certificate
 		assertThat(wrpacCert.getExtensionValue("1.3.6.1.5.5.7.1.3")).isNull();
+	}
+
+	@Test
+	public void theSecondWrpacHasTheWrpacProfileWithItsOwnKeyAndCommonName() throws Exception {
+		// the second signer of multi-signed requests: every wrpac check above holds for it as well
+		assertThat(secondWrpacCert.getCriticalExtensionOIDs()).isEqualTo(wrpacCert.getCriticalExtensionOIDs());
+		assertThat(secondWrpacCert.getNonCriticalExtensionOIDs()).isEqualTo(wrpacCert.getNonCriticalExtensionOIDs());
+		for (String oid : wrpacCert.getNonCriticalExtensionOIDs()) {
+			if (!"2.5.29.14".equals(oid)) {
+				assertThat(secondWrpacCert.getExtensionValue(oid)).as("extension %s", oid).isEqualTo(wrpacCert.getExtensionValue(oid));
+			}
+		}
+		for (String oid : wrpacCert.getCriticalExtensionOIDs()) {
+			assertThat(secondWrpacCert.getExtensionValue(oid)).as("extension %s", oid).isEqualTo(wrpacCert.getExtensionValue(oid));
+		}
+		assertThat(secondWrpacCert.getPublicKey()).isNotEqualTo(wrpacCert.getPublicKey());
+		assertThat(secondWrpacCert.getSerialNumber()).isNotEqualTo(wrpacCert.getSerialNumber());
+		assertThat(rdnValue(subject(secondWrpacCert), BCStyle.CN)).isNotEqualTo(rdnValue(subject(wrpacCert), BCStyle.CN));
 	}
 
 	@Test
