@@ -382,6 +382,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		// external driver polling the exposed values would otherwise see both endpoints at once
 		unexpose("tx_code_endpoint");
 		expose("credential_offer_endpoint", env.getString("base_url") + "/credential_offer");
+		getBrowser().requestUriInput(env.getString("base_url") + "/credential_offer",
+			"Paste or scan the openid-credential-offer:// credential offer produced by the issuer under test; its query string will be delivered to this test's credential offer endpoint.");
 		callAndStopOnFailure(VCIWaitForCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1");
 		setStatus(Status.WAITING);
 	}
