@@ -6,12 +6,6 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 public class EnsureMinimumNonceEntropy extends AbstractEnsureMinimumEntropy {
-	/**
-	 * The target enforced here is 128 bits (16 bytes) of entropy, but Shannon
-	 * entropy can only be estimated, so the threshold is set to 96 bits to
-	 * allow some slop in the estimate.
-	 */
-	protected final double requiredEntropy = 96;
 
 	@Override
 	@PreEnvironment(strings = {"nonce"})
@@ -22,7 +16,17 @@ public class EnsureMinimumNonceEntropy extends AbstractEnsureMinimumEntropy {
 			throw error("nonce is empty");
 		}
 
-		return ensureMinimumEntropy(env, nonce, requiredEntropy, buildSuccessMessage(), buildErrorMessage());
+		return ensureMinimumEntropy(env, nonce, getRequiredEntropy(), buildSuccessMessage(), buildErrorMessage());
+	}
+
+	/**
+	 * The threshold, in bits, that the Shannon estimate (bits per character
+	 * times length) must exceed. The estimate is limited by the string's length
+	 * and alphabet, so the threshold must sit below what correctly generated
+	 * nonces of the expected length measure, not at their true entropy.
+	 */
+	protected double getRequiredEntropy() {
+		return 96;
 	}
 
 	protected String buildSuccessMessage() {
