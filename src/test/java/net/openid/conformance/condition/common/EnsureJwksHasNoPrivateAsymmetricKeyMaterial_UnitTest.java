@@ -1,20 +1,29 @@
 package net.openid.conformance.condition.common;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
 
 /**
  * Unlike {@link EnsureJwksHasNoPrivateOrSymmetricKeyMaterial}, this condition fails only on private
@@ -114,5 +123,31 @@ public class EnsureJwksHasNoPrivateAsymmetricKeyMaterial_UnitTest {
 			    "d": "_ypRKTu_hyy29nTdJb4xKX9bu7-ArYC191aeBuVNooA" }
 			] }""");
 		assertThrows(ConditionError.class, () -> cond.evaluate(env));
+	}
+
+	// Only the private asymmetric key is reported; the symmetric key beside it is allowed.
+	@Test
+	public void privateAsymmetricAlongsideSymmetric_reportsOnlyTheAsymmetricKey() {
+		setJwks("""
+			{ "keys": [
+			  { "kty": "oct", "k": "c2VjcmV0" },
+			  { "kty": "EC", "crv": "P-256",
+			    "x": "hydCmuqjOVEFWuItZQuuZ74KGChEKb9qg_D0uvJCsEM",
+			    "y": "g73kkv_85yvsOtTrkA5kg2as03d5HsxlqCkbPEpAYz4",
+			    "d": "_ypRKTu_hyy29nTdJb4xKX9bu7-ArYC191aeBuVNooA" }
+			] }""");
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("index 1"), e.getMessage());
+
+		@SuppressWarnings("unchecked")
+		ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
+		verify(eventLog, atLeastOnce()).log(anyString(), captor.capture());
+		JsonArray issues = captor.getAllValues().stream()
+			.filter(m -> m.get("issues") instanceof JsonArray)
+			.map(m -> (JsonArray) m.get("issues"))
+			.findFirst()
+			.orElseThrow();
+		assertEquals(1, issues.size(), issues.toString());
+		assertEquals(1, OIDFJSON.getInt(issues.get(0).getAsJsonObject().get("index")));
 	}
 }

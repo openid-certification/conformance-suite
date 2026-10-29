@@ -45,7 +45,7 @@ public class EnsureJwksHasNoPrivateAsymmetricKeyMaterial extends AbstractConditi
 				throw error("The JWK set in " + label + " contains private asymmetric key material; "
 						+ "a published JWK set must contain public keys only. The key at index "
 						+ first.index() + " " + first.detail() + ".",
-					args("jwks_source", label, "issues", JWKUtil.issuesToJson(issues)));
+					args("jwks_source", label, "issues", JWKUtil.issuesToJson(asymmetricKeyIssues)));
 			}
 		}
 
