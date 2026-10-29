@@ -388,6 +388,30 @@ class CtsConfigForm extends LitElement {
     }
   }
 
+  // Delete the leaf at `fieldPath`, then remove each ancestor section the
+  // deletion left empty, stopping below the root. The backend null-checks
+  // whole sections (`client2`, `resource`), so an empty `{}` left behind
+  // would still read as "configured". Only the sections on the deleted
+  // leaf's path are candidates, so a sibling field's explicit `{}` stays.
+  _deleteAtPathAndPrune(obj, fieldPath) {
+    const parts = fieldPath.split(".");
+    const chain = [obj];
+    for (let i = 0; i < parts.length - 1; i++) {
+      const next = chain[i]?.[parts[i]];
+      if (next == null || typeof next !== "object") return;
+      chain.push(next);
+    }
+    const leaf = parts[parts.length - 1];
+    const parent = chain[chain.length - 1];
+    if (!Object.hasOwn(parent, leaf)) return;
+    delete parent[leaf];
+    for (let i = chain.length - 1; i > 0; i--) {
+      const section = chain[i];
+      if (Array.isArray(section) || Object.keys(section).length > 0) break;
+      delete chain[i - 1][parts[i - 1]];
+    }
+  }
+
   _hasHidden() {
     return this.hiddenFields instanceof Set && this.hiddenFields.size > 0;
   }
@@ -429,7 +453,14 @@ class CtsConfigForm extends LitElement {
   _handleFieldChange(e) {
     const { field, value } = e.detail;
     const newConfig = structuredClone(this.config);
-    this._setAtPath(newConfig, field, value);
+    // A cleared field means "not configured": remove the leaf key, and any
+    // section that leaves empty, so the backend's null checks fall back to
+    // the default.
+    if (value === "") {
+      this._deleteAtPathAndPrune(newConfig, field);
+    } else {
+      this._setAtPath(newConfig, field, value);
+    }
     this.config = newConfig;
     this._jsonText = JSON.stringify(this._filterHidden(newConfig), null, 2);
     this._validateResult = null;

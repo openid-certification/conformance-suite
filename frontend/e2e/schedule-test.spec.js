@@ -154,6 +154,76 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     expect(postCalled).toBe(true);
   });
 
+  test("GL#2058: a cleared field is omitted from the submitted config", async ({ page }) => {
+    /** @type {any} */
+    let postedConfig = null;
+
+    await setupFailFast(page);
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    // Registered before /api/plan/available for the same reason as R9.
+    await page.route("**/api/plan?*", (route) => {
+      if (route.request().method() === "POST") {
+        postedConfig = route.request().postDataJSON();
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            id: "plan-new-001",
+            name: "oidcc-client-basic-certification-test-plan",
+          }),
+        });
+      }
+      return route.fallback();
+    });
+
+    await page.route("**/api/plan/plan-new-001", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          _id: "plan-new-001",
+          planName: "oidcc-client-basic-certification-test-plan",
+          modules: [],
+          variant: {},
+          config: {},
+        }),
+      }),
+    );
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html");
+    await selectPlanViaSearch(page, "oidcc-client-basic-certification-test-plan");
+
+    const alias = page.locator('#configForm cts-form-field[name="alias"] input');
+    const issuer = page.locator('#configForm cts-form-field[name="server.issuer"] input');
+    await alias.fill("kept-alias");
+    await issuer.fill("https://cleared.example.com");
+    await issuer.fill("");
+
+    const createBtn = page.locator("#createPlanBtn");
+    await expect(createBtn).toBeEnabled({ timeout: 5000 });
+    await createBtn.click();
+    await page.waitForURL("**/plan-detail.html?plan=plan-new-001");
+
+    expect(postedConfig).toEqual({ alias: "kept-alias" });
+  });
+
   test("create button disabled when no plan selected, shows error modal on forced click (R10)", async ({
     page,
   }) => {

@@ -953,6 +953,110 @@ export const ObjectFieldRoundTrip = {
 };
 
 /**
+ * GL#2058: clearing a field removes its key from the config instead of
+ * storing `""`, `{}` or `[]`. The backend tells "not configured" apart from
+ * "configured" with null checks, so an empty value would select a
+ * non-default path. Covers a plain input, a JSON textarea and a
+ * newline-array textarea. A section the deletion leaves empty is removed
+ * too (the backend null-checks sections such as `client2`), but an empty
+ * object the user entered as a field's own value is kept.
+ */
+export const ClearedFieldRemovesKey = {
+  render: () => html`
+    <cts-config-form
+      .schema=${{
+        type: "object",
+        properties: {
+          alias: { type: "string", title: "alias" },
+          "server.issuer": { type: "string", title: "issuer" },
+          "server.jwks": { type: "object", title: "jwks" },
+          "federation.subordinates": {
+            type: "array",
+            format: "newline-array",
+            title: "subordinates",
+          },
+        },
+      }}
+      .uiSchema=${{
+        sections: [
+          {
+            key: "_root",
+            title: "Test",
+            fields: ["alias", "server.issuer", "server.jwks", "federation.subordinates"],
+          },
+        ],
+      }}
+      .config=${{
+        alias: "my-alias",
+        server: { issuer: "https://example.com", jwks: { keys: [{ kty: "EC" }] } },
+        federation: { subordinates: ["https://a.example.com", "https://b.example.com"] },
+      }}
+      .errors=${{}}
+    ></cts-config-form>
+  `,
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+    /** @type {any} */
+    let receivedConfig = null;
+    canvasElement.addEventListener("cts-config-change", (e) => {
+      receivedConfig = /** @type {CustomEvent} */ (e).detail.config;
+    });
+
+    /**
+     * @param {string} name
+     * @param {string} tag
+     */
+    const clearField = async (name, tag) => {
+      const control = /** @type {HTMLInputElement | HTMLTextAreaElement} */ (
+        canvasElement.querySelector(`cts-form-field[name="${name}"] ${tag}`)
+      );
+      expect(control).toBeTruthy();
+      receivedConfig = null;
+      await userEvent.clear(control);
+      await waitFor(() => {
+        expect(receivedConfig).not.toBeNull();
+      });
+    };
+
+    await step("clearing a text input removes its key", async () => {
+      await clearField("server.issuer", "input");
+      expect(receivedConfig.server).toEqual({ jwks: { keys: [{ kty: "EC" }] } });
+    });
+
+    await step("an explicit {} in a JSON textarea is kept", async () => {
+      const textarea = /** @type {HTMLTextAreaElement} */ (
+        canvasElement.querySelector('cts-form-field[name="server.jwks"] textarea')
+      );
+      receivedConfig = null;
+      textarea.value = "{}";
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      await waitFor(() => {
+        expect(receivedConfig).not.toBeNull();
+      });
+      expect(receivedConfig.server).toEqual({ jwks: {} });
+    });
+
+    await step("clearing a section's last field removes the section", async () => {
+      await clearField("server.jwks", "textarea");
+      expect(receivedConfig).not.toHaveProperty("server");
+    });
+
+    await step("clearing a newline-array textarea removes its key", async () => {
+      await clearField("federation.subordinates", "textarea");
+      expect(receivedConfig).not.toHaveProperty("federation");
+      expect(receivedConfig.alias).toBe("my-alias");
+    });
+
+    await step("the JSON tab shows no empty values", async () => {
+      await userEvent.click(canvas.getByRole("tab", { name: "JSON" }));
+      const editor = await waitForJsonEditor(canvasElement);
+      const json = JSON.parse(/** @type {any} */ (editor).value);
+      expect(json).toEqual({ alias: "my-alias" });
+    });
+  },
+};
+
+/**
  * Validates the new explicit-fields uiSchema shape used by the Phase 2
  * field-catalog adapter: a flat schema.properties keyed by full dotted paths,
  * with uiSchema.sections[*].fields[] naming which paths render under each
