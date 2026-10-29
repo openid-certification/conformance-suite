@@ -120,7 +120,11 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 		// such a key is parsed and its length checked, and an HMAC algorithm is not reported as
 		// unusable.
 		call(new ValidateJwksSequence("config", "pdp.jwks", "PDP signing keys", "RFC7517-4")
-			.replace(EnsureJwksHasNoPrivateOrSymmetricKeyMaterial.class, condition(EnsureJwksHasNoPrivateAsymmetricKeyMaterial.class).requirement("RFC7517-9.2"))
+			.replace(EnsureJwksHasNoPrivateOrSymmetricKeyMaterial.class, condition(EnsureJwksHasNoPrivateAsymmetricKeyMaterial.class)
+				.skipIfObjectMissing("jwks_to_validate")
+				.onFail(ConditionResult.FAILURE)
+				.dontStopOnFailure()
+				.requirement("RFC7517-9.2"))
 			.replace(ParseUsableJwksKeys.class, condition(ParseUsableAuthzenPdpJwksKeys.class)
 				.skipIfObjectMissing("jwks_to_validate")
 				.onFail(ConditionResult.FAILURE)
