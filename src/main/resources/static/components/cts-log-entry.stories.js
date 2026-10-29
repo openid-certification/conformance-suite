@@ -481,7 +481,9 @@ export const SpecLinkSectionLinkWins = {
   decorators: [
     withSeededSpecLinks(
       { "BrazilOBDCR-": "https://example.com/dcr#" },
-      { "BrazilOBDCR-7.1": "https://example.com/dcr#7.1.-Authorization-server" },
+      {
+        "BrazilOBDCR-7.1": "https://example.com/dcr#7.1.-Authorization-server",
+      },
     ),
   ],
   render: () => html`
@@ -579,7 +581,9 @@ export const HttpRequestEntry = {
     });
 
     await step("cURL affordance renders as a ghost button", async () => {
-      const curlBtn = canvas.getByRole("button", { name: "Copy as cURL" });
+      const curlBtn = canvas.getByRole("button", {
+        name: "Copy as cURL",
+      });
       expect(curlBtn).toBeInTheDocument();
       // The cURL affordance is the tertiary (ghost) variant so it recedes
       // into the row instead of reading as a bordered secondary button.
@@ -757,6 +761,94 @@ export const CopyAsCurl = {
   },
 };
 
+const COPY_MORE_ENTRY = {
+  _id: "entry-copy-more",
+  testId: "test-abc",
+  src: "ValidateIdToken",
+  time: NOW - 1000,
+  msg: "ID token claims did not match",
+  result: "FAILURE",
+  more: {
+    expected: "payments",
+    actual: { scope: "openid profile", nested: { count: 2 } },
+    id_token: {
+      verifiable_jws: "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxMjMifQ.c2lnbmF0dXJl",
+      public_jwk: { kty: "RSA", n: "abc", e: "AQAB" },
+    },
+  },
+};
+
+/**
+ * Every value row in the expanded More panel carries its own copy button.
+ * A string copies verbatim, an object copies as the same pretty-printed JSON
+ * the panel shows, and a `{ verifiable_jws, public_jwk }` object copies the
+ * JWS alone. Copying must not collapse the panel: the button sits inside the
+ * z-lifted .moreInfo, so its click never reaches the disclosure overlay.
+ */
+export const CopyMoreValue = {
+  render: () => html`<cts-log-entry .entry=${COPY_MORE_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement, step }) {
+    const writeSpy = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
+    const canvas = within(canvasElement);
+
+    await step("expand the row", async () => {
+      await waitFor(() => {
+        expect(canvasElement.querySelector(".logDisclosure")).toBeTruthy();
+      });
+      const toggle = /** @type {HTMLButtonElement | null} */ (
+        canvasElement.querySelector("button.logDisclosure")
+      );
+      if (!toggle) throw new Error("button.logDisclosure did not render");
+      toggle.click();
+      await waitFor(() => {
+        expect(canvasElement.querySelector(".moreInfo")).toBeTruthy();
+      });
+    });
+
+    await step("one copy button per value row, named after its label", async () => {
+      expect(canvasElement.querySelectorAll(".moreInfo dt cts-button.moreCopyBtn").length).toBe(3);
+      expect(
+        canvas.getByRole("button", {
+          name: "Copy Expected (per spec)",
+        }),
+      ).toBeInTheDocument();
+      expect(
+        canvas.getByRole("button", {
+          name: "Copy Actual (received)",
+        }),
+      ).toBeInTheDocument();
+      expect(canvas.getByRole("button", { name: "Copy Id token" })).toBeInTheDocument();
+    });
+
+    await step("a string value copies verbatim", async () => {
+      await canvas.getByRole("button", { name: "Copy Expected (per spec)" }).click();
+      await waitFor(() => expect(writeSpy).toHaveBeenCalledTimes(1));
+      expect(writeSpy.mock.calls[0][0]).toBe("payments");
+    });
+
+    await step("an object value copies as pretty-printed JSON", async () => {
+      await canvas.getByRole("button", { name: "Copy Actual (received)" }).click();
+      await waitFor(() => expect(writeSpy).toHaveBeenCalledTimes(2));
+      expect(writeSpy.mock.calls[1][0]).toBe(
+        JSON.stringify({ scope: "openid profile", nested: { count: 2 } }, null, 2),
+      );
+    });
+
+    await step("a verifiable JWS value copies the JWS alone", async () => {
+      await canvas.getByRole("button", { name: "Copy Id token" }).click();
+      await waitFor(() => expect(writeSpy).toHaveBeenCalledTimes(3));
+      expect(writeSpy.mock.calls[2][0]).toBe(COPY_MORE_ENTRY.more.id_token.verifiable_jws);
+    });
+
+    await step("copying leaves the panel open", async () => {
+      expect(canvasElement.querySelector(".moreInfo")).toBeTruthy();
+      expect(
+        canvasElement.querySelector("button.logDisclosure").getAttribute("aria-expanded"),
+      ).toBe("true");
+    });
+  },
+};
+
 /**
  * gitlab#1906 regression: Copy as cURL must work against the shape
  * `/api/log/{testId}` actually serialises — HTTP fields at the entry top level
@@ -886,7 +978,9 @@ export const WholeRowDisclosure = {
       // (the navigation is irrelevant here and would tear down the test
       // harness); the click still bubbles, so a stray row-level toggle handler
       // would fire and be caught by the assertions below.
-      link.addEventListener("click", (e) => e.preventDefault(), { once: true });
+      link.addEventListener("click", (e) => e.preventDefault(), {
+        once: true,
+      });
       expect(canvasElement.querySelector(".moreInfo")).toBeNull();
       link.click();
       expect(
@@ -1603,7 +1697,7 @@ export const SubstringBoundaryRespectsPrefix = {
     expect(dts[0].classList.contains("moreInfo-key--other")).toBe(true);
     expect(dts[0].classList.contains("moreInfo-key--expected")).toBe(false);
     // Label is humanized only, no "Expected (per spec)" prefix.
-    expect(dts[0].textContent.trim()).toBe("Unexpected field");
+    expect(dts[0].querySelector(".moreInfo-label")?.textContent.trim()).toBe("Unexpected field");
   },
 };
 
