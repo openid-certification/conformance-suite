@@ -41,6 +41,7 @@ import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
+import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.fapi2spfinal.AbstractFAPI2SPFinalServerTestModule;
 import net.openid.conformance.fapi2spfinal.VCIProfileBehavior;
@@ -65,10 +66,15 @@ import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
+import net.openid.conformance.vci10issuer.condition.AbstractVCICredentialOfferAuthorizationServerCondition;
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncryptionToRequest;
 import net.openid.conformance.vci10issuer.condition.VCICheckCredentialRequestEncryptionSupported;
 import net.openid.conformance.vci10issuer.condition.VCICheckCredentialResponseEncryptionSupported;
 import net.openid.conformance.vci10issuer.condition.VCIEncryptCredentialRequest;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialOfferAuthorizationServerIsListedInMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialOfferAuthorizationServerMatchesConfiguration;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialOfferAuthorizationServerOnlyWithMultipleAuthorizationServers;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialOfferCredentialIssuerMatchesConfiguration;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionOptional;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionRequired;
 import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
@@ -89,6 +95,7 @@ import net.openid.conformance.vci10issuer.condition.VCIGenerateCredentialEncrypt
 import net.openid.conformance.vci10issuer.condition.VCIGenerateRichAuthorizationRequestForCredential;
 import net.openid.conformance.vci10issuer.condition.VCIResolveDeferredCredentialEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCIResolveNotificationEndpointToUse;
+import net.openid.conformance.vci10issuer.condition.VCISelectAuthorizationServerFromCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCITryAddingIssuerStateToAuthorizationRequest;
 import net.openid.conformance.vci10issuer.condition.VCITryToExtractIssuerStateFromCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIUseStaticTxCodeFromConfig;
@@ -101,7 +108,10 @@ import net.openid.conformance.vci10issuer.condition.VCIWaitForTxCode;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 @VariantParameters({
 	VCIGrantType.class,
@@ -451,11 +461,57 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		}
 
 		callAndStopOnFailure(VCIValidateCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1");
+		callAndStopOnFailure(VCIEnsureCredentialOfferCredentialIssuerMatchesConfiguration.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1.1");
 		checkForUnexpectedParametersInCredentialOffer();
+		selectAuthorizationServerFromCredentialOffer();
 
 		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
 			callAndStopOnFailure(VCITryToExtractIssuerStateFromCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1.1");
 		}
+	}
+
+	/**
+	 * Validates the authorization_server hints in the credential offer and, when 'Authorization
+	 * Server URL Override' is not configured, switches to the authorization server the hint for the grant in
+	 * use names. The configure-time steps that read the selected server are then run again.
+	 */
+	protected void selectAuthorizationServerFromCredentialOffer() {
+		callAndContinueOnFailure(VCIEnsureCredentialOfferAuthorizationServerIsListedInMetadata.class, ConditionResult.FAILURE,
+			"OID4VCI-1FINAL-4.1.1", "OID4VCI-1FINAL-12.2.4");
+		callAndContinueOnFailure(VCIEnsureCredentialOfferAuthorizationServerOnlyWithMultipleAuthorizationServers.class, ConditionResult.FAILURE,
+			"OID4VCI-1FINAL-4.1.1");
+
+		String grantType = vciGrantType == VCIGrantType.AUTHORIZATION_CODE
+			? AbstractVCICredentialOfferAuthorizationServerCondition.AUTHORIZATION_CODE_GRANT
+			: AbstractVCICredentialOfferAuthorizationServerCondition.PRE_AUTHORIZED_CODE_GRANT;
+		callAndStopOnFailure(new VCIEnsureCredentialOfferAuthorizationServerMatchesConfiguration(grantType), ConditionResult.FAILURE,
+			"OID4VCI-1FINAL-4.1.1");
+
+		JsonObject serverBefore = env.getObject("server");
+		callAndStopOnFailure(new VCISelectAuthorizationServerFromCredentialOffer(grantType), ConditionResult.FAILURE,
+			"OID4VCI-1FINAL-4.1.1", "OID4VCI-1FINAL-12.2.4");
+		if (!Objects.equals(serverBefore, env.getObject("server"))) {
+			if (supportMTLSEndpointAliases != null) {
+				removeEndpointAliasesCopiedFrom(serverBefore);
+				call(sequence(supportMTLSEndpointAliases));
+			}
+			callAndStopOnFailure(CheckServerConfiguration.class);
+			call(profileBehavior.configureClientAttestation());
+		}
+	}
+
+	/**
+	 * The mTLS endpoint aliases sequence copies each *_endpoint of the server (or its mTLS alias)
+	 * to the top level of the environment and never removes any, so the ones copied from a
+	 * previously selected server are removed before it runs for a new one.
+	 */
+	private void removeEndpointAliasesCopiedFrom(JsonObject previousServer) {
+		Set<String> previousEndpoints = new HashSet<>(previousServer.keySet());
+		JsonElement previousAliases = previousServer.get("mtls_endpoint_aliases");
+		if (previousAliases != null && previousAliases.isJsonObject()) {
+			previousEndpoints.addAll(previousAliases.getAsJsonObject().keySet());
+		}
+		previousEndpoints.stream().filter(k -> k.endsWith("_endpoint")).forEach(env::removeNativeValue);
 	}
 
 	/**
