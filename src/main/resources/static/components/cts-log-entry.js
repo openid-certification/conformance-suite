@@ -325,6 +325,25 @@ ${typeof publicJwk === "string" ? publicJwk : JSON.stringify(publicJwk)}</pre
   return html`<pre>${JSON.stringify(value, null, 2)}</pre>`;
 }
 
+/**
+ * The text the per-value copy button in the More panel writes to the
+ * clipboard. Mirrors what renderMoreValue shows: a string is copied as-is
+ * (a JWT is copied whole, not as the colored split), a `{ verifiable_jws }`
+ * object yields the JWS alone (the JWK is a separate hint, not part of the
+ * token), and any other value is the same pretty-printed JSON the panel
+ * renders.
+ * @param {unknown} value The More-entry value.
+ * @returns {string} The clipboard text.
+ */
+export function moreValueClipboardText(value) {
+  if (value && typeof value === "object") {
+    const jws = /** @type {Record<string, unknown>} */ (value).verifiable_jws;
+    if (typeof jws === "string") return jws;
+  }
+  if (typeof value === "string") return value;
+  return JSON.stringify(value, null, 2);
+}
+
 const STYLE_ID = "cts-log-entry-styles";
 
 // Duration of the flashEntryArrival() one-shot wash below. Interpolated into
@@ -753,6 +772,14 @@ const STYLE_TEXT = css`
     margin: 0;
   }
   cts-log-entry .moreInfo dt {
+    /* Label on the left, per-value copy button on the right. The button
+       is icon-only and xxs so the row keeps the label's single-line
+       height; its hit area still rides above the disclosure overlay via
+       the panel's z-index lift. */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
     font-family: var(--font-sans);
     font-size: var(--fs-12);
     font-weight: var(--fw-medium);
@@ -760,6 +787,9 @@ const STYLE_TEXT = css`
     letter-spacing: 0.02em;
     margin: 0 0 var(--space-1) 0;
     text-align: left;
+  }
+  cts-log-entry .moreInfo dt .moreCopyBtn {
+    flex: none;
   }
   cts-log-entry .moreInfo dd {
     margin: 0 0 var(--space-4) 0;
@@ -1155,6 +1185,28 @@ class CtsLogEntry extends LitElement {
     flashCopyConfirmed(trigger);
   }
 
+  /**
+   * Copy one More-panel value (the raw string, JWS or pretty-printed JSON
+   * per moreValueClipboardText) to the clipboard and flash the trigger.
+   * The row is identified by the button's `data-key`, which names the
+   * entry in extractMoreFields(this.entry) that the row renders.
+   * @param {Event} event The cts-click event from the row's copy button.
+   */
+  async _copyMoreValue(event) {
+    // currentTarget is null once the await resolves (see _copyCurl).
+    const trigger = /** @type {HTMLElement | null} */ (event && event.currentTarget);
+    const key = trigger?.dataset.key;
+    const more = extractMoreFields(this.entry);
+    if (!key || !Object.hasOwn(more, key)) return;
+    try {
+      await navigator.clipboard.writeText(moreValueClipboardText(more[key]));
+    } catch (err) {
+      console.warn("[cts-log-entry] clipboard.writeText failed:", err);
+      return;
+    }
+    flashCopyConfirmed(trigger);
+  }
+
   _renderSeverityBadges() {
     const entry = this.entry;
     return html`
@@ -1275,7 +1327,18 @@ class CtsLogEntry extends LitElement {
           ${rows.map(
             ({ kind, key, displayLabel, value }) => html`
               <dt class="moreInfo-key ${MORE_KIND_KEY_CLASSES[kind]}" data-key="${key}">
-                ${displayLabel}
+                <span class="moreInfo-label">${displayLabel}</span
+                ><cts-tooltip content="Copy value" placement="top"
+                  ><cts-button
+                    class="moreCopyBtn"
+                    variant="ghost"
+                    size="xxs"
+                    icon="copy"
+                    aria-label="Copy ${displayLabel}"
+                    data-key="${key}"
+                    @cts-click=${this._copyMoreValue}
+                  ></cts-button
+                ></cts-tooltip>
               </dt>
               <dd class="moreInfo-value ${MORE_KIND_VALUE_CLASSES[kind]}">
                 ${renderMoreValue(key, value)}
