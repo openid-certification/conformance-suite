@@ -1,0 +1,37 @@
+{
+    "alias": "oidf-vp-test-verifier-dcapi-unsigned",
+    "description": "OID4VP wallet test - DC API mock response (SD-JWT), unsigned request, no server object or client JWKS",
+    "client": {
+        "dcql": {
+            "credentials": [
+                {
+                    "id": "my_credential",
+                    "format": "dc+sd-jwt",
+                    "meta": {
+                        "vct_values": [
+                            "urn:eudi:pid:1"
+                        ]
+                    },
+                    "claims": [
+                        {
+                            "path": [
+                                "given_name"
+                            ]
+                        },
+                        {
+                            "path": [
+                                "family_name"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "credential": {
+        "signing_jwk": {vp-signing-jwk.json},
+        "trust_anchor_pem": "{vp-signing-ca.crt}",
+        "status_list_trust_anchor_pem": "{vp-signing-ca.crt}"
+    },
+    "mock_wallet_response": true
+}

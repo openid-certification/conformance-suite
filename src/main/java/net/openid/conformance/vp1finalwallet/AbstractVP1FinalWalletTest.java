@@ -98,6 +98,7 @@ import net.openid.conformance.condition.client.ExtractVP1FinalVpTokenDCQL;
 import net.openid.conformance.condition.client.ExtractVerifierInfoFromClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
+import net.openid.conformance.condition.client.GetStaticServerConfigurationOrEmpty;
 import net.openid.conformance.condition.client.ParseCredentialAsMdoc;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwtKb;
 import net.openid.conformance.condition.client.RegisterCredentialTrustAnchor;
@@ -362,9 +363,11 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("response_uri");
 
-		callAndStopOnFailure(GetStaticServerConfiguration.class);
-
-		if (responseMode != VP1FinalWalletResponseMode.DC_API && responseMode != VP1FinalWalletResponseMode.DC_API_JWT) {
+		if (responseMode == VP1FinalWalletResponseMode.DC_API || responseMode == VP1FinalWalletResponseMode.DC_API_JWT) {
+			// the Digital Credentials API has no authorization endpoint, and the form shows no server fields
+			callAndStopOnFailure(GetStaticServerConfigurationOrEmpty.class);
+		} else {
+			callAndStopOnFailure(GetStaticServerConfiguration.class);
 			callAndStopOnFailure(CheckAuthorizationEndpointIsValidUri.class);
 		}
 
@@ -420,7 +423,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 	protected void configureStaticClient() {
 		JsonElement clientJwksEl = env.getElementFromObject("client", "jwks");
-		boolean jwksRequired = false;
+		boolean signingKeyRequired = false;
 		boolean encryptionKeyRequired = false;
 		// keys are needed for signed/multi-signed requests or encrypted responses
 		switch (requestMethod) {
@@ -429,7 +432,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				break;
 			case REQUEST_URI_SIGNED:
 			case REQUEST_URI_MULTISIGNED:
-				jwksRequired = true;
+				signingKeyRequired = true;
 				break;
 		}
 		switch (responseMode) {
@@ -439,16 +442,19 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 			case DIRECT_POST_JWT:
 			case DC_API_JWT:
 				// assume response is encrypted so a key is required
-				jwksRequired = true;
 				encryptionKeyRequired = true;
 				break;
 		}
 
-		if (clientJwksEl == null && !jwksRequired) {
+		if (clientJwksEl == null && !signingKeyRequired && !encryptionKeyRequired) {
 			return;
 		}
 
-		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
+		// the tester need not supply a JWKS when only an encryption key is needed, as
+		// CreateClientEncryptionKeyIfMissing generates one
+		if (clientJwksEl != null || signingKeyRequired) {
+			callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
+		}
 		if (encryptionKeyRequired) {
 			callAndStopOnFailure(CreateClientEncryptionKeyIfMissing.class);
 		}
