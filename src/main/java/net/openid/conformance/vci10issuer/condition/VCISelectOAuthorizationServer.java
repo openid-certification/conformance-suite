@@ -1,5 +1,6 @@
 package net.openid.conformance.vci10issuer.condition;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -19,6 +20,7 @@ public class VCISelectOAuthorizationServer extends VCIFetchOAuthorizationServerM
 
 		String credentialIssuerIssuer = OIDFJSON.getString(credentialIssuerMetadata.get("credential_issuer"));
 		String forcedAuthorizationServer = env.getString("config", "vci.authorization_server");
+		String credentialIssuerMetadataUrl = env.getString("vci", "credential_issuer_metadata_url");
 
 		JsonElement authorizationServersEL = credentialIssuerMetadata.get("authorization_servers");
 		JsonArray authorizationServerArray;
@@ -33,25 +35,32 @@ public class VCISelectOAuthorizationServer extends VCIFetchOAuthorizationServerM
 			}
 
 			authorizationServerArray = authorizationServersEL.getAsJsonArray();
-		}
-
-		String wantedAuthorizationServerIssuer = forcedAuthorizationServer;
-		if (wantedAuthorizationServerIssuer == null) {
-			wantedAuthorizationServerIssuer = credentialIssuerIssuer;
+			if (authorizationServerArray.isEmpty()) {
+				throw error("The 'authorization_servers' array in the credential issuer metadata is empty, but when present it must list at least one authorization server.",
+					args("authorization_servers", authorizationServerArray, "credential_issuer_metadata_url", credentialIssuerMetadataUrl));
+			}
 		}
 
 		int index;
-		if (wantedAuthorizationServerIssuer == null) {
-			if (authorizationServerArray.size() > 1) {
-				throw error("More than one authorization server listed in 'authorization_servers' - please specify the one to test in the 'Authorization Server URL' field in the test configuration.",
-					args("authorization_servers", authorizationServerArray));
-			}
-			index = 0;
-		} else {
+		String wantedAuthorizationServerIssuer;
+		// an empty string, which older saved configurations and ones edited as JSON can hold, means not configured
+		if (!Strings.isNullOrEmpty(forcedAuthorizationServer)) {
+			wantedAuthorizationServerIssuer = forcedAuthorizationServer;
 			index = authorizationServerArray.asList().indexOf(new JsonPrimitive(wantedAuthorizationServerIssuer));
 			if (index < 0) {
-				throw error("Authorization server listed in 'Authorization Server URL' or  in the test configuration is not listed in the 'authorization_servers' array in the credential issuer metadata.",
-					args("test_config_issuer_url", credentialIssuerIssuer, "authorization_server_issuer_url", wantedAuthorizationServerIssuer, "authorization_servers", authorizationServerArray));
+				throw error("The 'Authorization Server URL Override' in the 'Credential Issuer' section of the test configuration is not listed in the 'authorization_servers' array in the credential issuer metadata.",
+					args("authorization_server_issuer_url", wantedAuthorizationServerIssuer, "authorization_servers", authorizationServerArray, "credential_issuer_metadata_url", credentialIssuerMetadataUrl));
+			}
+		} else if (authorizationServerArray.size() == 1) {
+			index = 0;
+			wantedAuthorizationServerIssuer = OIDFJSON.getString(authorizationServerArray.get(0));
+		} else {
+			// with several authorization servers, the credential issuer acting as its own is the natural default
+			wantedAuthorizationServerIssuer = credentialIssuerIssuer;
+			index = authorizationServerArray.asList().indexOf(new JsonPrimitive(wantedAuthorizationServerIssuer));
+			if (index < 0) {
+				throw error("More than one authorization server is listed in 'authorization_servers' in the credential issuer metadata - please specify the one to test in the 'Authorization Server URL Override' field in the test configuration.",
+					args("credential_issuer", credentialIssuerIssuer, "authorization_servers", authorizationServerArray, "credential_issuer_metadata_url", credentialIssuerMetadataUrl));
 			}
 		}
 
