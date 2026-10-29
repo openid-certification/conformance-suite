@@ -27,8 +27,9 @@ import { isMultiLineConfigField } from "../lib/config-field-types.js";
  *
  * For `schema.type === "array", schema.format === "newline-array"`, the
  * textarea splits on `\n` and dispatches an array of non-empty trimmed
- * lines (mirrors the legacy `data-json-type="jsonarray"` convention used
- * by `federation_trust_anchor.immediate_subordinates`).
+ * lines, or `""` when the textarea is blank (mirrors the legacy
+ * `data-json-type="jsonarray"` convention used by
+ * `federation_trust_anchor.immediate_subordinates`).
  *
  * For displayed value:
  *   - object/array values arrive as JS objects; the textarea shows
@@ -97,8 +98,9 @@ import { isMultiLineConfigField } from "../lib/config-field-types.js";
  * @property {boolean} disabled - Disables the input.
  * @fires cts-field-change - On every input/change with
  *   `{ detail: { field, value } }`; bubbles. For type:object/array the
- *   emitted `value` is the parsed object/array on valid JSON, or the raw
- *   string on parse failure (with setCustomValidity raised on the input).
+ *   emitted `value` is the parsed object/array on valid JSON, the raw
+ *   string on parse failure (with setCustomValidity raised on the input),
+ *   or `""` when the textarea is blank.
  */
 
 const STYLE_ID = "cts-form-field-styles";
@@ -413,27 +415,27 @@ class CtsFormField extends LitElement {
     // this keeps typing responsive on every input event.
     if (e.target.tagName === "TEXTAREA") autoGrowTextarea(e.target);
 
-    if (type === "array" && format === "newline-array") {
+    const isNewlineArray = type === "array" && format === "newline-array";
+    if ((isNewlineArray || jsonType) && raw.trim() === "") {
+      // A blank JSON or newline-array textarea emits "", the no-value
+      // sentinel that cts-config-form turns into a key deletion.
+      value = "";
+    } else if (isNewlineArray) {
       // Newline-delimited array: split on `\n`, trim, drop empties.
       value = raw
         .split("\n")
         .map((line) => line.trim())
         .filter((line) => line !== "");
     } else if (jsonType) {
-      // JSON textarea: empty string is the no-value sentinel; otherwise
-      // try to parse. On failure, emit the raw string so the user can keep
-      // editing, and surface the parse error via setCustomValidity so
-      // submit is blocked at the browser layer (mirrors legacy
-      // validateJSONFromFormElement behavior).
-      if (raw.trim() === "") {
-        value = jsonType === "array" ? [] : {};
-      } else {
-        try {
-          value = JSON.parse(raw);
-        } catch (err) {
-          value = raw;
-          parseError = err instanceof Error ? err.message : "Invalid JSON";
-        }
+      // JSON textarea: try to parse. On failure, emit the raw string so the
+      // user can keep editing, and surface the parse error via
+      // setCustomValidity so submit is blocked at the browser layer (mirrors
+      // legacy validateJSONFromFormElement behavior).
+      try {
+        value = JSON.parse(raw);
+      } catch (err) {
+        value = raw;
+        parseError = err instanceof Error ? err.message : "Invalid JSON";
       }
     }
 
