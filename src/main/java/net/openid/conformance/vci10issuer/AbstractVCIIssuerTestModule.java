@@ -87,6 +87,7 @@ import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseI
 import net.openid.conformance.vci10issuer.condition.VCIEnsureIntervalPresentInDeferredResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractNotificationIdFromCredentialResponse;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureConfiguredCredentialConfigurationIdIsInCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTxCodeFromRequest;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
@@ -469,6 +470,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		}
 
 		callAndStopOnFailure(VCIValidateCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1");
+		callAndStopOnFailure(VCIEnsureConfiguredCredentialConfigurationIdIsInCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1.1");
 		checkForUnexpectedParametersInCredentialOffer();
 
 		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
