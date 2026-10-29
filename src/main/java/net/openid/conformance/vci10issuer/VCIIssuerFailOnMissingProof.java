@@ -59,4 +59,10 @@ public class VCIIssuerFailOnMissingProof extends AbstractVCIIssuerTestModule {
 
 		callAndStopOnFailure(new VCIValidateCredentialErrorResponse(VciErrorCode.INVALID_PROOF), "OID4VCI-1FINAL-8.3.1");
 	}
+
+	@Override
+	protected boolean canTakeCredentialConfigurationIdFromOffer() {
+		// decides whether to skip from the resolved credential configuration before any offer
+		return false;
+	}
 }

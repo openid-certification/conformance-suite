@@ -38,6 +38,7 @@ import net.openid.conformance.sequence.client.ValidateMdocCredential;
 import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
 import net.openid.conformance.sequence.client.ValidateVCINonceEndpointResponse;
 import net.openid.conformance.sequence.client.VCIDiscoveryEndpointChecks;
+import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.testmodule.IterateEnvironmentArray;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
@@ -48,6 +49,7 @@ import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
 import net.openid.conformance.vci10issuer.condition.CheckForUnexpectedParametersInSdJwtVcTypeMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialConfigurationIdToEnv;
+import net.openid.conformance.vci10issuer.condition.VCIUseCredentialConfigurationIdFromCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCICaptureCredentialForLinkability;
 import net.openid.conformance.vci10issuer.condition.VCIDetectTypeMetadataExtends;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureMandatoryClaimsArePresent;
@@ -107,6 +109,12 @@ import java.util.function.Supplier;
 public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 
 	protected VCI1FinalCredentialFormat credentialFormat;
+
+	/**
+	 * When set, the credential configuration is resolved from the credential offer by
+	 * {@link #resolveCredentialConfigurationFromOffer()} instead of at configure time.
+	 */
+	protected boolean credentialConfigurationIdFromOffer;
 
 	@Override
 	public Supplier<? extends ConditionSequence> getProfileSpecificDiscoveryChecks() {
@@ -174,7 +182,29 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 	public ConditionSequence configureClientExtra() {
 		// VCI client JWKs generation and encryption JWKs are handled in
 		// AbstractVCIIssuerTestModule.configureClient() where they run before validation
+		if (credentialConfigurationIdFromOffer) {
+			return new AbstractConditionSequence() {
+				@Override
+				public void evaluate() {
+				}
+			};
+		}
 		return configureCredentialConfigurationResolution(credentialFormat);
+	}
+
+	public void setCredentialConfigurationIdFromOffer(boolean credentialConfigurationIdFromOffer) {
+		this.credentialConfigurationIdFromOffer = credentialConfigurationIdFromOffer;
+	}
+
+	/**
+	 * The configure-time credential configuration resolution, run for the current client once a
+	 * credential offer has been received, taking the credential_configuration_id from the offer.
+	 */
+	public ConditionSequence resolveCredentialConfigurationFromOffer() {
+		return configureCredentialConfigurationResolution(credentialFormat)
+			.replace(VCIAddCredentialConfigurationIdToEnv.class,
+				new ConditionCallBuilder(VCIUseCredentialConfigurationIdFromCredentialOffer.class)
+					.requirements("OID4VCI-1FINAL-4.1.1"));
 	}
 
 	@Override

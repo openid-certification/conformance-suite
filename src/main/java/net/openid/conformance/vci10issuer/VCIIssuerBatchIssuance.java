@@ -124,4 +124,10 @@ public class VCIIssuerBatchIssuance extends AbstractVCIIssuerTestModule {
 
 		eventLog.endBlock();
 	}
+
+	@Override
+	protected boolean canTakeCredentialConfigurationIdFromOffer() {
+		// decides whether to skip from the resolved credential configuration before any offer
+		return false;
+	}
 }

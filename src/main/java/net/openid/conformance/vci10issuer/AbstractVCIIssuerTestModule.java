@@ -177,6 +177,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	protected VCIGrantType vciGrantType;
 	protected VCIAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant;
 
+	protected boolean credentialConfigurationIdFromOffer;
+
 	protected VCI1FinalCredentialFormat vciCredentialFormat;
 
 	protected VCICredentialEncryption vciCredentialEncryption;
@@ -284,10 +286,24 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		}
 		call(new CheckOwnCertificatesAgainstLotes(env, attestationSignerChecks, LoteSlot.WALLET));
 
+		credentialConfigurationIdFromOffer = vciAuthorizationCodeFlowVariant == VCIAuthorizationCodeFlowVariant.ISSUER_INITIATED
+			&& canTakeCredentialConfigurationIdFromOffer()
+			&& Strings.isNullOrEmpty(env.getString("config", "vci.credential_configuration_id"));
+		vciProfileBehavior().setCredentialConfigurationIdFromOffer(credentialConfigurationIdFromOffer);
+
 		call(profileBehavior.configureClientExtra());
 		call(profileBehavior.configureClientAttestation());
 
 		validateClientConfiguration();
+	}
+
+	/**
+	 * Whether this module can leave the credential configuration unresolved until the credential
+	 * offer arrives. Modules that decide whether to run from the resolved configuration before
+	 * the offer return false, so they need 'Credential Configuration ID' in the test configuration.
+	 */
+	protected boolean canTakeCredentialConfigurationIdFromOffer() {
+		return true;
 	}
 
 	@Override
@@ -470,6 +486,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		}
 
 		callAndStopOnFailure(VCIValidateCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1");
+		if (credentialConfigurationIdFromOffer) {
+			// resolved per offer, as each client's scope comes from its own offer
+			call(vciProfileBehavior().resolveCredentialConfigurationFromOffer());
+		}
 		callAndStopOnFailure(VCIEnsureConfiguredCredentialConfigurationIdIsInCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1.1");
 		checkForUnexpectedParametersInCredentialOffer();
 

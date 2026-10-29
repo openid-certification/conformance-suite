@@ -43,4 +43,10 @@ public class VCIIssuerFailOnInvalidNonce extends AbstractVCIIssuerTestModule {
 
 		callAndStopOnFailure(new VCIValidateCredentialErrorResponse(VciErrorCode.INVALID_NONCE), "OID4VCI-1FINAL-8.3.1");
 	}
+
+	@Override
+	protected boolean canTakeCredentialConfigurationIdFromOffer() {
+		// decides whether to skip from the resolved credential configuration before any offer
+		return false;
+	}
 }
