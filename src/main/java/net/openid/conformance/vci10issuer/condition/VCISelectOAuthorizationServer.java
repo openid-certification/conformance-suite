@@ -35,23 +35,26 @@ public class VCISelectOAuthorizationServer extends VCIFetchOAuthorizationServerM
 			authorizationServerArray = authorizationServersEL.getAsJsonArray();
 		}
 
-		String wantedAuthorizationServerIssuer = forcedAuthorizationServer;
-		if (wantedAuthorizationServerIssuer == null) {
-			wantedAuthorizationServerIssuer = credentialIssuerIssuer;
-		}
-
 		int index;
-		if (wantedAuthorizationServerIssuer == null) {
-			if (authorizationServerArray.size() > 1) {
-				throw error("More than one authorization server listed in 'authorization_servers' - please specify the one to test in the 'Authorization Server URL' field in the test configuration.",
-					args("authorization_servers", authorizationServerArray));
-			}
-			index = 0;
-		} else {
+		String wantedAuthorizationServerIssuer;
+		// an emptied field in the configuration form is stored as an empty string
+		if (forcedAuthorizationServer != null && !forcedAuthorizationServer.isEmpty()) {
+			wantedAuthorizationServerIssuer = forcedAuthorizationServer;
 			index = authorizationServerArray.asList().indexOf(new JsonPrimitive(wantedAuthorizationServerIssuer));
 			if (index < 0) {
-				throw error("Authorization server listed in 'Authorization Server URL' or  in the test configuration is not listed in the 'authorization_servers' array in the credential issuer metadata.",
-					args("test_config_issuer_url", credentialIssuerIssuer, "authorization_server_issuer_url", wantedAuthorizationServerIssuer, "authorization_servers", authorizationServerArray));
+				throw error("The 'Authorization Server URL' in the test configuration is not listed in the 'authorization_servers' array in the credential issuer metadata.",
+					args("authorization_server_issuer_url", wantedAuthorizationServerIssuer, "authorization_servers", authorizationServerArray));
+			}
+		} else if (authorizationServerArray.size() == 1) {
+			index = 0;
+			wantedAuthorizationServerIssuer = OIDFJSON.getString(authorizationServerArray.get(0));
+		} else {
+			// with several authorization servers, the credential issuer acting as its own is the natural default
+			wantedAuthorizationServerIssuer = credentialIssuerIssuer;
+			index = authorizationServerArray.asList().indexOf(new JsonPrimitive(wantedAuthorizationServerIssuer));
+			if (index < 0) {
+				throw error("More than one authorization server listed in 'authorization_servers' - please specify the one to test in the 'Authorization Server URL' field in the test configuration.",
+					args("credential_issuer", credentialIssuerIssuer, "authorization_servers", authorizationServerArray));
 			}
 		}
 
