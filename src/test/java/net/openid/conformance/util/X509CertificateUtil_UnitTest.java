@@ -1,9 +1,14 @@
 package net.openid.conformance.util;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.lote.LoteTestFixtures;
+import net.openid.conformance.testmodule.OIDFJSON;
 import org.junit.jupiter.api.Test;
 
+import java.security.MessageDigest;
 import java.security.cert.X509Certificate;
+import java.util.HexFormat;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -90,5 +95,21 @@ public class X509CertificateUtil_UnitTest {
 		X509CertificateUtil.validateX5cCertificateChain(List.of(leafUnderB), caB.getCert());
 		assertThatThrownBy(() -> X509CertificateUtil.validateX5cCertificateChain(List.of(leafUnderB), caA.getCert()))
 			.isInstanceOf(X509CertificateUtil.X5cCertificateChainException.class);
+	}
+
+	@Test
+	public void aDescribedChainKeepsTheOrderAndGivesEachCertificatesDetails() throws Exception {
+		JsonArray described = X509CertificateUtil.describeChain(List.of(leafUnderB, caB.getCert()));
+
+		assertThat(described.size()).isEqualTo(2);
+		JsonObject leaf = described.get(0).getAsJsonObject();
+		assertThat(OIDFJSON.getString(leaf.get("decoded")))
+			.contains("subject: " + leafUnderB.getSubjectX500Principal().getName())
+			.contains("issuer: " + caB.getCert().getSubjectX500Principal().getName());
+		assertThat(OIDFJSON.getString(leaf.get("sha256")))
+			.isEqualTo(HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(leafUnderB.getEncoded())));
+		assertThat(OIDFJSON.getString(leaf.get("pem"))).startsWith("-----BEGIN CERTIFICATE-----");
+		assertThat(OIDFJSON.getString(described.get(1).getAsJsonObject().get("decoded")))
+			.contains("subject: " + caB.getCert().getSubjectX500Principal().getName());
 	}
 }

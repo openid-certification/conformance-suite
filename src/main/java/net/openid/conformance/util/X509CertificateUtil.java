@@ -1,5 +1,7 @@
 package net.openid.conformance.util;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.nimbusds.jose.util.X509CertUtils;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.RDN;
@@ -7,6 +9,7 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
 
 import java.security.InvalidAlgorithmParameterException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertPath;
 import java.security.cert.CertPathValidator;
@@ -111,6 +114,36 @@ public class X509CertificateUtil {
 		sb.append("critical extension OIDs: ").append(oids(cert.getCriticalExtensionOIDs())).append('\n');
 		sb.append("non-critical extension OIDs: ").append(oids(cert.getNonCriticalExtensionOIDs()));
 		return sb.toString();
+	}
+
+	/**
+	 * Describes a certificate chain for a log entry, in the order given (leaf first for an x5c):
+	 * each certificate's {@link #describe decoded form}, SHA-256 fingerprint and PEM, so a tester
+	 * can see which certificates a trust check ran against and compare them with the trust
+	 * anchors it tried.
+	 */
+	public static JsonArray describeChain(List<X509Certificate> chain) {
+		JsonArray described = new JsonArray();
+		for (X509Certificate cert : chain) {
+			JsonObject entry = new JsonObject();
+			entry.addProperty("decoded", describe(cert));
+			entry.addProperty("sha256", sha256Fingerprint(cert));
+			entry.addProperty("pem", toPem(cert));
+			described.add(entry);
+		}
+		return described;
+	}
+
+	/**
+	 * The lower-case hex SHA-256 fingerprint of the DER encoding, the form lists of trusted entities
+	 * and certificate viewers show; a description of the problem when it cannot be computed.
+	 */
+	public static String sha256Fingerprint(X509Certificate cert) {
+		try {
+			return java.util.HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(cert.getEncoded()));
+		} catch (NoSuchAlgorithmException | CertificateException e) {
+			return "fingerprint could not be computed: " + e.getMessage();
+		}
 	}
 
 	private static boolean hasExtension(X509Certificate cert, String oid) {

@@ -61,7 +61,8 @@ public class ValidateMdocRevocationListCertificateChain extends AbstractRevocati
 			} catch (X509CertificateUtil.X5cCertificateChainException e) {
 				throw error("The MSO revocation list's x5chain does not validate against the Certificate element of the MSO's status reference",
 					args("error", e.getMessage(),
-						"trust_point_subject", trustPoint.getSubjectX500Principal().getName()));
+						"trust_point_subject", trustPoint.getSubjectX500Principal().getName(),
+						"presented_chain", X509CertificateUtil.describeChain(statusJavaChain)));
 			}
 			logSuccess("The MSO revocation list's x5chain validates against the Certificate element of the MSO's status reference",
 				args("trust_point_subject", trustPoint.getSubjectX500Principal().getName(),
@@ -121,11 +122,13 @@ public class ValidateMdocRevocationListCertificateChain extends AbstractRevocati
 			matched = anchors.validate(statusJavaChain, "the MSO revocation list's x5chain");
 		} catch (X509CertificateUtil.X5cCertificateChainException e) {
 			if (anchors.trustsNothing()) {
-				throw error(e.getMessage(), args("lists_of_trusted_entities", anchors.configuredLists()));
+				throw error(e.getMessage(), args("lists_of_trusted_entities", anchors.configuredLists(),
+					"presented_chain", X509CertificateUtil.describeChain(statusJavaChain)));
 			}
 			throw error("The MSO revocation list's x5chain does not validate"
 					+ (anchors.isEmpty() ? "" : " against " + String.join(" or ", anchors.sources())),
-				args("error", e.getMessage(), "trust_anchors_tried", anchors.sourcesJson()));
+				args("error", e.getMessage(), "presented_chain", X509CertificateUtil.describeChain(statusJavaChain),
+					"trust_anchors_tried", anchors.sourcesJson()));
 		}
 
 		logSuccess("The MSO revocation list's x5chain is signed by the same CA as the MSO's signer certificate"

@@ -50,7 +50,8 @@ public class ValidateLoteSignerAgainstConfiguredCertificate extends AbstractLote
 			throw error("The list of trusted entities is signed with a certificate that is neither the configured LoTE signing"
 					+ " certificate nor chains to it: " + e.getMessage(),
 				args("signer_certificate_subject", signer.getSubjectX500Principal().getName(),
-					"configured_certificate_subject", configured.getSubjectX500Principal().getName()));
+					"configured_certificate_subject", configured.getSubjectX500Principal().getName(),
+					"presented_chain", X509CertificateUtil.describeChain(chain)));
 		}
 		logSuccess("The list of trusted entities is signed with a certificate that chains to the configured LoTE signing certificate",
 			args("signer_certificate_subject", signer.getSubjectX500Principal().getName(),

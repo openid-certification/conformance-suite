@@ -74,12 +74,14 @@ public abstract class AbstractValidateX5cCertificateChain extends AbstractCondit
 		} catch (X509CertificateUtil.X5cCertificateChainException e) {
 			if (anchors.trustsNothing()) {
 				throw error(e.getMessage(), args("lists_of_trusted_entities", anchors.configuredLists(),
-					"leaf_cert_subject", certs.isEmpty() ? null : certs.get(0).getSubjectX500Principal().getName()));
+					"leaf_cert_subject", certs.isEmpty() ? null : certs.get(0).getSubjectX500Principal().getName(),
+					"presented_chain", X509CertificateUtil.describeChain(certs)));
 			}
 			if (anchors.isEmpty()) {
-				throw error(e.getMessage());
+				throw error(e.getMessage(), args("presented_chain", X509CertificateUtil.describeChain(certs)));
 			}
-			throw error(e.getMessage(), args("trust_anchors_tried", anchors.sourcesJson()));
+			throw error(e.getMessage(), args("presented_chain", X509CertificateUtil.describeChain(certs),
+				"trust_anchors_tried", anchors.sourcesJson()));
 		}
 	}
 
