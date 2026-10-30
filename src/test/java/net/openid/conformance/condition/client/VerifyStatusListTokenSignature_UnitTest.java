@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -99,14 +100,61 @@ public class VerifyStatusListTokenSignature_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_verifiesSignatureWithTheX5cLeafCertificate() throws Exception {
+	public void testEvaluate_verifiesSignatureWithTheCredentialsX5cLeafCertificate() throws Exception {
 		ECKey signingKey = new ECKeyGenerator(Curve.P_256).keyID("credential-signer").generate();
 		RSAKey serverKey = new RSAKeyGenerator(2048).keyID("server-key").generate();
 
-		// the issuer's published JWK set does not hold the credential key: the x5c header is what identifies it
+		// the issuer's published JWK set does not hold the credential key: the credential's x5c header is what ties it to the issuer
 		env.putObject("server_jwks",
 			JsonParser.parseString(new JWKSet(serverKey.toPublicJWK()).toString()).getAsJsonObject());
+		putCredentialX5c(signingKey);
 		putStatusListToken(createStatusListTokenWithX5c(signingKey, signingKey));
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_rejectsX5cThatIsNotTheCredentials() throws Exception {
+		ECKey credentialKey = new ECKeyGenerator(Curve.P_256).keyID("credential-signer").generate();
+		ECKey attackerKey = new ECKeyGenerator(Curve.P_256).keyID("attacker").generate();
+
+		putCredentialX5c(credentialKey);
+		putStatusListToken(createStatusListTokenWithX5c(attackerKey, attackerKey));
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_acceptsAnotherX5cWhenAStatusListTrustSourceValidatesTheChain() throws Exception {
+		ECKey credentialKey = new ECKeyGenerator(Curve.P_256).keyID("credential-signer").generate();
+		ECKey statusIssuerKey = new ECKeyGenerator(Curve.P_256).keyID("status-issuer").generate();
+
+		putCredentialX5c(credentialKey);
+		env.putString(RegisterStatusListTrustAnchor.ENV_TRUST_SOURCE_CONFIGURED, "true");
+		putStatusListToken(createStatusListTokenWithX5c(statusIssuerKey, statusIssuerKey));
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_rejectsSelfAssertedJwkHeader() throws Exception {
+		ECKey credentialKey = new ECKeyGenerator(Curve.P_256).keyID("credential-signer").generate();
+		ECKey attackerKey = new ECKeyGenerator(Curve.P_256).keyID("attacker").generate();
+
+		putCredentialX5c(credentialKey);
+		env.putString(RegisterStatusListTrustAnchor.ENV_TRUST_SOURCE_CONFIGURED, "true");
+		putStatusListToken(createStatusListTokenWithJwk(attackerKey));
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_acceptsJwkHeaderInTheIssuersJwks() throws Exception {
+		ECKey signingKey = new ECKeyGenerator(Curve.P_256).keyID("issuer-key").generate();
+
+		env.putObject("server_jwks",
+			JsonParser.parseString(new JWKSet(signingKey.toPublicJWK()).toString()).getAsJsonObject());
+		putStatusListToken(createStatusListTokenWithJwk(signingKey));
 
 		cond.execute(env);
 	}
@@ -132,6 +180,26 @@ public class VerifyStatusListTokenSignature_UnitTest {
 		putStatusListToken(createSignedStatusListToken(signingKey));
 
 		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	private void putCredentialX5c(ECKey credentialKey) throws Exception {
+		JsonObject header = new JsonObject();
+		JsonArray x5c = new JsonArray();
+		x5c.add(Base64.encode(selfSignedCertDer(credentialKey)).toString());
+		header.add("x5c", x5c);
+		JsonObject credential = new JsonObject();
+		credential.add("header", header);
+		JsonObject sdjwt = new JsonObject();
+		sdjwt.add("credential", credential);
+		env.putObject("sdjwt", sdjwt);
+	}
+
+	private String createStatusListTokenWithJwk(ECKey signingKey) throws Exception {
+		SignedJWT jwt = new SignedJWT(
+			new JWSHeader.Builder(JWSAlgorithm.ES256).jwk(signingKey.toPublicJWK()).build(),
+			statusListClaims());
+		jwt.sign(new ECDSASigner(signingKey.toECPrivateKey()));
+		return jwt.serialize();
 	}
 
 	private void putStatusListToken(String jwt) throws Exception {

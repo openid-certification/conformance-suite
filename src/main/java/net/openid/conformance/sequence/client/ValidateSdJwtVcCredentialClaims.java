@@ -96,7 +96,8 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 			// Outside HAIP the credential and its status list are trusted through whatever the tester
 			// configured: the x5c chains are validated when a trust anchor PEM or a list of trusted
 			// entities is set for them (SD-JWT VC 3.5, the X.509 issuer signature mechanism), and the
-			// status list signature is checked with the key its header names either way.
+			// status list must be signed with the credential's key, a key of the issuer's JWK set, or an
+			// x5c chain that the status list trust source validates.
 			call(condition(ValidateSdJwtCredentialX5cCertificateChain.class)
 				.skipIfStringsMissing(RegisterCredentialTrustAnchor.ENV_TRUST_SOURCE_CONFIGURED)
 				.onSkip(ConditionResult.INFO)
