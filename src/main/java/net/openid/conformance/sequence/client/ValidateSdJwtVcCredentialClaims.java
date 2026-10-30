@@ -39,14 +39,18 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 
 	private final boolean requiresCnf;
 	private final boolean haip;
+	private final boolean isIssuance;
 
 	/**
 	 * @param requiresCnf whether to validate the cnf (confirmation) claim is present and is a public key
 	 * @param haip whether to include HAIP-specific credential checks
+	 * @param isIssuance true for VCI issuance, where the credential's issuer is the implementation under
+	 *     test, so a certificate chain the configured trust source rejects is a failure rather than a warning
 	 */
-	public ValidateSdJwtVcCredentialClaims(boolean requiresCnf, boolean haip) {
+	public ValidateSdJwtVcCredentialClaims(boolean requiresCnf, boolean haip, boolean isIssuance) {
 		this.requiresCnf = requiresCnf;
 		this.haip = haip;
+		this.isIssuance = isIssuance;
 	}
 
 	@Override
@@ -98,16 +102,17 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 			// entities is set for them (SD-JWT VC 3.5, the X.509 issuer signature mechanism), and the
 			// status list must be signed with the credential's key, a key of the issuer's JWK set, or an
 			// x5c chain that the status list trust source validates.
+			ConditionResult chainSeverity = isIssuance ? ConditionResult.FAILURE : ConditionResult.WARNING;
 			call(condition(ValidateSdJwtCredentialX5cCertificateChain.class)
 				.skipIfStringsMissing(RegisterCredentialTrustAnchor.ENV_TRUST_SOURCE_CONFIGURED)
 				.onSkip(ConditionResult.INFO)
-				.onFail(ConditionResult.WARNING)
+				.onFail(chainSeverity)
 				.dontStopOnFailure()
 				.requirements("SDJWTVC-3.5"));
 			call(condition(ValidateStatusListTokenX5cCertificateChain.class)
 				.skipIfStringsMissing(RegisterStatusListTrustAnchor.ENV_TRUST_SOURCE_CONFIGURED)
 				.onSkip(ConditionResult.INFO)
-				.onFail(ConditionResult.WARNING)
+				.onFail(chainSeverity)
 				.dontStopOnFailure()
 				.requirements("OTSL-6.2", "OTSL-11.3"));
 			callAndContinueOnFailure(VerifyStatusListTokenSignature.class,

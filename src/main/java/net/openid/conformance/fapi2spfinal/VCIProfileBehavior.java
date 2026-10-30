@@ -506,7 +506,7 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 				// request overwrites the response headers. Tests that obtain two or more credentials of
 				// the same dataset later compare them (RFC 9901 §10.1 unlinkability).
 				callAndContinueOnFailure(VCICaptureCredentialForLinkability.class, ConditionResult.WARNING, "SDJWT-10.1");
-				call(new ValidateSdJwtVcCredentialClaims(requiresCryptographicBinding, isHaip()));
+				call(new ValidateSdJwtVcCredentialClaims(requiresCryptographicBinding, isHaip(), true));
 				callAndContinueOnFailure(EnsureSdJwtVcVctMatchesCredentialConfiguration.class,
 					ConditionResult.FAILURE, "OID4VCI-1FINALA-A.3.2");
 
