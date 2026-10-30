@@ -13,6 +13,10 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClie
  * longer than the attestation's five-minute lifetime, so an attestation minted earlier could
  * be stale or expired by the time it is sent, and a rejection would then say nothing about
  * the content under test.
+ *
+ * client_id is also sent as a form parameter. It is optional with client attestation, but
+ * when present the server must check it matches the attestation's sub (draft -07 section
+ * 6.3 and 6.4), and some servers rely on it to look up the client.
  */
 public class AddClientAttestationClientAuthToEndpointRequest extends AbstractConditionSequence {
 
@@ -22,5 +26,6 @@ public class AddClientAttestationClientAuthToEndpointRequest extends AbstractCon
 		callAndStopOnFailure(CreateClientAttestationProofJwt.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-1");
 		callAndStopOnFailure(AddClientAttestationHeaderToRequest.class, "OAuth2-ATCA07-6.1");
 		callAndStopOnFailure(AddClientAttestationProofHeaderToRequest.class, "OAuth2-ATCA07-6.1");
+		callAndStopOnFailure(AddClientIdToRequest.class, "OAuth2-ATCA07-6.3");
 	}
 }
