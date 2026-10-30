@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -128,6 +129,38 @@ public class CreateMultiSignedRequestObject_UnitTest {
 			assertThat(headerParams).containsKey("typ");
 			assertThat(headerParams.get("typ")).isEqualTo("oauth-authz-req+jwt");
 		}
+	}
+
+	@Test
+	public void testEvaluate_verifierInfoOnlyInFirstProtectedHeader() throws ParseException {
+		JsonObject claims = JsonParser.parseString("""
+			{
+				"response_type": "vp_token",
+				"nonce": "test-nonce-123",
+				"dcql_query": {"credentials": [{"id": "cred1"}]},
+				"expected_origins": ["https://example.com"],
+				"verifier_info": [{"format": "registration_cert", "data": "eyJhbGciOiJFUzI1NiJ9.e30.c2ln"}]
+			}
+			""").getAsJsonObject();
+
+		env.putObject("request_object_claims", claims);
+		env.putObject("client_jwks", JsonParser.parseString(TEST_JWK_1).getAsJsonObject());
+		env.putObject("client2_jwks", JsonParser.parseString(TEST_JWK_2).getAsJsonObject());
+		env.putString("client_id", "x509_hash:abc123");
+		env.putString("client2_id", "x509_hash:def456");
+
+		cond.execute(env);
+
+		JWSObjectJSON parsed = JWSObjectJSON.parse(env.getObject("request_object_json").toString());
+		JsonObject payloadJson = JsonParser.parseString(parsed.getPayload().toString()).getAsJsonObject();
+		assertThat(payloadJson.has("verifier_info")).isFalse();
+
+		Map<String, Object> firstHeader = parsed.getSignatures().get(0).getHeader().toJSONObject();
+		assertThat(JsonParser.parseString(new Gson().toJson(firstHeader.get("verifier_info"))))
+			.isEqualTo(claims.get("verifier_info"));
+
+		Map<String, Object> secondHeader = parsed.getSignatures().get(1).getHeader().toJSONObject();
+		assertThat(secondHeader).doesNotContainKey("verifier_info");
 	}
 
 	@Test

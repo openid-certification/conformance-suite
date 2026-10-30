@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.JOSEException;
@@ -11,6 +12,7 @@ import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.produce.JWSSignerFactory;
+import com.nimbusds.jose.util.JSONArrayUtils;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.extensions.MultiJWSSignerFactory;
@@ -31,6 +33,8 @@ public class CreateMultiSignedRequestObject extends AbstractGetSigningKey {
 		// Defensive: remove client_id from the shared payload if present, since for multi-signed
 		// it belongs in each signature's protected header instead
 		claims.remove("client_id");
+		// verifier_info also belongs only in a protected header; the configured one describes the primary client
+		JsonElement verifierInfo = claims.remove("verifier_info");
 
 		try {
 			Payload payload = new Payload(claims.toString());
@@ -39,10 +43,10 @@ public class CreateMultiSignedRequestObject extends AbstractGetSigningKey {
 			JWSSignerFactory jwsSignerFactory = MultiJWSSignerFactory.getInstance();
 
 			// First signature: primary client key
-			addSignature(jwsObjectJSON, jwsSignerFactory, env.getObject("client_jwks"), client1Id);
+			addSignature(jwsObjectJSON, jwsSignerFactory, env.getObject("client_jwks"), client1Id, verifierInfo);
 
 			// Second signature: secondary client key
-			addSignature(jwsObjectJSON, jwsSignerFactory, env.getObject("client2_jwks"), client2Id);
+			addSignature(jwsObjectJSON, jwsSignerFactory, env.getObject("client2_jwks"), client2Id, null);
 
 			String serialized = jwsObjectJSON.serializeGeneral();
 			JsonObject requestObjectJson = JsonParser.parseString(serialized).getAsJsonObject();
@@ -70,7 +74,7 @@ public class CreateMultiSignedRequestObject extends AbstractGetSigningKey {
 	}
 
 	private void addSignature(JWSObjectJSON jwsObjectJSON, JWSSignerFactory jwsSignerFactory,
-							  JsonObject jwks, String clientId) throws JOSEException, ParseException {
+							  JsonObject jwks, String clientId, JsonElement verifierInfo) throws JOSEException, ParseException {
 		JWK signingJwk = getSigningKey("signing", jwks);
 		JWSAlgorithm alg = JWSAlgorithm.parse(signingJwk.getAlgorithm().getName());
 
@@ -85,6 +89,9 @@ public class CreateMultiSignedRequestObject extends AbstractGetSigningKey {
 
 		if (signingJwk.getX509CertChain() != null) {
 			builder.x509CertChain(signingJwk.getX509CertChain());
+		}
+		if (verifierInfo != null) {
+			builder.customParam("verifier_info", JSONArrayUtils.parse(verifierInfo.toString()));
 		}
 
 		JWSHeader header = builder.build();
