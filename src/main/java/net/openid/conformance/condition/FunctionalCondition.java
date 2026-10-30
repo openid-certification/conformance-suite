@@ -1,6 +1,7 @@
 package net.openid.conformance.condition;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.logging.LoggingRequestInterceptor;
 import net.openid.conformance.testmodule.Environment;
 
 import java.util.Map;
@@ -53,6 +54,13 @@ public final class FunctionalCondition extends AbstractCondition {
 
 		public void logSuccess(String msg, JsonObject in) {
 			FunctionalCondition.this.logSuccess(msg, in);
+		}
+
+		/**
+		 * Interceptor to install on any RestTemplate the body uses, so its HTTP calls appear in the test log.
+		 */
+		public LoggingRequestInterceptor loggingRequestInterceptor(Environment env, JsonObject mutualTls) {
+			return FunctionalCondition.this.createLoggingRequestInterceptor(env, mutualTls);
 		}
 
 		public ConditionError error(String message) {
