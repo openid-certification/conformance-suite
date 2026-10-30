@@ -29,8 +29,12 @@ public class ExtractLoteFromEndpointResponse_UnitTest {
 	}
 
 	private void respond(String body) {
+		respond(200, body);
+	}
+
+	private void respond(int status, String body) {
 		JsonObject response = new JsonObject();
-		response.addProperty("status", 200);
+		response.addProperty("status", status);
 		response.addProperty("body", body);
 		env.putObject(CallLoteEndpoint.RESPONSE, response);
 	}
@@ -49,6 +53,15 @@ public class ExtractLoteFromEndpointResponse_UnitTest {
 		respond(" ");
 
 		assertThatThrownBy(() -> cond.execute(env)).isInstanceOf(ConditionError.class).hasMessageContaining("empty response body");
+		assertThat(env.getString(AbstractLoteCondition.LOTE, "value")).isNull();
+	}
+
+	@Test
+	public void storesNothingForAnErrorResponse() {
+		respond(404, "{\"error\":\"not found\"}");
+
+		cond.execute(env);
+
 		assertThat(env.getString(AbstractLoteCondition.LOTE, "value")).isNull();
 	}
 }
