@@ -61,7 +61,8 @@
         }
     ],
     "credential": {
-        "pid_lote_url": "{BASEURL}lote/pid-providers.jwt"
+        "pid_lote_url": "{BASEURL}lote/pid-providers.jwt",
+        "wrprc_lote_url": "{BASEURL}lote/wrprc-providers.jwt"
     },
     "options": {
         "browsercontrol_css_enable": false

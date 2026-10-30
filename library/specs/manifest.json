@@ -1191,6 +1191,8 @@
     "CID-IDA-": "third-party specification; redistribution rights not confirmed (#1957 first import is IETF+OIDF only)",
     "CID-PURPOSE-": "third-party specification; redistribution rights not confirmed (#1957 first import is IETF+OIDF only)",
     "CID-SP-": "third-party specification; redistribution rights not confirmed (#1957 first import is IETF+OIDF only)",
+    "ETSI119472-3-": "ETSI specification (ETSI TS 119 472-3 V1.1.1, EUDI profile for issuance of PID and EAA); ETSI's licence does not allow redistribution of the text",
+    "ETSI119475-": "ETSI specification (ETSI TS 119 475 V1.2.1, Wallet-relying party registration certificates); ETSI's licence does not allow redistribution of the text",
     "ETSI119602-": "ETSI specification (ETSI TS 119 602 V1.1.1, Lists of trusted entities); ETSI's licence does not allow redistribution of the text",
     "FAPI-ISSUES-": "issue tracker, not a specification",
     "FAPI2-IMP-": "OIDF working copy at a mutable URL; no published source sibling",

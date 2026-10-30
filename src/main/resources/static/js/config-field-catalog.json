@@ -122,6 +122,18 @@
           "tooltip": "Optional HTTPS URL of a list of trusted entities for mDL providers following the European Commission's mDL Providers List Specification (such as the one published by the eIDAS Dashboard). Used like the 'PID providers LoTE URL', and like it cannot be combined with the 'Credential Trust Anchor' or the other list."
         },
         {
+          "key": "credential.wrprc_lote_url",
+          "label": "WRPRC providers LoTE URL",
+          "type": "string",
+          "tooltip": "Optional HTTPS URL of an ETSI TS 119 602 list of trusted entities for wallet-relying party registration certificate providers (such as the one published by the eIDAS Dashboard). In the signed issuer metadata test the suite checks that the registration certificate in the issuer's 'issuer_info' chains to a listed registration certificate provider. Only one of the 'Registration Certificate Trust Anchor' and this list may be configured. Configuring any of the PID, mDL or WRPRC providers LoTE URLs makes the issuer metadata subject to the ETSI TS 119 472-3 requirements: it must be signed and carry 'issuer_info'."
+        },
+        {
+          "key": "credential.registration_certificate_trust_anchor_pem",
+          "label": "Registration Certificate Trust Anchor",
+          "type": "string",
+          "tooltip": "Optional PEM certificate of the provider of wallet-relying party registration certificates (ETSI TS 119 475) the issuer's registration certificate in 'issuer_info' must chain to. Only one of this field and the 'WRPRC providers LoTE URL' may be configured."
+        },
+        {
           "key": "vci.credential_configuration_id",
           "label": "Credential Configuration ID",
           "type": "string",

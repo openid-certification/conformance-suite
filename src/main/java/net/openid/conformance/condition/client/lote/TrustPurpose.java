@@ -42,7 +42,11 @@ public enum TrustPurpose {
 	REQUEST_OBJECT("request object signing certificate", "Request Object Trust Anchor", "Client",
 		List.of("client.request_object_trust_anchor_pem"), "client_request_object_trust_anchor_pem",
 		new OtherSource(ImmutableList.of("client.rical", "client.rical_url"), "'RICAL' or 'RICAL URL'", "Client"), false,
-		LoteSlot.ISSUANCE_SUFFIX, LoteSlot.WRPAC);
+		LoteSlot.ISSUANCE_SUFFIX, LoteSlot.WRPAC),
+
+	REGISTRATION_CERTIFICATE("registration certificate signing certificate", "Registration Certificate Trust Anchor", "Credential Issuer",
+		List.of("credential.registration_certificate_trust_anchor_pem"), "registration_certificate_trust_anchor_pem", null, false,
+		LoteSlot.ISSUANCE_SUFFIX, LoteSlot.WRPRC);
 
 	/** A trust source that is neither a PEM nor a list of trusted entities: the configuration keys that set it, and how the form labels them. */
 	@Immutable

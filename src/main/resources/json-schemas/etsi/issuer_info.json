@@ -1,0 +1,41 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$comment": "Validates the issuer_info credential issuer metadata parameter of ETSI TS 119 472-3 clause 4.2.3, which has the structure of the OpenID4VP 1.0 verifier_info parameter (clause 5.1). The schema's top level is a wrapper object so that the JsonSchemaValidationInput can be constructed (it requires a JsonObject); callers wrap the array in {\"issuer_info\": [...]}. The registrar_dataset element's data is checked by json-schemas/etsi/registrar_dataset.json.",
+    "definitions": {
+        "IssuerInfoEntry": {
+            "type": "object",
+            "properties": {
+                "format": { "type": "string", "minLength": 1 },
+                "data": { "type": ["string", "object"] },
+                "credential_ids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": { "type": "string", "minLength": 1 }
+                }
+            },
+            "required": ["format", "data"],
+            "additionalProperties": false,
+            "allOf": [
+                {
+                    "if": { "properties": { "format": { "const": "registration_cert" } } },
+                    "then": { "properties": { "data": { "type": "string", "minLength": 1 } } }
+                },
+                {
+                    "if": { "properties": { "format": { "const": "registrar_dataset" } } },
+                    "then": { "properties": { "data": { "type": "object", "minProperties": 1 } } }
+                }
+            ]
+        }
+    },
+    "type": "object",
+    "properties": {
+        "issuer_info": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/definitions/IssuerInfoEntry" }
+        }
+    },
+    "required": ["issuer_info"],
+    "additionalProperties": false
+}

@@ -6,8 +6,7 @@ import net.openid.conformance.util.LoteList;
 
 /**
  * The lists of trusted entities (ETSI TS 119 602 LoTEs) the suite can take trust anchors from,
- * one slot per list whose anchors a chain check consumes (the suite publishes a WRPRC providers
- * list too, but validates no registration certificate against one). Each slot owns one
+ * one slot per list whose anchors a chain check consumes. Each slot owns one
  * environment object ({@link #envKey}) holding everything about that list — URL, fetched value,
  * parsed header and payload, extracted anchors — so that the conditions, which all work on the
  * object mapped to {@code "lote"}, stay slot-agnostic; the sequence maps the key before calling
@@ -28,7 +27,9 @@ public enum LoteSlot {
 	WALLET("lote_wallet", "client_attestation.wallet_lote_url", "Wallet providers LoTE URL", "Client Attestation",
 		LoteList.WALLET_PROVIDERS),
 
-	WRPAC("lote_wrpac", "client.wrpac_lote_url", "WRPAC providers LoTE URL", "Client", LoteList.WRPAC_PROVIDERS);
+	WRPAC("lote_wrpac", "client.wrpac_lote_url", "WRPAC providers LoTE URL", "Client", LoteList.WRPAC_PROVIDERS),
+
+	WRPRC("lote_wrprc", "credential.wrprc_lote_url", "WRPRC providers LoTE URL", "Credential Issuer", LoteList.WRPRC_PROVIDERS);
 
 	/** The service type identifier suffix of the services whose certificates sign what the list is about. */
 	public static final String ISSUANCE_SUFFIX = "/Issuance";

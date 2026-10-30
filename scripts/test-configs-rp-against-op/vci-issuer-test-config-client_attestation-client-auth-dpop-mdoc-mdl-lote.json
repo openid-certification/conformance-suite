@@ -61,7 +61,8 @@
         }
     ],
     "credential": {
-        "mdl_lote_url": "{BASEURL}lote/mdl-providers.jwt"
+        "mdl_lote_url": "{BASEURL}lote/mdl-providers.jwt",
+        "wrprc_lote_url": "{BASEURL}lote/wrprc-providers.jwt"
     },
     "options": {
         "browsercontrol_css_enable": false

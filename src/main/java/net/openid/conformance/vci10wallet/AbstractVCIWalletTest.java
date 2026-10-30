@@ -157,6 +157,7 @@ import net.openid.conformance.vci10wallet.condition.VCIEnsureRequestedScopeInclu
 import net.openid.conformance.vci10wallet.condition.VCIGenerateCredentialRequestEncryptionJwks;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateIssuerState;
 import net.openid.conformance.vci10wallet.condition.VCIDetermineCredentialIssuerMetadataResponseFormat;
+import net.openid.conformance.vci10wallet.condition.VCIAddBuiltInIssuerInfoToCredentialIssuerMetadata;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateSignedCredentialIssuerMetadata;
 import net.openid.conformance.vci10wallet.condition.VCIInjectAuthorizationDetailsForPreAuthorizedCodeFlow;
 import net.openid.conformance.vci10wallet.condition.VCIInjectCredentialConfigurationIdHint;
@@ -522,6 +523,8 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		env.putObject("credential_issuer_metadata", credentialIssuerMetadata);
 
 		configureSupportedCredentialConfigurations();
+
+		callAndStopOnFailure(VCIAddBuiltInIssuerInfoToCredentialIssuerMetadata.class, "ETSI119472-3-4.2.3-01");
 
 		callAndStopOnFailure(VCILogGeneratedCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2",
 			/* SD JWT VC: */ "OID4VCI-1FINALA-A.3.2",

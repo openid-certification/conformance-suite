@@ -35,16 +35,20 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /**
- * The suite's wallet-relying-party registration certificate (WRPRC, ETSI TS 119 475), which it sends
- * in {@code verifier_info} as an OpenID4VP verifier, and the Token Status List its {@code status}
- * points to. There is one certificate per deployment, registering the suite as a service provider
+ * The suite's wallet-relying-party registration certificates (WRPRC, ETSI TS 119 475), and the Token
+ * Status List their {@code status} points to. As an OpenID4VP verifier the suite sends one in
+ * {@code verifier_info}, and as an OpenID4VCI issuer one in the {@code issuer_info} of its issuer
+ * metadata (ETSI TS 119 472-3 clause 4.2.3).
+ *
+ * <p>The verifier's is one certificate per deployment, registering the suite as a service provider
  * for one intended use whose {@code credentials} are the union of every built-in DCQL query the suite
- * sends, so a wallet's over-asking check passes for each of them. It is bound to the suite's access
- * certificate by {@code sub}, which equals that certificate's organizationIdentifier (TS 119 475
- * GEN-5.1.1-02), and signed by {@link TestKeysAndCerts#getWrprcSigner()}.
+ * sends, so a wallet's over-asking check passes for each of them. The issuer's registers the suite as
+ * a PID provider whose {@code provides_attestations} are the credential configurations of the test.
+ * Both are bound to the suite's access certificate by {@code sub}, which equals that certificate's
+ * organizationIdentifier (TS 119 475 GEN-5.1.1-02), and signed by {@link TestKeysAndCerts#getWrprcSigner()}.
  *
  * <p>The supervisory authority is the OpenID Foundation's own contact: the Foundation is not
- * established in the EU, and the certificate exists for conformance testing.
+ * established in the EU, and the certificates exist for conformance testing.
  */
 public final class SuiteWrprc {
 
@@ -56,10 +60,12 @@ public final class SuiteWrprc {
 	// TS 119 475 clause 6.1.3: the policy a registration certificate is issued under
 	private static final String POLICY_ID = "0.4.0.19475.3.1";
 	private static final String SERVICE_PROVIDER_ENTITLEMENT = "https://uri.etsi.org/19475/Entitlement/Service_Provider";
+	private static final String PID_PROVIDER_ENTITLEMENT = "https://uri.etsi.org/19475/Entitlement/PID_Provider";
 	private static final String LEI_IDENTIFIER_TYPE = "http://data.europa.eu/eudi/id/LEI";
 	private static final String PRIVACY_POLICY_URI = "https://openid.net/policies/";
 	private static final String TRADE_NAME = "OpenID Foundation Conformance Suite";
 	private static final String SERVICE_DESCRIPTION = "OpenID Foundation conformance testing of wallets";
+	private static final String ISSUER_SERVICE_DESCRIPTION = "OpenID Foundation conformance testing of wallets as a credential issuer";
 	private static final String PURPOSE = "Conformance testing of the presentation of credentials";
 
 	private static final Duration VALIDITY = Duration.ofDays(30);
@@ -97,6 +103,44 @@ public final class SuiteWrprc {
 	 * RO-13 to RO-16, whose data is the base64url encoding of the compact JWS.
 	 */
 	public static JsonArray verifierInfo() {
+		JsonObject dataset = registrarDataset(SERVICE_DESCRIPTION);
+		dataset.addProperty("intendedUseIdentifier", INTENDED_USE_ID);
+		dataset.add("purpose", LoteBuilder.inEnglish(PURPOSE, "content"));
+		dataset.addProperty("policyURI", PRIVACY_POLICY_URI);
+		dataset.add("credential", credentials());
+		return registrationInfo(dataset, jwt());
+	}
+
+	/**
+	 * The {@code issuer_info} value of the suite as a PID provider (ETSI TS 119 472-3 clause 4.2.3): the
+	 * registrar dataset element of ISS-MDATA-REG_CERT-4.2.3-07 to -13 and the registration certificate
+	 * element of -04 to -06, whose data, as in {@link #verifierInfo()}, is the base64url encoding of the
+	 * compact JWS. Both register {@code providesAttestations}, TS 119 475 Credential objects; the
+	 * certificate is issued afresh for each call, since the attestations depend on the test.
+	 */
+	public static JsonArray issuerInfo(JsonArray providesAttestations) {
+		JsonObject dataset = registrarDataset(ISSUER_SERVICE_DESCRIPTION);
+		dataset.add("providesAttestations", providesAttestations.deepCopy());
+		return registrationInfo(dataset, attestationProviderJwt(Instant.now(), providesAttestations));
+	}
+
+	/** The registration certificate of the suite as a PID provider, issued at {@code issued}. */
+	public static String attestationProviderJwt(Instant issued, JsonArray providesAttestations) {
+		return sign(new JOSEObjectType("rc-wrp+jwt"), attestationProviderPayload(issued, providesAttestations));
+	}
+
+	/**
+	 * The payload of the registration certificate of the suite as a PID provider: TS 119 475 Tables 7,
+	 * 8 and 10.
+	 */
+	public static JsonObject attestationProviderPayload(Instant issued, JsonArray providesAttestations) {
+		JsonObject payload = commonPayload(issued, PID_PROVIDER_ENTITLEMENT, ISSUER_SERVICE_DESCRIPTION);
+		payload.add("provides_attestations", providesAttestations.deepCopy());
+		return payload;
+	}
+
+	/** The registry attributes, TS 119 475 Annex B, that both registrar datasets carry. */
+	private static JsonObject registrarDataset(String serviceDescription) {
 		JsonObject dataset = new JsonObject();
 		JsonArray identifiers = new JsonArray();
 		JsonObject identifier = new JsonObject();
@@ -104,13 +148,13 @@ public final class SuiteWrprc {
 		identifier.addProperty("identifier", lei());
 		identifiers.add(identifier);
 		dataset.add("identifier", identifiers);
-		dataset.add("srvDescription", LoteBuilder.inEnglish(SERVICE_DESCRIPTION, "content"));
+		dataset.add("srvDescription", LoteBuilder.inEnglish(serviceDescription, "content"));
 		dataset.addProperty("registryURI", registryUri());
-		dataset.addProperty("intendedUseIdentifier", INTENDED_USE_ID);
-		dataset.add("purpose", LoteBuilder.inEnglish(PURPOSE, "content"));
-		dataset.addProperty("policyURI", PRIVACY_POLICY_URI);
-		dataset.add("credential", credentials());
+		return dataset;
+	}
 
+	/** A {@code verifier_info} or {@code issuer_info} value: the registrar dataset element, then the registration certificate element. */
+	private static JsonArray registrationInfo(JsonObject dataset, String wrprc) {
 		JsonObject datasetElement = new JsonObject();
 		datasetElement.addProperty("format", "registrar_dataset");
 		datasetElement.add("data", dataset);
@@ -118,12 +162,12 @@ public final class SuiteWrprc {
 		JsonObject certificateElement = new JsonObject();
 		certificateElement.addProperty("format", "registration_cert");
 		certificateElement.addProperty("data",
-			Base64.getUrlEncoder().withoutPadding().encodeToString(jwt().getBytes(StandardCharsets.US_ASCII)));
+			Base64.getUrlEncoder().withoutPadding().encodeToString(wrprc.getBytes(StandardCharsets.US_ASCII)));
 
-		JsonArray verifierInfo = new JsonArray();
-		verifierInfo.add(datasetElement);
-		verifierInfo.add(certificateElement);
-		return verifierInfo;
+		JsonArray info = new JsonArray();
+		info.add(datasetElement);
+		info.add(certificateElement);
+		return info;
 	}
 
 	/** The registration certificate issued at {@code issued}. */
@@ -133,6 +177,15 @@ public final class SuiteWrprc {
 
 	/** The payload of the registration certificate issued at {@code issued}: TS 119 475 Tables 7, 9 and 10. */
 	public static JsonObject payload(Instant issued) {
+		JsonObject payload = commonPayload(issued, SERVICE_PROVIDER_ENTITLEMENT, SERVICE_DESCRIPTION);
+		payload.addProperty("intended_use_id", INTENDED_USE_ID);
+		payload.add("purpose", LoteBuilder.inEnglish(PURPOSE, "value"));
+		payload.add("credentials", credentials());
+		return payload;
+	}
+
+	/** The payload fields of TS 119 475 Tables 7 and 10 that every certificate of the suite carries. */
+	private static JsonObject commonPayload(Instant issued, String entitlement, String serviceDescription) {
 		Instant iat = issued.truncatedTo(ChronoUnit.SECONDS);
 		JsonObject payload = new JsonObject();
 		payload.addProperty("name", TRADE_NAME);
@@ -140,9 +193,9 @@ public final class SuiteWrprc {
 		payload.addProperty("sub", TestKeysAndCerts.ORGANIZATION_IDENTIFIER);
 		payload.addProperty("country", "US");
 		payload.addProperty("registry_uri", registryUri());
-		payload.add("srv_description", LoteBuilder.inEnglish(SERVICE_DESCRIPTION, "value"));
+		payload.add("srv_description", LoteBuilder.inEnglish(serviceDescription, "value"));
 		JsonArray entitlements = new JsonArray();
-		entitlements.add(SERVICE_PROVIDER_ENTITLEMENT);
+		entitlements.add(entitlement);
 		payload.add("entitlements", entitlements);
 		payload.addProperty("privacy_policy", PRIVACY_POLICY_URI);
 		payload.addProperty("info_uri", TestKeysAndCerts.CONTACT_URL);
@@ -164,9 +217,6 @@ public final class SuiteWrprc {
 		JsonObject status = new JsonObject();
 		status.add("status_list", statusList);
 		payload.add("status", status);
-		payload.addProperty("intended_use_id", INTENDED_USE_ID);
-		payload.add("purpose", LoteBuilder.inEnglish(PURPOSE, "value"));
-		payload.add("credentials", credentials());
 		return payload;
 	}
 
