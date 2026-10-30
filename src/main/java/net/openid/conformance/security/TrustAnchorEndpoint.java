@@ -143,7 +143,9 @@ public class TrustAnchorEndpoint {
 		return ResponseEntity.ok(ca.getCertPem() + "\n");
 	}
 
-	@GetMapping(value = PATH_PREFIX + "{slug}.crt", produces = CERTIFICATE_CONTENT_TYPE)
+	// no produces: a fetcher following a leaf's authority information access with a narrow Accept header
+	// must still get the certificate, not a 406
+	@GetMapping(PATH_PREFIX + "{slug}.crt")
 	@ResponseBody
 	@Operation(operationId = "trustAnchorCertDer",
 		summary = "Returns one of the suite's CA certificates, DER encoded",
