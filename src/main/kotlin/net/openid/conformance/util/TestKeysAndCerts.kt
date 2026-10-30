@@ -17,6 +17,7 @@ import java.security.Signature
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.security.spec.ECGenParameterSpec
+import java.security.spec.InvalidKeySpecException
 import java.security.spec.PKCS8EncodedKeySpec
 import java.util.Base64
 import java.util.Date
@@ -357,7 +358,11 @@ MEUCIQDSqd1rf++s6eTJ+XL2BUviwUH66yNixTSpu3E+81sW0gIgQenBimeuREfz
 		}
 		val variable = keyEnvironmentVariable(slug)
 		if (!encodedKey.isNullOrBlank()) {
-			val key = parsePrivateKey(decodeEncodedKey(variable, encodedKey))
+			val key = try {
+				parsePrivateKey(decodeEncodedKey(variable, encodedKey))
+			} catch (e: InvalidKeySpecException) {
+				throw IllegalStateException("$variable is not a base64-encoded PKCS#8 EC private key", e)
+			}
 			check(keyMatchesCertificate(key, publishedCertPem)) { "$variable is not the private key of the published $slug certificate" }
 			return SigningIdentity(publishedCertPem, key, false)
 		}

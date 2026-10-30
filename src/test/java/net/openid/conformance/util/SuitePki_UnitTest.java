@@ -189,6 +189,15 @@ public class SuitePki_UnitTest {
 	}
 
 	@Test
+	public void base64ThatIsNotAKeyIsRefusedNamingTheVariable() {
+		String notAKey = Base64.getEncoder().encodeToString("not a key".getBytes(StandardCharsets.US_ASCII));
+
+		assertThatThrownBy(() -> TestKeysAndCerts.resolveIdentity("access-ca", TestKeysAndCerts.SuiteCa.ACCESS.getPublishedCertPem(), null, true, notAKey))
+			.isInstanceOf(IllegalStateException.class)
+			.hasMessageContaining("SUITE_CA_KEY_ACCESS_CA is not a base64-encoded PKCS#8 EC private key");
+	}
+
+	@Test
 	public void aBlankValueFallsBackToAnEphemeralCa() {
 		// the deploy job creates the secret even when a CI/CD variable is unset, so its value is empty
 		TestKeysAndCerts.SigningIdentity identity = TestKeysAndCerts.resolveIdentity("access-ca", TestKeysAndCerts.SuiteCa.ACCESS.getPublishedCertPem(), null, true, "");
