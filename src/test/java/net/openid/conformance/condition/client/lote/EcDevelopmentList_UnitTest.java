@@ -44,7 +44,7 @@ public class EcDevelopmentList_UnitTest {
 		Environment env = envWith(slot, name);
 		assertThatCode(() -> cond(new ParseLote(), eventLog).execute(env)).doesNotThrowAnyException();
 		assertThatCode(() -> cond(new ValidateLoteSignature(), eventLog).execute(env)).doesNotThrowAnyException();
-		assertThatCode(() -> cond(new ValidateLoteStructure(), eventLog).execute(env)).doesNotThrowAnyException();
+		assertThatCode(() -> cond(new ValidateLoteStructure(LoteTestFixtures.EC_DEVELOPMENT_LISTS_CURRENT), eventLog).execute(env)).doesNotThrowAnyException();
 		assertThatCode(() -> cond(new ExtractLoteTrustAnchors(), eventLog).execute(env)).doesNotThrowAnyException();
 
 		assertThat(env.getElementFromObject(AbstractLoteCondition.LOTE, "anchors.list").getAsJsonArray()).hasSize(anchors);

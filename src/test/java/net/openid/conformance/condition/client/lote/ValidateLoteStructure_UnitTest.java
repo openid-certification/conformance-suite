@@ -236,6 +236,8 @@ public class ValidateLoteStructure_UnitTest {
 	@Test
 	public void acceptsTheCommissionsDevelopmentPidList() {
 		LoteTestFixtures.INSTANCE.putParsedLote(env, LoteSlot.PID, LoteTestFixtures.INSTANCE.ecDevelopmentList("pid-providers"));
+		cond = new ValidateLoteStructure(LoteTestFixtures.EC_DEVELOPMENT_LISTS_CURRENT);
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.WARNING);
 
 		assertThatCode(() -> cond.execute(env)).doesNotThrowAnyException();
 	}

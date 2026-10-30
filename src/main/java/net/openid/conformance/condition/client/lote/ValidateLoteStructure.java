@@ -8,6 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.X509CertificateUtil;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
@@ -42,6 +43,17 @@ public class ValidateLoteStructure extends AbstractLoteCondition {
 
 	/** Annex D.2 Table D.1 and its siblings: the territory of every EU list. */
 	private static final String SCHEME_TERRITORY = "EU";
+
+	private final Clock clock;
+
+	public ValidateLoteStructure() {
+		this(Clock.systemUTC());
+	}
+
+	/** For tests that check a fixed list, whose NextUpdate would otherwise pass. */
+	ValidateLoteStructure(Clock clock) {
+		this.clock = clock;
+	}
 
 	@Override
 	@PreEnvironment(required = LOTE)
@@ -132,7 +144,7 @@ public class ValidateLoteStructure extends AbstractLoteCondition {
 			findings.add("SchemeInformationURI is missing");
 		}
 
-		Instant now = Instant.now();
+		Instant now = clock.instant();
 		Instant issued = dateTime(info.get("ListIssueDateTime"), "ListIssueDateTime", findings);
 		// clause 6.3.15: null would mean a closed list, which is no source of trust either
 		Instant nextUpdate = dateTime(info.get("NextUpdate"), "NextUpdate", findings);

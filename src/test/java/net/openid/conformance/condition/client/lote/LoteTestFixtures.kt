@@ -30,7 +30,9 @@ import java.security.KeyPairGenerator
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import java.security.spec.ECGenParameterSpec
+import java.time.Clock
 import java.time.Instant
+import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.Date
 
@@ -247,6 +249,10 @@ object LoteTestFixtures {
 
 	fun eudiwDevList(name: String): String =
 		LoteTestFixtures::class.java.getResourceAsStream("/lote/eudiw-dev-$name.jwt")!!.use { String(it.readAllBytes()).trim() }
+
+	/** A time at which every checked-in Commission development list is current: after the latest ListIssueDateTime, before the earliest NextUpdate. */
+	@JvmField
+	val EC_DEVELOPMENT_LISTS_CURRENT: Clock = Clock.fixed(Instant.parse("2026-11-01T00:00:00Z"), ZoneOffset.UTC)
 
 	fun ecDevelopmentList(name: String): String =
 		LoteTestFixtures::class.java.getResourceAsStream("/lote/ec-development-$name.jwt")!!.use { String(it.readAllBytes()).trim() }
