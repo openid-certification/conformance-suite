@@ -100,6 +100,30 @@ public class ValidateLoteSignature_UnitTest {
 	}
 
 	@Test
+	public void acceptsAMatchingX5tO() throws Exception {
+		putListWithX5tO("S512", Base64URL.encode(java.security.MessageDigest.getInstance("SHA-512").digest(signer.getCert().getEncoded())).toString());
+
+		assertThatCode(() -> cond.execute(env)).doesNotThrowAnyException();
+	}
+
+	@Test
+	public void rejectsAMismatchingX5tO() throws Exception {
+		putListWithX5tO("S256", Base64URL.encode(new byte[32]).toString());
+
+		assertThatThrownBy(() -> cond.execute(env)).isInstanceOf(ConditionError.class).hasMessageContaining("x5t#o");
+	}
+
+	private void putListWithX5tO(String digAlg, String digVal) throws Exception {
+		JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
+			.x509CertChain(List.of(Base64.encode(signer.getCert().getEncoded())))
+			.customParam("x5t#o", java.util.Map.of("digAlg", digAlg, "digVal", digVal))
+			.build();
+		JWSObject jws = new JWSObject(header, new Payload("{\"LoTE\":{}}"));
+		jws.sign(new com.nimbusds.jose.crypto.ECDSASigner(signer.getKey()));
+		LoteTestFixtures.INSTANCE.putLote(env, LoteSlot.PID, jws.serialize());
+	}
+
+	@Test
 	public void rejectsASymmetricAlgorithm() throws Exception {
 		JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS256)
 			.x509CertChain(List.of(Base64.encode(signer.getCert().getEncoded())))
