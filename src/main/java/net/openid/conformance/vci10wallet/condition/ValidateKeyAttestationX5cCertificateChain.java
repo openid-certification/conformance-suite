@@ -47,7 +47,7 @@ public class ValidateKeyAttestationX5cCertificateChain extends AbstractValidateX
 			List<String> x5c = OIDFJSON.convertJsonArrayToList(x5cEl.getAsJsonArray());
 			List<X509Certificate> certs = parseX5cCertificatesFromStrings(x5c);
 
-			// the configured 'Key Attestation Trust Anchor' plus the wallet providers listed in the configured LoTE
+			// the configured 'Key Attestation Trust Anchor', or else the wallet providers listed in the configured LoTE
 			LoteTrustAnchors.TrustAnchorSet anchors = resolveTrustAnchors(env, TrustPurpose.KEY_ATTESTATION);
 
 			X509Certificate matched = validateX5cCertificateChainAgainst(certs, anchors);

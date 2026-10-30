@@ -70,7 +70,7 @@ public class ValidateMdocDsCertificateChain extends AbstractValidateX5cCertifica
 				+ " VICAL rather than the configured credential trust anchor");
 			anchors = LoteTrustAnchors.TrustAnchorSet.none();
 		} else {
-			// the configured 'Credential Trust Anchor' plus the PID and mDL providers listed in the configured LoTEs
+			// the configured 'Credential Trust Anchor', or else the PID and mDL providers listed in the configured LoTEs
 			anchors = resolveTrustAnchors(env, TrustPurpose.CREDENTIAL);
 		}
 		X509Certificate matched = validateX5cCertificateChainAgainst(certs, anchors);

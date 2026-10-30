@@ -17,8 +17,7 @@ public class RejectPlainHttpTrafficFilter extends OncePerRequestFilter {
 	/**
 	 * The CRLs of the suite's CAs are the one kind of resource served on plain http: CRL
 	 * distribution points are http URLs by PKI convention, and a CRL needs neither a session nor
-	 * transport security since the CA's signature authenticates it. See {@link SuiteCaCrlEndpoint}
-	 * and {@link SuiteCaCrlEndpoint}.
+	 * transport security since the CA's signature authenticates it. See {@link SuiteCaCrlEndpoint}.
 	 */
 	@Override
 	protected boolean shouldNotFilter(HttpServletRequest request) {

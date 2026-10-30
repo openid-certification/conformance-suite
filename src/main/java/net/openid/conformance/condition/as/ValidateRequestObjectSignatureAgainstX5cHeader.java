@@ -34,7 +34,7 @@ public class ValidateRequestObjectSignatureAgainstX5cHeader extends AbstractVali
 
 			List<X509Certificate> certs = parseX5cCertificatesFromNimbusBase64(x5c);
 
-			// the configured 'Request Object Trust Anchor' plus the access certificate providers listed in the configured LoTE
+			// the configured 'Request Object Trust Anchor', or else the access certificate providers listed in the configured LoTE
 			LoteTrustAnchors.TrustAnchorSet anchors = resolveTrustAnchors(env, TrustPurpose.REQUEST_OBJECT);
 			X509Certificate matched = validateX5cCertificateChainAgainst(certs, anchors);
 

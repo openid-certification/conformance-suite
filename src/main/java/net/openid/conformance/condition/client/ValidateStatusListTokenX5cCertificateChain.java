@@ -54,7 +54,7 @@ public class ValidateStatusListTokenX5cCertificateChain extends AbstractValidate
 
 		List<X509Certificate> certs = parseX5cCertificatesFromNimbusBase64(x5cChain);
 
-		// the configured 'Status List Trust Anchor' plus the revocation services of the PID and mDL providers listed in the configured LoTEs
+		// the configured 'Status List Trust Anchor', or else the revocation services of the PID and mDL providers listed in the configured LoTEs
 		LoteTrustAnchors.TrustAnchorSet anchors = resolveTrustAnchors(env, TrustPurpose.STATUS_LIST);
 		X509Certificate matched = validateX5cCertificateChainAgainst(certs, anchors);
 

@@ -40,7 +40,7 @@ public class ValidateSdJwtCredentialX5cCertificateChain extends AbstractValidate
 
 		List<X509Certificate> certs = parseX5cCertificatesFromStrings(x5c);
 
-		// the configured 'Credential Trust Anchor' plus the PID and mDL providers listed in the configured LoTEs
+		// the configured 'Credential Trust Anchor', or else the PID and mDL providers listed in the configured LoTEs
 		LoteTrustAnchors.TrustAnchorSet anchors = resolveTrustAnchors(env, TrustPurpose.CREDENTIAL);
 		X509Certificate matched = validateX5cCertificateChainAgainst(certs, anchors);
 
