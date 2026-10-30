@@ -334,6 +334,11 @@ import java.util.function.Supplier;
 	"vci.credential_proof_type_hint",
 	"client_attestation.key_attestation_jwks",
 	"vci.authorization_server",
+	"credential.trust_anchor_pem",
+	"credential.status_list_trust_anchor_pem",
+	"credential.pid_lote_url",
+	"credential.mdl_lote_url",
+	"lote.signing_certificate_pem",
 })
 @VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci_haip", configurationFields = {
 	"vci.credential_issuer_url",
