@@ -755,6 +755,16 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return true;
 	}
 
+	/**
+	 * Interceptor that logs outbound HTTP requests and responses against this condition and releases the
+	 * test lock for the duration of the network I/O.
+	 *
+	 * @param mutualTls the mTLS settings to log with each request, or null when the request does not use mTLS
+	 */
+	protected LoggingRequestInterceptor createLoggingRequestInterceptor(Environment env, JsonObject mutualTls) {
+		return new LoggingRequestInterceptor(getMessage(), log, mutualTls, this.lockManager, env.getLock());
+	}
+
 	protected RestTemplate createRestTemplate(Environment env) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {
 		return createRestTemplate(env, true);
 	}
@@ -792,9 +802,8 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		// Single interceptor handles both logging and lock release. The lock is released only
 		// during network I/O (HTTP call + response body buffering); logging happens with the
 		// lock held for deterministic ordering relative to other threads.
-		restTemplate.getInterceptors().add(new LoggingRequestInterceptor(getMessage(), log,
-			useMtlsForHttpRequests() ? env.getObject("mutual_tls_authentication") : null,
-			this.lockManager, env.getLock()));
+		restTemplate.getInterceptors().add(createLoggingRequestInterceptor(env,
+			useMtlsForHttpRequests() ? env.getObject("mutual_tls_authentication") : null));
 
 		List<HttpMessageConverter<?>> converters = restTemplate.getMessageConverters();
 
