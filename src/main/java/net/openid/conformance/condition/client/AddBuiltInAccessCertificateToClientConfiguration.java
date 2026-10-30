@@ -40,6 +40,15 @@ public class AddBuiltInAccessCertificateToClientConfiguration extends AbstractCo
 
 		TestKeysAndCerts.MintedLeaf wrpac = TestKeysAndCerts.getWrpac();
 		client.add("jwks", wrpac.jwksJson());
+		JsonElement clientId = client.get("client_id");
+		if (clientId != null && !clientId.isJsonNull()) {
+			// an x509_san_dns client identifier must be a dNSName of the certificate, which the tester did not choose
+			log("The 'Client ID' field in the 'Client' section of the test configuration is set but 'jwks' is not, so the"
+					+ " suite signs with its built-in access certificate: with the x509_san_dns client identifier prefix the"
+					+ " Client ID must be a dNSName of that certificate. Clear the Client ID to use the certificate's, or"
+					+ " configure a 'jwks' whose certificate names your Client ID.",
+				args("client_id", clientId, "access_certificate_subject", wrpac.getCert().getSubject().getName()));
+		}
 		logSuccess("No 'jwks' field in the 'Client' section of the test configuration; the suite signs requests with its"
 				+ " built-in wallet-relying-party access certificate, issued by the access CA served at "
 				+ TestKeysAndCerts.SuiteCa.ACCESS.getTrustAnchorUrl() + ". The certificate is re-minted daily, so an x509_hash"
