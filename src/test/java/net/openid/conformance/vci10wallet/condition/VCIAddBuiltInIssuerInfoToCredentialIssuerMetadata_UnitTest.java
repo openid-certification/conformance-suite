@@ -32,6 +32,7 @@ public class VCIAddBuiltInIssuerInfoToCredentialIssuerMetadata_UnitTest {
 		assertThat(issuerInfo).hasSize(2);
 		assertThat(issuerInfo.get(0).getAsJsonObject().get("format").toString()).isEqualTo("\"registrar_dataset\"");
 		assertThat(issuerInfo.get(1).getAsJsonObject().get("format").toString()).isEqualTo("\"registration_cert\"");
+		assertThat(issuerInfo.get(1).getAsJsonObject().get("data").toString()).startsWith("\"eyJ");
 		assertThat(issuerInfo.get(0).getAsJsonObject().getAsJsonObject("data").get("providesAttestations")).isEqualTo(JsonParser.parseString("""
 			[
 			  { "format": "dc+sd-jwt", "meta": { "vct_values": ["urn:eudi:pid:1"] } },

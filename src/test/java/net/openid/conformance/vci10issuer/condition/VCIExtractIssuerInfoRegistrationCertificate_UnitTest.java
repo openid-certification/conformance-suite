@@ -29,25 +29,26 @@ public class VCIExtractIssuerInfoRegistrationCertificate_UnitTest {
 	}
 
 	@Test
-	public void extractsABase64urlEncodedCertificate() {
+	public void extractsACompactJws() {
+		// as the suite and the EUDI Wallet Launchpad issuers send it
 		Environment env = IssuerInfoTestFixtures.envWithIssuerInfo(IssuerInfoTestFixtures.suiteIssuerInfo());
 		cond.execute(env);
-		assertThat(env.getString(VCIExtractIssuerInfoRegistrationCertificate.ENV_KEY, "encoding")).isEqualTo("base64url encoding of the compact JWS");
+		assertThat(env.getString(VCIExtractIssuerInfoRegistrationCertificate.ENV_KEY, "encoding")).isEqualTo("compact JWS");
 		assertThat(env.getString(VCIExtractIssuerInfoRegistrationCertificate.ENV_KEY, "header.typ")).isEqualTo("rc-wrp+jwt");
 		assertThat(env.getElementFromObject(VCIExtractIssuerInfoRegistrationCertificate.ENV_KEY, "payload.provides_attestations")).isNotNull();
 	}
 
 	@Test
-	public void extractsACompactJws() {
-		// as the EUDI Wallet Launchpad issuers send it
+	public void extractsABase64urlEncodedCertificate() {
+		// as TS 119 472-2 encodes it in verifier_info
 		JsonArray issuerInfo = IssuerInfoTestFixtures.suiteIssuerInfo();
 		JsonObject certificate = registrationCert(issuerInfo);
-		String jws = new String(Base64.getUrlDecoder().decode(OIDFJSON.getString(certificate.get("data"))), StandardCharsets.US_ASCII);
-		certificate.addProperty("data", jws);
+		String jws = OIDFJSON.getString(certificate.get("data"));
+		certificate.addProperty("data", Base64.getUrlEncoder().withoutPadding().encodeToString(jws.getBytes(StandardCharsets.US_ASCII)));
 
 		Environment env = IssuerInfoTestFixtures.envWithIssuerInfo(issuerInfo);
 		cond.execute(env);
-		assertThat(env.getString(VCIExtractIssuerInfoRegistrationCertificate.ENV_KEY, "encoding")).isEqualTo("compact JWS");
+		assertThat(env.getString(VCIExtractIssuerInfoRegistrationCertificate.ENV_KEY, "encoding")).isEqualTo("base64url encoding of the compact JWS");
 		assertThat(env.getString(VCIExtractIssuerInfoRegistrationCertificate.ENV_KEY, "value")).isEqualTo(jws);
 	}
 

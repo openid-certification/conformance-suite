@@ -108,14 +108,16 @@ public final class SuiteWrprc {
 		dataset.add("purpose", LoteBuilder.inEnglish(PURPOSE, "content"));
 		dataset.addProperty("policyURI", PRIVACY_POLICY_URI);
 		dataset.add("credential", credentials());
-		return registrationInfo(dataset, jwt());
+		return registrationInfo(dataset,
+			Base64.getUrlEncoder().withoutPadding().encodeToString(jwt().getBytes(StandardCharsets.US_ASCII)));
 	}
 
 	/**
 	 * The {@code issuer_info} value of the suite as a PID provider (ETSI TS 119 472-3 clause 4.2.3): the
 	 * registrar dataset element of ISS-MDATA-REG_CERT-4.2.3-07 to -13 and the registration certificate
-	 * element of -04 to -06, whose data, as in {@link #verifierInfo()}, is the base64url encoding of the
-	 * compact JWS. Both register {@code providesAttestations}, TS 119 475 Credential objects; the
+	 * element of -04 to -06, whose data is the compact JWS itself: TS 119 472-3 says only that the data is
+	 * the certificate, unlike TS 119 472-2 for {@link #verifierInfo()}, and issuers send the JWS as is.
+	 * Both register {@code providesAttestations}, TS 119 475 Credential objects; the
 	 * certificate is issued afresh for each call, since the attestations depend on the test.
 	 */
 	public static JsonArray issuerInfo(JsonArray providesAttestations) {
@@ -153,16 +155,18 @@ public final class SuiteWrprc {
 		return dataset;
 	}
 
-	/** A {@code verifier_info} or {@code issuer_info} value: the registrar dataset element, then the registration certificate element. */
-	private static JsonArray registrationInfo(JsonObject dataset, String wrprc) {
+	/**
+	 * A {@code verifier_info} or {@code issuer_info} value: the registrar dataset element, then the
+	 * registration certificate element with {@code certificateData}, the certificate as the profile encodes it.
+	 */
+	private static JsonArray registrationInfo(JsonObject dataset, String certificateData) {
 		JsonObject datasetElement = new JsonObject();
 		datasetElement.addProperty("format", "registrar_dataset");
 		datasetElement.add("data", dataset);
 
 		JsonObject certificateElement = new JsonObject();
 		certificateElement.addProperty("format", "registration_cert");
-		certificateElement.addProperty("data",
-			Base64.getUrlEncoder().withoutPadding().encodeToString(wrprc.getBytes(StandardCharsets.US_ASCII)));
+		certificateElement.addProperty("data", certificateData);
 
 		JsonArray info = new JsonArray();
 		info.add(datasetElement);

@@ -15,9 +15,7 @@ import net.openid.conformance.util.TestKeysAndCerts;
 import net.openid.conformance.util.X509CertificateUtil;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 
-import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
-import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -99,12 +97,12 @@ public class VCIAddBuiltInIssuerInfoToCredentialIssuerMetadata extends AbstractC
 		return providesAttestations;
 	}
 
-	/** The payload of the registration certificate in {@code issuerInfo}, which {@link SuiteWrprc#issuerInfo} base64url-encodes. */
+	/** The payload of the registration certificate in {@code issuerInfo}, a compact JWS. */
 	private JsonObject registrationCertificatePayload(JsonArray issuerInfo) {
 		for (JsonElement element : issuerInfo) {
 			JsonObject obj = element.getAsJsonObject();
 			if ("registration_cert".equals(stringOrNull(obj.get("format")))) {
-				String jws = new String(Base64.getUrlDecoder().decode(OIDFJSON.getString(obj.get("data"))), StandardCharsets.US_ASCII);
+				String jws = OIDFJSON.getString(obj.get("data"));
 				try {
 					return JsonParser.parseString(JWSObject.parse(jws).getPayload().toString()).getAsJsonObject();
 				} catch (ParseException e) {
