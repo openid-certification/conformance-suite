@@ -80,7 +80,25 @@ public class WarnIfBuiltInCertificateAuthorityIsEphemeral_UnitTest {
 
 		assertThatThrownBy(() -> cond(new WarnIfBuiltInCredentialSignerIsEphemeral()).execute(env))
 			.isInstanceOf(ConditionError.class)
-			.hasMessageContaining("SUITE_CA_KEY_PID_PROVIDER_CA");
+			.hasMessageContaining("SUITE_CA_KEY_PID_PROVIDER_CA")
+			.hasMessageContaining("'Signing JWK' in the 'Credential Issuer' section");
+	}
+
+	@Test
+	public void theMetadataSignerWarningNamesTheAccessCa() {
+		assumeNoKeyFor(TestKeysAndCerts.SuiteCa.ACCESS);
+
+		assertThatThrownBy(() -> cond(new WarnIfBuiltInMetadataSignerIsEphemeral()).execute(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("SUITE_CA_KEY_ACCESS_CA")
+			.hasMessageContaining("credential issuer metadata");
+	}
+
+	@Test
+	public void aConfiguredSigningJwkMeansNoBuiltInMetadataSigner() {
+		env.putObject("config", "credential.signing_jwk", someJwks());
+
+		assertThatCode(() -> cond(new WarnIfBuiltInMetadataSignerIsEphemeral()).execute(env)).doesNotThrowAnyException();
 	}
 
 	@Test

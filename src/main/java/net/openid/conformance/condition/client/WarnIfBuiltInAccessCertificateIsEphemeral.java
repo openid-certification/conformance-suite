@@ -19,9 +19,9 @@ public class WarnIfBuiltInAccessCertificateIsEphemeral extends AbstractWarnIfBui
 	protected Map<TestKeysAndCerts.SuiteCa, String> builtInSignersInUse(Environment env) {
 		Map<TestKeysAndCerts.SuiteCa, String> inUse = new LinkedHashMap<>();
 		if (!isConfigured(env, "client.jwks")) {
-			inUse.put(TestKeysAndCerts.SuiteCa.ACCESS, "the access certificate signing the requests");
+			inUse.put(TestKeysAndCerts.SuiteCa.ACCESS, "the access certificate signing the requests, replaced by 'jwks' in the 'Client' section");
 			if (!isConfigured(env, "client.verifier_info")) {
-				inUse.put(TestKeysAndCerts.SuiteCa.WRPRC_PROVIDER, "the registration certificate sent with the requests");
+				inUse.put(TestKeysAndCerts.SuiteCa.WRPRC_PROVIDER, "the registration certificate sent with the requests, replaced by 'verifier_info' in the 'Client' section");
 			}
 		}
 		return inUse;

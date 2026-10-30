@@ -15,6 +15,6 @@ public class WarnIfBuiltInClientAttestationSignerIsEphemeral extends AbstractWar
 	protected Map<TestKeysAndCerts.SuiteCa, String> builtInSignersInUse(Environment env) {
 		return isConfigured(env, "client_attestation.attester_jwks", "vci.client_attester_keys_jwks")
 			? Map.of()
-			: Map.of(TestKeysAndCerts.SuiteCa.WALLET_PROVIDER, "the certificate signing the client attestations");
+			: Map.of(TestKeysAndCerts.SuiteCa.WALLET_PROVIDER, "the certificate signing the client attestations, replaced by 'Client Attester Keys JWKS' in the 'Client Attestation' section");
 	}
 }

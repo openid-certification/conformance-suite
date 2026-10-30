@@ -16,6 +16,6 @@ public class WarnIfBuiltInCredentialSignerIsEphemeral extends AbstractWarnIfBuil
 	protected Map<TestKeysAndCerts.SuiteCa, String> builtInSignersInUse(Environment env) {
 		return isConfigured(env, "credential.signing_jwk")
 			? Map.of()
-			: Map.of(TestKeysAndCerts.SuiteCa.PID_PROVIDER, "the certificate signing the SD-JWT VC credentials and their status list");
+			: Map.of(TestKeysAndCerts.SuiteCa.PID_PROVIDER, "the certificate signing the SD-JWT VC credentials and their status list, replaced by 'Signing JWK' in the 'Credential Issuer' section");
 	}
 }

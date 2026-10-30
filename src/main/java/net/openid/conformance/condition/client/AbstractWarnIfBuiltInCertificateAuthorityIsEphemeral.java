@@ -23,7 +23,8 @@ public abstract class AbstractWarnIfBuiltInCertificateAuthorityIsEphemeral exten
 
 	/**
 	 * The CAs whose built-in leaves the module signs with under the test configuration in
-	 * {@code env}, each with what the leaf signs; empty when the configuration supplies every key.
+	 * {@code env}, each with what the leaf signs and the test configuration field that replaces it;
+	 * empty when the configuration supplies every key.
 	 */
 	protected abstract Map<TestKeysAndCerts.SuiteCa, String> builtInSignersInUse(Environment env);
 
@@ -51,8 +52,8 @@ public abstract class AbstractWarnIfBuiltInCertificateAuthorityIsEphemeral exten
 		throw error("The suite signs with built-in certificates issued by ephemeral stand-ins for its published CAs, because"
 				+ " this deployment does not have the published CAs' keys: nothing outside this suite instance trusts them, so an"
 				+ " implementation that trusts the published CA, or a list of trusted entities naming it, will reject what the suite"
-				+ " signs. Either supply the signing keys in the test configuration or deploy the suite with the keys in the"
-				+ " environment variables " + String.join(", ", variables) + ".",
+				+ " signs. The certificates: " + String.join("; ", ephemeral) + ". Either fill in those fields of the test"
+				+ " configuration or deploy the suite with the keys in the environment variables " + String.join(", ", variables) + ".",
 			args("ephemeral_signers", ephemeral, "environment_variables", variables, "trust_anchors_url", TestKeysAndCerts.getTrustAnchorsUrl()));
 	}
 

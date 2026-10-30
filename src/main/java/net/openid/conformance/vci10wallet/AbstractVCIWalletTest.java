@@ -100,6 +100,7 @@ import net.openid.conformance.condition.rs.RequireMtlsAccessToken;
 import net.openid.conformance.condition.rs.RequireMtlsClientCredentialsAccessToken;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.condition.client.WarnIfBuiltInCredentialSignerIsEphemeral;
+import net.openid.conformance.condition.client.WarnIfBuiltInMetadataSignerIsEphemeral;
 import net.openid.conformance.sequence.client.CheckOwnCertificatesAgainstLotes;
 import net.openid.conformance.sequence.client.SetupWalletTrustSources;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -525,6 +526,8 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	}
 
 	protected void generateSignedCredentialIssuerMetadata() {
+		// the built-in access certificate is only trusted outside this instance when the deployment has the published CA's key
+		callAndContinueOnFailure(WarnIfBuiltInMetadataSignerIsEphemeral.class, ConditionResult.WARNING);
 		callAndStopOnFailure(VCIGenerateSignedCredentialIssuerMetadata.class, "OID4VCI-1FINAL-11.2.3", "HAIP-4.1");
 	}
 
