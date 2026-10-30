@@ -55,8 +55,9 @@ public enum LoteList {
 			new Service("http://uri.etsi.org/19602/SvcType/WRPAC/Revocation", "OpenID Foundation conformance suite access CA revocation",
 				TestKeysAndCerts.SuiteCa.ACCESS))),
 
+	// "WRPRCrovidersList", typo and all, is the URI ETSI TS 119 602 V1.1.1 registers (clause C.2.2) and G.2 requires
 	WRPRC_PROVIDERS("wrprc-providers", "http://uri.etsi.org/19602/LoTEType/EUWRPRCProvidersList",
-		"http://uri.etsi.org/19602/WRPRCProvidersList/StatusDetn/EU", "http://uri.etsi.org/19602/WRPRCProvidersList/schemerules/EU",
+		"http://uri.etsi.org/19602/WRPRCrovidersList/StatusDetn/EU", "http://uri.etsi.org/19602/WRPRCProvidersList/schemerules/EU",
 		"EU WRPRC Providers List", List.of(
 			new Service("http://uri.etsi.org/19602/SvcType/WRPRC/Issuance", "OpenID Foundation conformance suite registration certificates",
 				TestKeysAndCerts.SuiteCa.WRPRC_PROVIDER),
