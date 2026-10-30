@@ -1,6 +1,7 @@
 package net.openid.conformance.util;
 
 import net.openid.conformance.condition.client.lote.LoteTestFixtures;
+import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.junit.jupiter.api.Test;
 
 import java.security.cert.X509Certificate;
@@ -61,6 +62,22 @@ public class X509CertificateUtil_UnitTest {
 		assertThatThrownBy(() -> X509CertificateUtil.validateX5cCertificateChain(List.of(leafUnderSubCa, subCa.getCert()), List.of(subCa.getCert())))
 			.isInstanceOf(X509CertificateUtil.X5cCertificateChainException.class)
 			.hasMessageContaining("must not be included");
+	}
+
+	@Test
+	public void anAnchorInsideABrokenChainReportsThePathFailureToo() {
+		// the leaf is not issued by the anchor sent after it
+		assertThatThrownBy(() -> X509CertificateUtil.validateX5cCertificateChain(List.of(leafUnderB, caA.getCert()), List.of(caA.getCert())))
+			.isInstanceOf(X509CertificateUtil.X5cCertificateChainException.class)
+			.hasMessageContaining("must not be included")
+			.hasMessageContaining("path validation also failed");
+	}
+
+	@Test
+	public void subjectRdnValueIsUnescaped() {
+		LoteTestFixtures.ListedCa ca = LoteTestFixtures.INSTANCE.generateCa("CA C", "Example\\, Inc.");
+
+		assertThat(X509CertificateUtil.subjectRdnValue(ca.getCert(), BCStyle.O)).isEqualTo("Example, Inc.");
 	}
 
 	@Test

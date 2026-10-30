@@ -1,7 +1,9 @@
 package net.openid.conformance.util;
 
 import com.nimbusds.jose.util.X509CertUtils;
+import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.ASN1String;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
@@ -150,10 +152,17 @@ public class X509CertificateUtil {
 		}
 	}
 
-	/** The value of the first {@code attribute} of {@code cert}'s subject name, or null when it has none. */
+	/**
+	 * The value of the first {@code attribute} of {@code cert}'s subject name, unescaped, or null when it
+	 * has none: an organizationName "Example, Inc." is returned as such, not as "Example\, Inc.".
+	 */
 	public static String subjectRdnValue(X509Certificate cert, ASN1ObjectIdentifier attribute) {
 		RDN[] rdns = X500Name.getInstance(cert.getSubjectX500Principal().getEncoded()).getRDNs(attribute);
-		return rdns.length == 0 ? null : IETFUtils.valueToString(rdns[0].getFirst().getValue());
+		if (rdns.length == 0) {
+			return null;
+		}
+		ASN1Encodable value = rdns[0].getFirst().getValue();
+		return value instanceof ASN1String string ? string.getString() : IETFUtils.valueToString(value);
 	}
 
 	/**
@@ -315,8 +324,9 @@ public class X509CertificateUtil {
 				matched = validatePkixPath(certs, trustAnchors);
 			} catch (X5cCertificateChainException e) {
 				if (certs.stream().anyMatch(trustAnchors::contains)) {
-					// the chain ends at an anchor without reaching that anchor's issuer: the anchor itself was sent
-					throw new X5cCertificateChainException("Trust anchor certificate must not be included in x5c chain");
+					// the anchor itself was sent; the path failure is kept, as it may be the cause the tester needs
+					throw new X5cCertificateChainException("Trust anchor certificate must not be included in x5c chain;"
+						+ " path validation also failed: " + e.getMessage());
 				}
 				throw e;
 			}
