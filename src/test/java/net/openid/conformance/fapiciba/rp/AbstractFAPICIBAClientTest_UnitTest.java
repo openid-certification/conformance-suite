@@ -4,10 +4,11 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.runner.TestExecutionManager;
 import net.openid.conformance.testmodule.Command;
-import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.TestModule.Status;
 import net.openid.conformance.variant.CIBAMode;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
@@ -121,10 +122,12 @@ public class AbstractFAPICIBAClientTest_UnitTest {
 		TestableFAPICIBAClientTest test = new TestableFAPICIBAClientTest();
 		test.setProfileBehavior(new OpenBankingBrazilCibaRPProfileBehavior());
 
-		assertThatThrownBy(() -> test.handleHttpMtls(AbstractFAPICIBAClientTest.ACCOUNTS_PATH, null, null, null, new JsonObject()))
-			.isInstanceOf(TestFailureException.class)
-			.hasMessageContaining("Got unexpected HTTP (using mtls) call to " + AbstractFAPICIBAClientTest.ACCOUNTS_PATH);
+		Object response = test.handleHttpMtls(AbstractFAPICIBAClientTest.ACCOUNTS_PATH, null, null, null, new JsonObject());
+
+		assertThat(response).isInstanceOf(ResponseEntity.class);
+		assertThat(((ResponseEntity<?>) response).getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 		assertThat(test.accountsEndpointCalled).isFalse();
+		assertThat(test.lastStatus).isEqualTo(Status.WAITING);
 	}
 
 	@Test
