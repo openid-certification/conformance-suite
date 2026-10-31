@@ -439,7 +439,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		} else if (path.equals(VERIFICATION_EVIDENCE_PATH)) {
 			return handleVerificationEvidenceRequest();
 		} else {
-			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+			return reportUnexpectedHttpRequest(path, env.getObject(requestId));
 		}
 	}
 

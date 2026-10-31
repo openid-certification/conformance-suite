@@ -390,7 +390,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 				}
 				return userinfoEndpoint(requestId);
 			default:
-				throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+				return unexpectedHttpRequest(path, env.getObject(requestId));
 		}
 	}
 
@@ -424,14 +424,14 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 				return userinfoEndpoint(requestId);
 			case ACCOUNTS_PATH:
 				if (!profileBehavior.acceptsGenericAccountsEndpoint()) {
-					throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
+					return unexpectedHttpRequest(path, env.getObject(requestId));
 				}
 				return accountsEndpoint(requestId);
 			default:
 				if (profileBehavior.claimsProfileSpecificMtlsPath(path)) {
 					return profileBehavior.handleProfileSpecificMtlsPath(requestId, path);
 				}
-				throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
+				return unexpectedHttpRequest(path, env.getObject(requestId));
 		}
 	}
 

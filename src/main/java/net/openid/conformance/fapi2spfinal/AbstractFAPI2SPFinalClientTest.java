@@ -849,7 +849,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 				setStatus(Status.WAITING);
 			}
 		}
-		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+		return unexpectedHttpRequest(path, env.getObject(requestId));
 	}
 
 	/**
@@ -934,7 +934,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		if (profileBehavior.claimsHttpMtlsPath(path)) {
 			return profileBehavior.handleProfileSpecificMtlsPath(requestId, path);
 		}
-		throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
+		return unexpectedHttpRequest(path, env.getObject(requestId));
 	}
 
 	protected void validateResourceEndpointHeaders() {

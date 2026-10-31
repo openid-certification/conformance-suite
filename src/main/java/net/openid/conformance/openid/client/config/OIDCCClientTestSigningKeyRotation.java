@@ -2,7 +2,6 @@ package net.openid.conformance.openid.client.config;
 
 import net.openid.conformance.openid.client.AbstractOIDCCClientTest;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientRegistration;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -116,7 +115,7 @@ public class OIDCCClientTestSigningKeyRotation extends AbstractOIDCCClientTest {
 			return handleDiscoveryEndpointRequest();
 
 		} else {
-			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+			return reportUnexpectedHttpRequest(path, env.getObject(requestId));
 		}
 	}
 

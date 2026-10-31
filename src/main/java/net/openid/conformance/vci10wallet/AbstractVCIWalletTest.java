@@ -776,7 +776,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 			return notificationEndpoint(requestId);
 		}
-		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+		return unexpectedHttpRequest(path, env.getObject(requestId));
 	}
 
 	protected Object credentialOfferEndpoint(String requestId) {
@@ -1505,7 +1505,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		} else if (path.equals("par")) {
 			return parEndpoint(requestId);
 		}
-		throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
+		return unexpectedHttpRequest(path, env.getObject(requestId));
 	}
 
 	@Override

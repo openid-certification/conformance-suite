@@ -655,7 +655,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 			return accountsEndpoint(requestId);
 		}
-		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+		return unexpectedHttpRequest(path, env.getObject(requestId));
 	}
 
 	@Override
@@ -708,7 +708,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 				return brazilHandleNewPaymentInitiationRequest(requestId);
 			}
 		}
-		throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
+		return unexpectedHttpRequest(path, env.getObject(requestId));
 	}
 
 	protected void validateResourceEndpointHeaders() {

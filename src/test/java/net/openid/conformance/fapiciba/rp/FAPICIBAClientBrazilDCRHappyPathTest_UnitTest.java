@@ -13,6 +13,7 @@ import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateUse
 import net.openid.conformance.condition.as.dynregistration.FAPICIBAEnsureRegistrationRequestUserCodeIsAbsentOrFalse;
 import net.openid.conformance.condition.as.dynregistration.FAPICIBAEnsureRegistrationRequestUsesPingMode;
 import net.openid.conformance.condition.client.CheckIncomingContentTypeIsApplicationJson;
+import net.openid.conformance.condition.common.UnexpectedHttpRequestReceived;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
 import net.openid.conformance.condition.rs.RequireBearerRegistrationAccessToken;
@@ -22,6 +23,8 @@ import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.TestModule.Status;
 import net.openid.conformance.variant.CIBAMode;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +35,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -184,7 +186,7 @@ public class FAPICIBAClientBrazilDCRHappyPathTest_UnitTest {
 	}
 
 	@Test
-	public void plainHttpCleanupFailsAndDoesNotCompleteTheTest() {
+	public void plainHttpCleanupIsReportedAsUnexpectedAndDoesNotCompleteTheTest() {
 		TestableFAPICIBAClientBrazilDCRHappyPathTest test =
 			new TestableFAPICIBAClientBrazilDCRHappyPathTest();
 		test.getEnv().putString("registration_client_uri", "path", "clienturi/test");
@@ -192,9 +194,12 @@ public class FAPICIBAClientBrazilDCRHappyPathTest_UnitTest {
 		requestParts.addProperty("method", "DELETE");
 		test.completeResourceEndpointCall();
 
-		assertThatThrownBy(() -> test.handleHttp("clienturi/test", null, null, null, requestParts))
-			.hasMessageContaining("Got unexpected HTTP call to clienturi/test");
+		Object response = test.handleHttp("clienturi/test", null, null, null, requestParts);
 
+		assertThat(((ResponseEntity<?>) response).getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+		assertThat(test.conditionCalls)
+			.extracting(ConditionCall::conditionClass)
+			.contains(UnexpectedHttpRequestReceived.class);
 		assertThat(test.finishCount).isZero();
 	}
 

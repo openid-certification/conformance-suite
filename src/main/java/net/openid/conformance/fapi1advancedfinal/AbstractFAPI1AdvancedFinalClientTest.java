@@ -618,7 +618,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 				return accountRequestsEndpoint(requestId);
 			}
 		}
-		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+		return unexpectedHttpRequest(path, env.getObject(requestId));
 	}
 
 	@Override
@@ -679,7 +679,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		if (isKSA() && path.equals(ACCOUNT_REQUESTS_PATH)){
 			return ksaAccountRequestEndpoint(requestId);
 		}
-		throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
+		return unexpectedHttpRequest(path, env.getObject(requestId));
 	}
 
 	protected void validateResourceEndpointHeaders() {
