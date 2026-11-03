@@ -62,6 +62,10 @@ java -jar target/fapi-test-suite.jar --spring.profiles.active=dev
 
 The app runs at `https://localhost.emobix.co.uk:8443` (regular) and `:8444` (mTLS).
 
+**Logging in.** The login page offers Google, GitLab, and the OpenID Provider configured under `oidc.idp.*` (registration id `idp`), which brokers Google and GitLab accounts. A brokered login resolves to the upstream account's identity (the IdP's `idp_iss`/`idp_sub` claims), so a user sees the same records whichever button they use. Admin rights for IdP logins come from its `roles` claim containing the role named by `oidc.idp.admin-role`. The `dev` profile sets `fintechlabs.devmode=true` and so bypasses login altogether; pass `--fintechlabs.devmode=false` to exercise a real login.
+
+The JWS algorithms used to verify IdP tokens are configuration, because an IdP's discovery document advertises what it *can* sign with rather than what it *does*: `oidc.idp.id-token-signed-response-alg` (exactly one; Google and GitLab ID tokens are always verified RS256) and `oidc.idp.access-token-signing-algs` (comma-separated). If IdP logins fail with a signature error, or API bearer tokens are rejected, check these first.
+
 ### Dev loop (save-and-see)
 
 The `dev` profile activates `spring-boot-devtools` plus a source-tree static handler so edits under `src/main/resources/static/` reflect on the next browser load (LiveReload reloads the tab automatically; plain F5 also works), and Java edits trigger a fast classloader restart in ~5 seconds.

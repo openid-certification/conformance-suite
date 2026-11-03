@@ -522,6 +522,12 @@ local_test:
   needs: ["build"]
   script:
     - apk add docker-compose
+    # OIDC_IDP_ISS/CLIENTID/SECRET are CI variables, so they are already in this
+    # job's environment and docker-compose interpolates $OIDC_IDP_* in
+    # docker-compose-localtest.yml straight from the shell. They must NOT be
+    # written to .env: that file is tracked (it carries MAVEN_CACHE for
+    # builder-compose.yml), so writing there both clobbers it and puts a live
+    # client secret in a tracked path.
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml pull
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml build --pull
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml up --detach nginx
@@ -765,6 +771,13 @@ security_test:
       --namespace="$KUBE_NAMESPACE" \
       --from-literal=clientid="$OIDC_GOOGLE_CLIENTID" \
       --from-literal=secret="$OIDC_GOOGLE_SECRET"
+    kubectl delete secret oidc-idp-credentials \
+      --namespace="$KUBE_NAMESPACE" \
+      --ignore-not-found=true
+    kubectl create secret generic oidc-idp-credentials \
+      --namespace="$KUBE_NAMESPACE" \
+      --from-literal=clientid="$OIDC_IDP_CLIENTID" \
+      --from-literal=secret="$OIDC_IDP_SECRET"
 
     # Create jwk secrets
     kubectl delete secret fintechlabs-signing-key \
@@ -800,6 +813,7 @@ security_test:
       --set service.url="$CI_ENVIRONMENT_URL" \
       --set service.mtls="$CI_ENVIRONMENT_MTLS_URL" \
       --set replicaCount="$replicas" \
+      --set idpIss="$OIDC_IDP_ISS" \
       $mongo_settings \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \

@@ -4,6 +4,7 @@ import jakarta.servlet.DispatcherType;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletResponse;
 import net.openid.conformance.info.TestPlanService;
+import net.openid.conformance.security.idp.RolesAuthoritiesConverter;
 import net.openid.conformance.sharing.privatelink.PrivateLinkUserDetailsService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -57,6 +58,7 @@ public class OidcListingPageAccess_UnitTest {
 		context.setServletContext(new MockServletContext());
 		context.getEnvironment().getPropertySources().addFirst(new MapPropertySource("test", Map.of(
 			"fintechlabs.base_url", "https://localhost.emobix.co.uk:8443",
+			"oidc.idp.iss", "https://openid.example.com/auth",
 			"oidc.admin.issuer", "https://gitlab.com",
 			"oidc.gitlab.admin-group-indicator-claims",
 			"{'https://gitlab.org/claims/groups/maintainer':{'openid'}}")));
@@ -251,6 +253,14 @@ public class OidcListingPageAccess_UnitTest {
 				.tokenUri("https://idp.example.invalid/token")
 				.build();
 			return new InMemoryClientRegistrationRepository(registration);
+		}
+
+		@Bean
+		public RolesAuthoritiesConverter rolesAuthoritiesConverter() {
+			// A scanned @Component in the real app; this minimal context does no
+			// component scanning. Only consulted while mapping authorities for a
+			// real IdP login.
+			return new RolesAuthoritiesConverter("conformance-admin");
 		}
 	}
 }

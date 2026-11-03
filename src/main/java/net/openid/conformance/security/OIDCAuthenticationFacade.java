@@ -8,6 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.ClaimAccessor;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -96,10 +97,21 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 			if (!(oauth.getPrincipal() instanceof OidcUser oidcUser)) {
 				throw unidentifiablePrincipal(a, "an OAuth2 login that is not an OIDC login");
 			}
+			// The ID token alone, not the OidcUser, whose accessors read the ID token
+			// merged with UserInfo: which records a user owns must not depend on
+			// whether OidcUserService happened to fetch UserInfo.
+			ImmutableMap<String, String> brokered = brokeredIdentity(oidcUser.getIdToken());
+			if (brokered != null) {
+				return brokered;
+			}
 			issuer = oidcUser.getIssuer() == null ? null : oidcUser.getIssuer().toString();
 			subject = oidcUser.getSubject();
 		} else if (a instanceof JwtAuthenticationToken jwtToken) {
 			Jwt jwt = jwtToken.getToken();
+			ImmutableMap<String, String> brokered = brokeredIdentity(jwt);
+			if (brokered != null) {
+				return brokered;
+			}
 			issuer = jwt.getIssuer() == null ? null : jwt.getIssuer().toString();
 			subject = jwt.getSubject();
 		} else if (a instanceof OneTimeTokenAuthentication ott) {
@@ -128,6 +140,55 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 	private static IllegalStateException unidentifiablePrincipal(Authentication a, String what) {
 		return new IllegalStateException("Cannot determine the owner of " + what
 			+ " (" + a.getClass().getSimpleName() + ")");
+	}
+
+	/**
+	 * The identity a brokered login inherits from the account it was federated from,
+	 * or null for a login that is not brokered.
+	 * <p>
+	 * When the IdP brokers an upstream provider - Google or GitLab, which users can
+	 * also sign in with directly - it reports that provider's issuer and subject as
+	 * {@code idp_iss} / {@code idp_sub}. That is the pair a direct Google or GitLab
+	 * login stores as the {@code owner} of every test, plan, log entry, API token and
+	 * saved configuration, so resolving to it gives a user the same records whichever
+	 * button they signed in with.
+	 * <p>
+	 * It has to answer the same way for a browser session and for an API bearer
+	 * token. The owner is matched as a whole sub-document, so one user resolving to
+	 * two identities means two disjoint sets of records: tests created in the UI
+	 * invisible to that user's API token, and the other way round.
+	 * <p>
+	 * Both claims or neither. Half a pair combines an issuer and a subject from
+	 * different identities, which owns nothing at all.
+	 * <p>
+	 * <strong>Trust boundary.</strong> These two claims decide which records the
+	 * caller owns, on every request. At the IdP they are populated by a broker mapper
+	 * from the upstream provider's assertion, and are not backed by a self-editable
+	 * user attribute - a user cannot set {@code idp_sub} on their own profile and
+	 * take over another user's tests, plans, logs and API tokens. That property lives
+	 * at the IdP, not here: if the mapper is ever replaced by anything a user can
+	 * write, this becomes an account-takeover primitive and has to change with it.
+	 */
+	private static ImmutableMap<String, String> brokeredIdentity(ClaimAccessor claims) {
+		if (claims == null) {
+			return null;
+		}
+		// The raw claims, checked for type, rather than getClaimAsString: that
+		// converts through ClaimConversionService, which falls back to toString(),
+		// so an idp_iss sent as a one-element array becomes the literal
+		// "[https://issuer.example]" and is handed on as an owner that matches no
+		// record at all. An IdP sending either claim in another shape must cost the
+		// caller the brokered identity - leaving them the IdP identity, which does
+		// own records - not a 500 and not a string that owns nothing.
+		Object issuer = claims.getClaims().get("idp_iss");
+		Object subject = claims.getClaims().get("idp_sub");
+		if (!(issuer instanceof String iss) || !(subject instanceof String sub)) {
+			return null;
+		}
+		return ImmutableMap.of(
+			"sub", sub,
+			"iss", iss
+		);
 	}
 
 	@Override
