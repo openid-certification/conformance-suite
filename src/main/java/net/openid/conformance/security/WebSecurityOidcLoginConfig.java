@@ -117,20 +117,18 @@ class WebSecurityOidcLoginConfig {
 	@Autowired
 	private TestPlanService planService;
 
+	/**
+	 * Resolved lazily: mapping these properties fetches each provider's discovery
+	 * document, and doing it here would mean the suite cannot start while any of
+	 * them is briefly unreachable. See LazyClientRegistrationRepository.
+	 */
 	@Bean
-	public InMemoryClientRegistrationRepository clientRegistrationRepository(OAuth2ClientProperties properties) {
-		try {
+	public ClientRegistrationRepository clientRegistrationRepository(OAuth2ClientProperties properties) {
+		return new LazyClientRegistrationRepository(() -> {
 			List<ClientRegistration> registrations = new ArrayList<>(
 				new OAuth2ClientPropertiesMapper(properties).asClientRegistrations().values());
 			return new InMemoryClientRegistrationRepository(registrations);
-		} catch (Exception e) {
-			if (devmode) {
-				logger.warn("Failed to load client registrations. Error: {}", e.getMessage());
-				return new InMemoryClientRegistrationRepository(Map.of());
-			} else {
-				throw new RuntimeException(e);
-			}
-		}
+		}, devmode);
 	}
 
 	@Bean
