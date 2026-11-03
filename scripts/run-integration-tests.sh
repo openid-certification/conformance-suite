@@ -151,6 +151,7 @@ if [ "$TEST_SUITE" = "--security-tests" ]; then
     # Security tests run in non-dev mode with API token auth
     SECURITY_TOKEN=$(python3 -c "import secrets; print(secrets.token_urlsafe(48))")
     SECURITY_TOKEN_2=$(python3 -c "import secrets; print(secrets.token_urlsafe(48))")
+    SECURITY_EXPIRED_TOKEN=$(python3 -c "import secrets; print(secrets.token_urlsafe(48))")
     mongosh mongodb://127.0.0.1:27017/test_suite --quiet --eval "
       db.API_TOKEN.updateOne(
         { _id: 'security_test_token' },
@@ -161,9 +162,15 @@ if [ "$TEST_SUITE" = "--security-tests" ]; then
         { _id: 'security_test_token_2' },
         { \$set: { _id: 'security_test_token_2', owner: { sub: 'security-test-2', iss: 'https://localhost.emobix.co.uk:8443' }, info: {}, token: '${SECURITY_TOKEN_2}', expires: null } },
         { upsert: true }
+      );
+      db.API_TOKEN.updateOne(
+        { _id: 'security_test_expired_token' },
+        { \$set: { _id: 'security_test_expired_token', owner: { sub: 'security-test', iss: 'https://localhost.emobix.co.uk:8443' }, info: {}, token: '${SECURITY_EXPIRED_TOKEN}', expires: NumberLong(1) } },
+        { upsert: true }
       )" || die "Failed to insert API tokens into MongoDB"
     export CONFORMANCE_TOKEN="$SECURITY_TOKEN"
     export CONFORMANCE_TOKEN_2="$SECURITY_TOKEN_2"
+    export CONFORMANCE_EXPIRED_TOKEN="$SECURITY_EXPIRED_TOKEN"
     export CONFORMANCE_SERVER_HTTP="http://localhost.emobix.co.uk:${SERVER_PORT}/"
     echo "    API tokens inserted into MongoDB"
     java -cp "$APP_CP" "$MAIN_CLASS" \
