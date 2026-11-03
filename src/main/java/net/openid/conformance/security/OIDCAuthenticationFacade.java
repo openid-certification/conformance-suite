@@ -9,6 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.ClaimAccessor;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -99,7 +100,8 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 			}
 			// The ID token alone, not the OidcUser, whose accessors read the ID token
 			// merged with UserInfo: which records a user owns must not depend on
-			// whether OidcUserService happened to fetch UserInfo.
+			// whether OidcUserService happened to fetch UserInfo. Same choice, for the
+			// same reason, as getDisplayName() below.
 			ImmutableMap<String, String> brokered = brokeredIdentity(oidcUser.getIdToken());
 			if (brokered != null) {
 				return brokered;
@@ -146,12 +148,11 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 	 * The identity a brokered login inherits from the account it was federated from,
 	 * or null for a login that is not brokered.
 	 * <p>
-	 * When the IdP brokers an upstream provider - Google or GitLab, which users can
-	 * also sign in with directly - it reports that provider's issuer and subject as
-	 * {@code idp_iss} / {@code idp_sub}. That is the pair a direct Google or GitLab
-	 * login stores as the {@code owner} of every test, plan, log entry, API token and
-	 * saved configuration, so resolving to it gives a user the same records whichever
-	 * button they signed in with.
+	 * When the IdP brokers an upstream provider - the accounts users had before the
+	 * move to the IdP, Google and GitLab - it reports that provider's issuer and
+	 * subject as {@code idp_iss} / {@code idp_sub}. That is the pair the old login
+	 * path stored as the {@code owner} of every test, plan, log entry, API token and
+	 * saved configuration, so it is the identity those records are still keyed on.
 	 * <p>
 	 * It has to answer the same way for a browser session and for an API bearer
 	 * token. The owner is matched as a whole sub-document, so one user resolving to
@@ -191,17 +192,41 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 		);
 	}
 
+	private static String firstNonNull(String preferred, String fallback) {
+		return preferred != null ? preferred : (fallback == null ? "" : fallback);
+	}
+
 	@Override
 	public String getDisplayName() {
 		Authentication a = getAuthentication();
-		if (a instanceof OAuth2AuthenticationToken oauth) {
-			if (oauth.getPrincipal() instanceof OidcUser oidcUser) {
-				if (oidcUser.getEmail() != null) {
-					return oidcUser.getEmail();
-				}
-				return oidcUser.getName();
+		// The principal of an OAuth2 (non-OIDC) login is not an OidcUser and has no
+		// ID token to take a name from, so it gets an empty display name.
+		if (a instanceof OAuth2AuthenticationToken oidcToken && oidcToken.getPrincipal() instanceof OidcUser oidcUser) {
+			OidcIdToken idToken = oidcUser.getIdToken();
+			if (idToken == null) {
+				return "";
 			}
-			return oauth.getName();
+			// Deliberately the ID token alone, not oidcUser.getEmail(), which reads the
+			// claims aggregated from the ID token and the UserInfo response. The IdP
+			// requires an email address for every user and issues it in the ID token,
+			// so the wider read buys nothing here.
+			//
+			// It is not free either: reading the merged set makes the display name
+			// depend on whether OidcUserService fetched UserInfo, which it does only
+			// because "email" is among the granted scopes. If that scope is ever
+			// dropped from the registration, the merged read starts returning the same
+			// thing this one does, and only in that configuration - a difference that
+			// would be invisible until someone hit it.
+			//
+			// If the IdP ever stops putting email in the ID token, this degrades
+			// silently to the full name and then the subject rather than failing:
+			// switch to oidcUser.getEmail() at that point.
+			if (idToken.getEmail() != null) {
+				return idToken.getEmail();
+			}
+			// Falls back to the subject, which is what OidcUser#getName resolves to:
+			// a principal with no human-readable claim still needs a stable label.
+			return firstNonNull(idToken.getFullName(), oidcUser.getSubject());
 		} else if (a instanceof JwtAuthenticationToken jwtToken) {
 			// An IdP access token may carry the user's email or name; an API token
 			// carries only its owner's iss and sub, so it falls back to the subject.

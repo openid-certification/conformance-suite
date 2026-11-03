@@ -757,20 +757,19 @@ security_test:
     fi
 
     # Create OIDC credentials secrets
+    #
+    # The gitlab/google secrets are no longer referenced by the deployment: login
+    # now goes through the single IdP, which brokers those providers itself. These
+    # two deletes are not leftovers — they garbage-collect the secrets from the
+    # pre-IdP deployment in long-lived namespaces (production, demo) that are
+    # reused across deploys. They can be dropped once every environment has been
+    # deployed at least once from this branch.
     kubectl delete secret oidc-gitlab-credentials \
       --namespace="$KUBE_NAMESPACE" \
       --ignore-not-found=true
     kubectl delete secret oidc-google-credentials \
       --namespace="$KUBE_NAMESPACE" \
       --ignore-not-found=true
-    kubectl create secret generic oidc-gitlab-credentials \
-      --namespace="$KUBE_NAMESPACE" \
-      --from-literal=clientid="$OIDC_GITLAB_CLIENTID" \
-      --from-literal=secret="$OIDC_GITLAB_SECRET"
-    kubectl create secret generic oidc-google-credentials \
-      --namespace="$KUBE_NAMESPACE" \
-      --from-literal=clientid="$OIDC_GOOGLE_CLIENTID" \
-      --from-literal=secret="$OIDC_GOOGLE_SECRET"
     kubectl delete secret oidc-idp-credentials \
       --namespace="$KUBE_NAMESPACE" \
       --ignore-not-found=true

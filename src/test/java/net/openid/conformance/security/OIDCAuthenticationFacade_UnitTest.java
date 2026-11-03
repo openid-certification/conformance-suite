@@ -49,7 +49,7 @@ public class OIDCAuthenticationFacade_UnitTest {
 
 	private static OAuth2AuthenticationToken oidcLogin(Map<String, Object> claims) {
 		OidcIdToken idToken = OidcIdToken.withTokenValue("id-token").claims(c -> c.putAll(claims)).build();
-		return new OAuth2AuthenticationToken(new DefaultOidcUser(AUTHORITIES, idToken), AUTHORITIES, "google");
+		return new OAuth2AuthenticationToken(new DefaultOidcUser(AUTHORITIES, idToken), AUTHORITIES, "idp");
 	}
 
 	/**
@@ -82,13 +82,15 @@ public class OIDCAuthenticationFacade_UnitTest {
 	}
 
 	@Test
-	public void display_name_of_an_oidc_login_prefers_email_then_the_user_name_attribute() {
+	public void display_name_of_an_oidc_login_prefers_email_then_name_then_subject() {
 		authenticateAs(oidcLogin(Map.of("iss", "https://idp.example.com", "sub", "a-user",
 			"email", "user@example.com", "name", "A User")));
 		Assertions.assertEquals("user@example.com", facade.getDisplayName());
 
-		// DefaultOidcUser's name attribute defaults to the subject.
 		authenticateAs(oidcLogin(Map.of("iss", "https://idp.example.com", "sub", "a-user", "name", "A User")));
+		Assertions.assertEquals("A User", facade.getDisplayName());
+
+		authenticateAs(oidcLogin(Map.of("iss", "https://idp.example.com", "sub", "a-user")));
 		Assertions.assertEquals("a-user", facade.getDisplayName());
 	}
 
@@ -111,9 +113,9 @@ public class OIDCAuthenticationFacade_UnitTest {
 	}
 
 	/**
-	 * A direct Google or GitLab login owns its records by that provider's (iss, sub),
-	 * which the IdP reports as idp_iss/idp_sub for the accounts it brokers. Resolving
-	 * to that pair is what lets the same user see the same records through either.
+	 * Records created before the move to the IdP are owned by the upstream provider's
+	 * (iss, sub), which the IdP reports as idp_iss/idp_sub for the accounts it
+	 * brokers. Resolving to that pair is what keeps those records reachable.
 	 */
 	@Test
 	public void principal_of_a_brokered_bearer_token_is_the_upstream_identity() {
@@ -201,10 +203,10 @@ public class OIDCAuthenticationFacade_UnitTest {
 	@Test
 	public void a_non_oidc_oauth2_principal_cannot_be_identified() {
 		var principal = new DefaultOAuth2User(AUTHORITIES, Map.of("sub", "a-user"), "sub");
-		authenticateAs(new OAuth2AuthenticationToken(principal, AUTHORITIES, "gitlab"));
+		authenticateAs(new OAuth2AuthenticationToken(principal, AUTHORITIES, "idp"));
 
 		Assertions.assertThrows(IllegalStateException.class, facade::getPrincipal);
-		Assertions.assertEquals("a-user", facade.getDisplayName());
+		Assertions.assertEquals("", facade.getDisplayName());
 	}
 
 	@Test

@@ -62,9 +62,11 @@ java -jar target/fapi-test-suite.jar --spring.profiles.active=dev
 
 The app runs at `https://localhost.emobix.co.uk:8443` (regular) and `:8444` (mTLS).
 
-**Logging in.** The login page offers Google, GitLab, and the OpenID Provider configured under `oidc.idp.*` (registration id `idp`), which brokers Google and GitLab accounts. A brokered login resolves to the upstream account's identity (the IdP's `idp_iss`/`idp_sub` claims), so a user sees the same records whichever button they use. Admin rights for IdP logins come from its `roles` claim containing the role named by `oidc.idp.admin-role`. The `dev` profile sets `fintechlabs.devmode=true` and so bypasses login altogether; pass `--fintechlabs.devmode=false` to exercise a real login.
+**Logging in.** Sign-in goes through a single OpenID Provider (`spring.security.oauth2.client.registration.idp.*`), which brokers the upstream accounts; there are no longer separate Google and GitLab buttons. Admin rights come from the IdP's `roles` claim containing the role named by `oidc.idp.admin-role`. The `dev` profile sets `fintechlabs.devmode=true` and so bypasses login altogether (see the devmode note below); pass `--fintechlabs.devmode=false` to exercise the real IdP login.
 
-The JWS algorithms used to verify IdP tokens are configuration, because an IdP's discovery document advertises what it *can* sign with rather than what it *does*: `oidc.idp.id-token-signed-response-alg` (exactly one; Google and GitLab ID tokens are always verified RS256) and `oidc.idp.access-token-signing-algs` (comma-separated). If IdP logins fail with a signature error, or API bearer tokens are rejected, check these first.
+Operators running their own instance need to configure that IdP themselves: see [docs/upgrading-to-idp-login.md](docs/upgrading-to-idp-login.md) for the registration requirements, the environment variables, and what was removed.
+
+The JWS algorithms used to verify IdP tokens are configuration, because an IdP's discovery document advertises what it *can* sign with rather than what it *does*: `oidc.idp.id-token-signed-response-alg` (exactly one) and `oidc.idp.access-token-signing-algs` (comma-separated). If logins fail with a signature error, or API bearer tokens are rejected, check these first.
 
 ### Dev loop (save-and-see)
 
@@ -82,7 +84,9 @@ If save-and-see does not work, you are most likely running the packaged fat JAR 
 
 **Production-parity invariant.** `spring-boot-devtools` MUST stay `<scope>provided</scope>` in `pom.xml`. The `maven-enforcer-plugin` rule `enforce-devtools-scope` fails the build at `validate` phase if the scope drifts to `compile`/`runtime`/`test`/`system`. Do not bypass the rule.
 
-**Never set `SPRING_PROFILES_ACTIVE=dev` in a non-dev environment.** The dev profile activates `DummyUserFilter` (`fintechlabs.devmode=true`), which injects a synthetic admin-level user on every request and bypasses real authentication. The DevTools properties added alongside that flag do not change this risk, but they do live in the same file — read `application-dev.properties` end-to-end before deploying any environment that loads it.
+**Never set `SPRING_PROFILES_ACTIVE=dev` in a non-dev environment.** The dev profile sets `fintechlabs.devmode=true`, which activates `DummyUserFilter`: it injects a synthetic admin-level user on every request and bypasses real authentication entirely. `application-dev.properties` also points MongoDB, the base URLs, and the IdP client at local values, so read it end-to-end before deploying any environment that loads it.
+
+The dev profile deliberately keeps implying the flag. `docker-compose-prebuilt.yml` sets only `SPRING_PROFILES_ACTIVE=dev` and never passes `--fintechlabs.devmode=true`, so turning the default off there would silently require an interactive IdP login on the "just run it" path for external users. To exercise the real login flow from your IDE instead, override it on the command line: `--fintechlabs.devmode=false`.
 
 ### Running integration tests
 

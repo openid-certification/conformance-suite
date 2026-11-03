@@ -1,6 +1,5 @@
 package net.openid.conformance.security;
 
-import com.google.common.base.Strings;
 import jakarta.servlet.Filter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.DispatcherType;
@@ -35,7 +34,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.oidc.authentication.OidcIdTokenDecoderFactory;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -46,9 +44,6 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.security.oauth2.core.oidc.OidcIdToken;
-import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
-import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoderFactory;
 import org.springframework.security.web.DefaultRedirectStrategy;
@@ -69,17 +64,13 @@ import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -88,9 +79,6 @@ import java.util.regex.Pattern;
 @Order(2)
 @EnableConfigurationProperties({OAuth2ClientProperties.class})
 class WebSecurityOidcLoginConfig {
-
-	/** Matches the spring.security.oauth2.client.registration.idp.* namespace. */
-	static final String IDP_REGISTRATION_ID = "idp";
 
 	private static final Logger logger = LoggerFactory.getLogger(WebSecurityOidcLoginConfig.class);
 
@@ -109,26 +97,6 @@ class WebSecurityOidcLoginConfig {
 	@Value("${fintechlabs.base_url}")
 	private String baseURL;
 
-	@Value("${oidc.google.iss:https://accounts.google.com}")
-	private String googleIss;
-
-	// Config for the admin role
-	@Value("${oidc.admin.domains:}")
-	private String adminDomains;
-	@Value("${oidc.admin.group:}")
-	private String adminGroup;
-	@Value("${oidc.admin.issuer}")
-	private String adminIss;
-
-	// Allows to deduce ROLE_ADMIN by gitlab project role
-	@Value("#{${oidc.gitlab.admin-group-indicator-claims}}")
-	private Map<String, Set<String>> gitlabAdminGroupIndicatorClaims;
-
-	// The OpenID Provider registered as "idp". Admin rights for its logins come
-	// from its "roles" claim; see RolesAuthoritiesConverter.
-	@Value("${oidc.idp.iss}")
-	private String idpIss;
-
 	// The algorithm the IdP signs ID tokens with (the RP's registered
 	// id_token_signed_response_alg). Exactly one value.
 	@Value("${oidc.idp.id-token-signed-response-alg:}")
@@ -145,12 +113,12 @@ class WebSecurityOidcLoginConfig {
 	private TestPlanService planService;
 
 	@Autowired
-	private RolesAuthoritiesConverter rolesAuthoritiesConverter;
+	private RolesAuthoritiesConverter authorityConverter;
 
 	/**
-	 * Resolved lazily: mapping these properties fetches each provider's discovery
-	 * document, and doing it here would mean the suite cannot start while any of
-	 * them is briefly unreachable. See LazyClientRegistrationRepository.
+	 * Resolved lazily: mapping these properties fetches the IdP's discovery document,
+	 * and doing it here would mean the suite cannot start while the IdP is briefly
+	 * unreachable. See LazyClientRegistrationRepository.
 	 */
 	@Bean
 	public ClientRegistrationRepository clientRegistrationRepository(OAuth2ClientProperties properties) {
@@ -167,53 +135,36 @@ class WebSecurityOidcLoginConfig {
 	}
 
 	/**
-	 * Resolves the ID token signing algorithm per registration. Spring's default
-	 * answers RS256 for every registration, which is right for Google and GitLab but
-	 * not for the IdP, which signs with the algorithm configured in
-	 * oidc.idp.id-token-signed-response-alg (ES256 by default).
+	 * Spring's default resolver answers RS256 for every registration regardless of
+	 * what the IdP actually uses, so the algorithm has to be stated somewhere; this
+	 * takes it from configuration rather than pinning one in code.
 	 */
 	@Bean
 	public JwtDecoderFactory<ClientRegistration> idTokenDecoderFactory() {
-		SignatureAlgorithm idpAlgorithm = IdpJwsAlgorithms.parseSingle(idTokenSignedResponseAlg);
+		SignatureAlgorithm algorithm = IdpJwsAlgorithms.parseSingle(idTokenSignedResponseAlg);
 
 		OidcIdTokenDecoderFactory idTokenDecoderFactory = new OidcIdTokenDecoderFactory();
-		idTokenDecoderFactory.setJwsAlgorithmResolver(
-			clientRegistration -> idTokenSigningAlgorithm(clientRegistration, idpAlgorithm));
+		idTokenDecoderFactory.setJwsAlgorithmResolver(clientRegistration -> {
+			// A mismatch here fails every login with only a signature error to go on,
+			// so say so up front. Warn rather than fail: the discovery document lists
+			// what the IdP can do, and an IdP may sign with an algorithm it omits.
+			Object advertised = clientRegistration.getProviderDetails().getConfigurationMetadata()
+				.get("id_token_signing_alg_values_supported");
+			if (advertised instanceof Collection<?> algorithms && !IdpJwsAlgorithms.isAdvertised(algorithms, algorithm)) {
+				logger.warn("Configured id_token_signed_response_alg {} is not advertised by {}, which lists {}."
+						+ " Set oidc.idp.id-token-signed-response-alg to one of those if logins fail to verify.",
+					algorithm.getName(), clientRegistration.getRegistrationId(), algorithms);
+			}
+			return algorithm;
+		});
 		return idTokenDecoderFactory;
 	}
 
-	static SignatureAlgorithm idTokenSigningAlgorithm(ClientRegistration clientRegistration, SignatureAlgorithm idpAlgorithm) {
-		if (!IDP_REGISTRATION_ID.equals(clientRegistration.getRegistrationId())) {
-			return SignatureAlgorithm.RS256;
-		}
-		// A mismatch here fails every IdP login with only a signature error to go
-		// on, so say so up front. Warn rather than fail: the discovery document
-		// lists what the IdP can do, and an IdP may sign with an algorithm it omits.
-		Object advertised = clientRegistration.getProviderDetails().getConfigurationMetadata()
-			.get("id_token_signing_alg_values_supported");
-		if (advertised instanceof Collection<?> algorithms && !IdpJwsAlgorithms.isAdvertised(algorithms, idpAlgorithm)) {
-			logger.warn("Configured id_token_signed_response_alg {} is not advertised by {}, which lists {}."
-					+ " Set oidc.idp.id-token-signed-response-alg to one of those if logins fail to verify.",
-				idpAlgorithm.getName(), clientRegistration.getRegistrationId(), algorithms);
-		}
-		return idpAlgorithm;
-	}
-
-	/**
-	 * Authorities from the IdP's "roles" claim, for an ID token the IdP issued; none
-	 * for any other provider's, whose "roles" claim means nothing here.
-	 */
-	static Collection<? extends GrantedAuthority> idpRoleAuthorities(OidcUserAuthority authority, String idpIss,
-		RolesAuthoritiesConverter converter) {
-		OidcIdToken idToken = authority.getIdToken();
-		if (idToken.getIssuer() == null || !idToken.getIssuer().toString().equals(idpIss)) {
-			return List.of();
-		}
-		return converter.mapAuthorities(List.of(authority));
-	}
-
 	@Bean
-	public SecurityFilterChain filterChainOidc(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository, OneTimeTokenService oneTimeTokenService, PrivateLinkUserDetailsService privateLinkUserDetailsService) throws Exception {
+	public SecurityFilterChain filterChainOidc(HttpSecurity http,
+											   ClientRegistrationRepository clientRegistrationRepository,
+											   OneTimeTokenService oneTimeTokenService,
+											   PrivateLinkUserDetailsService privateLinkUserDetailsService) throws Exception {
 
 		http.securityMatcher(request -> {
 			// only handle NON-API requests with this filter chain
@@ -374,7 +325,6 @@ class WebSecurityOidcLoginConfig {
 
 		// we use oauth2 client login support instead of openIdConnectAuthenticationFilter
 		http.oauth2Client(oauth2Client -> {
-
 			// the following is to enable PKCE support for auth-code flow
 			var oauth2AuthRequestResolver = new DefaultOAuth2AuthorizationRequestResolver( //
 				clientRegistrationRepository, //
@@ -393,45 +343,9 @@ class WebSecurityOidcLoginConfig {
 		http.oauth2Login(oauth2Login -> {
 			oauth2Login.successHandler(oidcLoginSuccessHandler());
 			oauth2Login.failureHandler(loginFailureHandler);
+
 			oauth2Login.userInfoEndpoint(userInfoCustomization -> {
-				userInfoCustomization.userAuthoritiesMapper(authorities -> {
-
-					Set<GrantedAuthority> extendedAuthorities = new HashSet<>(authorities);
-
-					authorities.forEach(authority -> {
-						if (authority instanceof OidcUserAuthority oidcUserAuthority) {
-
-							OidcIdToken idToken = oidcUserAuthority.getIdToken();
-							OidcUserInfo userInfo = oidcUserAuthority.getUserInfo();
-
-							// Logins through the IdP take their admin rights from its "roles" claim.
-							extendedAuthorities.addAll(idpRoleAuthorities(oidcUserAuthority, idpIss, rolesAuthoritiesConverter));
-
-							if (adminIss.equals(googleIss) && !Strings.isNullOrEmpty(adminDomains)) {
-								// Create an OIDCAuthoritiesMapper that uses the 'hd' field of a
-								// Google account's userInfo. hd = Hosted Domain. Use this to filter to
-								// any users of a specific domain
-								var authoritiesByGoogleClaim = new GoogleHostedDomainAdminAuthoritiesMapper(adminDomains, adminIss).mapAuthorities(idToken, userInfo);
-								if (!CollectionUtils.isEmpty(authoritiesByGoogleClaim)) {
-									extendedAuthorities.addAll(authoritiesByGoogleClaim);
-								}
-							} else if (!Strings.isNullOrEmpty(adminGroup)) {
-								// use "groups" array from id_token or userinfo for admin access (works with at least gitlab and azure)
-								var authoritiesByGroupsClaim = new GroupsAdminAuthoritiesMapper(adminGroup, adminIss).mapAuthorities(idToken, userInfo);
-								if (!CollectionUtils.isEmpty(authoritiesByGroupsClaim)) {
-									extendedAuthorities.addAll(authoritiesByGroupsClaim);
-								}
-								// use gitlab specific project role claims to determine admin role
-								var authoritiesByGitlabProject = new GitlabProjectAdminAuthoritiesMapper(adminIss, gitlabAdminGroupIndicatorClaims).mapAuthorities(idToken, userInfo);
-								if (!CollectionUtils.isEmpty(authoritiesByGitlabProject)) {
-									extendedAuthorities.addAll(authoritiesByGitlabProject);
-								}
-							}
-						}
-					});
-
-					return extendedAuthorities;
-				});
+				userInfoCustomization.userAuthoritiesMapper(authorityConverter);
 			});
 		});
 
