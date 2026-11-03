@@ -18,7 +18,7 @@ authentication. Tests cover:
   unauthenticated / another user cannot prepare a package
 - Public list/export endpoints return only published results
 - Runner running-list, start, and cancel, /lastconfig, and plan metadata
-- API token lifecycle
+- API token lifecycle, and that an expired API token is rejected with 401
 
 Not yet covered (the exposed API surface these do NOT touch):
 - POST /token (creating a new token; only listing/deleting is covered)
@@ -30,7 +30,7 @@ Not yet covered (the exposed API surface these do NOT touch):
   plan-based creation is covered)
 - GET /runner/browser/{id} and POST /runner/browser/{id}/visit
   (front-channel browser endpoints)
-- Expiry: expired API tokens and expired share JWTs
+- Expiry: expired share JWTs
 - GET /jwks (intentionally public / low value)
 
 Usage:
@@ -44,6 +44,9 @@ Environment variables:
                         path are checked)
     CONFORMANCE_TOKEN   API token of the user owning the test data (required; API tokens are never admin)
     CONFORMANCE_TOKEN_2 API token for a second, unrelated user (cross-user checks)
+    CONFORMANCE_EXPIRED_TOKEN  API token whose stored expiry is already in the past (optional;
+                        seeded directly in MongoDB, since the 24-hour TTL of a token
+                        created over HTTP cannot be shortened)
 """
 
 import base64
@@ -77,8 +80,9 @@ def get_config():
         base_url += "/"
     token = os.environ.get("CONFORMANCE_TOKEN")
     token_2 = os.environ.get("CONFORMANCE_TOKEN_2")
+    expired_token = os.environ.get("CONFORMANCE_EXPIRED_TOKEN")
     verify_ssl = os.environ.get("CONFORMANCE_SSL_VERIFY", "false").lower() != "false"
-    return base_url, token, token_2, verify_ssl
+    return base_url, token, token_2, expired_token, verify_ssl
 
 
 def wait_for_server(base_url, token, verify_ssl, timeout=120):
@@ -320,7 +324,7 @@ def unauthenticated_get(base_url, path, verify_ssl, params=None):
 
 
 def run_tests():
-    base_url, token, token_2, verify_ssl = get_config()
+    base_url, token, token_2, expired_token, verify_ssl = get_config()
     print(f"Server: {base_url}")
     print(f"SSL verify: {verify_ssl}")
 
@@ -861,7 +865,26 @@ def run_tests():
     api_token_bearer = bearer_client(base_url, token, verify_ssl)
     resp = api_token_bearer.get(f"{base_url}api/currentuser")
     runner.check_status("Bearer regression: opaque API token still authenticates", resp, 200)
+    # The API-token principal is a JwtAuthenticationToken carrying only the
+    # owner's iss and sub; the display name must still resolve (to the subject)
+    # rather than come back empty.
+    if resp.status_code == 200:
+        display_name = resp.json().get("displayName")
+        runner.check("Bearer regression: opaque API token resolves to a display name",
+                     bool(display_name), f"displayName={display_name!r}")
     api_token_bearer.close()
+
+    # An API token past its stored expiry is rejected as unauthenticated, not
+    # turned into a server error while building the principal.
+    if expired_token:
+        expired_bearer = bearer_client(base_url, expired_token, verify_ssl)
+        resp = expired_bearer.get(f"{base_url}api/currentuser")
+        runner.check_status("Bearer: expired API token rejected", resp, 401)
+        resp = expired_bearer.get(f"{base_url}api/plan/{plan_id}")
+        runner.check_status("Bearer: expired API token cannot read the owner's plan", resp, 401)
+        expired_bearer.close()
+    else:
+        print("  NOTE: CONFORMANCE_EXPIRED_TOKEN not set; skipping expired API token checks")
 
     # ===================================================================
     # 2e. RUNNER WAIT-STATE LONG-POLL ENDPOINT (/api/runner/{id}/wait-state)

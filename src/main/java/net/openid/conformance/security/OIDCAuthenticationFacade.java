@@ -9,6 +9,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -49,14 +51,6 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 		}
 	}
 
-	private OAuth2AuthenticationToken getOAuth() {
-		Authentication a = getAuthentication();
-		if (a instanceof OAuth2AuthenticationToken token) {
-			return token;
-		}
-		return null;
-	}
-
 	private boolean hasAuthority(GrantedAuthority authority) {
 		Authentication a = getAuthentication();
 		if (a != null) {
@@ -95,47 +89,66 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 
 	@Override
 	public ImmutableMap<String, String> getPrincipal() {
-
-		var privateToken = getPrivateOneTimeToken();
-		if (privateToken != null) {
+		Authentication a = getAuthentication();
+		String issuer;
+		String subject;
+		if (a instanceof OAuth2AuthenticationToken oauth) {
+			if (!(oauth.getPrincipal() instanceof OidcUser oidcUser)) {
+				throw unidentifiablePrincipal(a, "an OAuth2 login that is not an OIDC login");
+			}
+			issuer = oidcUser.getIssuer() == null ? null : oidcUser.getIssuer().toString();
+			subject = oidcUser.getSubject();
+		} else if (a instanceof JwtAuthenticationToken jwtToken) {
+			Jwt jwt = jwtToken.getToken();
+			issuer = jwt.getIssuer() == null ? null : jwt.getIssuer().toString();
+			subject = jwt.getSubject();
+		} else if (a instanceof OneTimeTokenAuthentication ott) {
+			PrivateLinkOneTimeToken privateToken = (PrivateLinkOneTimeToken) ott.getDetails();
 			return ImmutableMap.copyOf(privateToken.getSharedAsset().getOwner());
-		}
-
-		OAuth2AuthenticationToken oauth = getOAuth();
-		if (oauth == null) {
+		} else {
+			// No recognised user is signed in (a back-channel call, or no
+			// authentication at all).
 			return null;
 		}
 
-		OidcUser principal = (OidcUser) oauth.getPrincipal();
-		String issuer = principal.getIssuer().toString();
-		String subject = principal.getSubject();
-
-		ImmutableMap<String, String> data = ImmutableMap.of(
+		if (issuer == null || subject == null) {
+			throw unidentifiablePrincipal(a, "a principal without an issuer and subject");
+		}
+		return ImmutableMap.of(
 			"sub", subject,
 			"iss", issuer
 		);
+	}
 
-		return data;
+	/**
+	 * Callers read a null principal as "nobody is signed in" and some of them then
+	 * skip the owner check altogether (InMemoryTestRunnerSupport, DBTestPlanService),
+	 * so a signed-in user who cannot be identified must fail the request instead.
+	 */
+	private static IllegalStateException unidentifiablePrincipal(Authentication a, String what) {
+		return new IllegalStateException("Cannot determine the owner of " + what
+			+ " (" + a.getClass().getSimpleName() + ")");
 	}
 
 	@Override
 	public String getDisplayName() {
-
-		var privateToken = getPrivateOneTimeToken();
-		if (privateToken != null) {
-			return privateToken.getUsername();
-		}
-
-		OAuth2AuthenticationToken oauth = getOAuth();
-		if (oauth != null && oauth.getPrincipal() instanceof OidcUser oidcUser) {
-
-			if (oidcUser.getEmail() != null) {
-				return oidcUser.getEmail();
+		Authentication a = getAuthentication();
+		if (a instanceof OAuth2AuthenticationToken oauth) {
+			if (oauth.getPrincipal() instanceof OidcUser oidcUser) {
+				if (oidcUser.getEmail() != null) {
+					return oidcUser.getEmail();
+				}
+				return oidcUser.getName();
 			}
-
-			return oidcUser.getName();
-		} else if (oauth != null) {
 			return oauth.getName();
+		} else if (a instanceof JwtAuthenticationToken jwtToken) {
+			// An API token carries only its owner's iss and sub, so the subject is
+			// the only name available for it.
+			String subject = jwtToken.getToken().getSubject();
+			return subject == null ? "" : subject;
+		} else if (a instanceof OneTimeTokenAuthentication ott) {
+			PrivateLinkOneTimeToken privateToken = (PrivateLinkOneTimeToken) ott.getDetails();
+			return privateToken.getUsername();
 		}
 		return "";
 	}
