@@ -14,7 +14,6 @@ import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.EventLog;
 import net.openid.conformance.openid.client.AbstractOIDCCClientTest;
-import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.TestInterruptedException;
@@ -410,7 +409,7 @@ public class TestDispatcher implements DataUtils {
 			}
 
 			// check only the TestModule classes
-			if (!clz.equals(AbstractTestModule.class) && TestModule.class.isAssignableFrom(clz)) {
+			if (TestModule.class.isAssignableFrom(clz)) {
 				for (Method m : clz.getDeclaredMethods()) {
 					if (m.getName().equals(ste.getMethodName()) && m.isAnnotationPresent(UserFacing.class)) {
 						// if this is user-facing, return a user-facing view

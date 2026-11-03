@@ -1297,6 +1297,36 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		return sb.toString();
 	}
 
+	/**
+	 * Serve a request with the given endpoint: store the request under {@link Endpoint#CURRENT_REQUEST}, run the
+	 * endpoint's steps and return the response it builds. Afterwards the test finishes if the endpoint says so for
+	 * the environment the steps left, and otherwise waits for the next request.
+	 */
+	protected Object serve(Endpoint endpoint, JsonObject requestParts) {
+		if (endpoint.userFacing()) {
+			return serveUserFacing(endpoint, requestParts);
+		}
+		return serveRequest(endpoint, requestParts);
+	}
+
+	@UserFacing
+	private Object serveUserFacing(Endpoint endpoint, JsonObject requestParts) {
+		return serveRequest(endpoint, requestParts);
+	}
+
+	private Object serveRequest(Endpoint endpoint, JsonObject requestParts) {
+		setStatus(Status.RUNNING);
+		env.putObject(Endpoint.CURRENT_REQUEST, requestParts);
+		call(endpoint.steps());
+		Object response = endpoint.respond().apply(env);
+		if (endpoint.finishesTest().test(env)) {
+			fireTestFinished();
+		} else {
+			setStatus(Status.WAITING);
+		}
+		return response;
+	}
+
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		return unexpectedHttpRequest(path, requestParts);
