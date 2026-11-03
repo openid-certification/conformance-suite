@@ -861,6 +861,13 @@ def run_tests():
     api_token_bearer = bearer_client(base_url, token, verify_ssl)
     resp = api_token_bearer.get(f"{base_url}api/currentuser")
     runner.check_status("Bearer regression: opaque API token still authenticates", resp, 200)
+    # The API-token principal is a JwtAuthenticationToken carrying only the
+    # owner's iss and sub; the display name must still resolve (to the subject)
+    # rather than come back empty.
+    if resp.status_code == 200:
+        display_name = resp.json().get("displayName")
+        runner.check("Bearer regression: opaque API token resolves to a display name",
+                     bool(display_name), f"displayName={display_name!r}")
     api_token_bearer.close()
 
     # ===================================================================
