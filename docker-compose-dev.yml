@@ -1,6 +1,6 @@
 services:
   mongodb:
-    image: mongo:6.0.13
+    image: mongo:7.0.15
     volumes:
      - ./mongo/data:/data/db
   nginx:

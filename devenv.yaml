@@ -7,9 +7,11 @@ inputs:
         follows: nixpkgs
   nixpkgs:
     url: github:cachix/devenv-nixpkgs/rolling
-  # pinned nixpkgs revision that has mongodb 6.0.13, matching production
-  nixpkgs-mongo6:
-    url: github:NixOS/nixpkgs/3281bec7174f679eabf584591e75979a258d8c40
+  # pinned nixpkgs revision whose mongodb-ce (MongoDB's prebuilt binaries) is 7.0.14.
+  # Production runs 7.0.15, the last bitnamilegacy 7.0 image; the source-built
+  # mongodb-7_0 at 7.0.15 is not in any binary cache, so it would be compiled locally.
+  nixpkgs-mongo7:
+    url: github:NixOS/nixpkgs/52bf1163fadb7ee5e21ee0b8e5cf266acb3e74e9
   # pinned nixpkgs revision that has nginx mainline 1.27.3, matching production (nginx-ingress:4.0.0)
   nixpkgs-nginx:
     url: github:NixOS/nixpkgs/a716b6d484889ea78aec9289a7fcaed9cbe7727a

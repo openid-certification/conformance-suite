@@ -12,7 +12,7 @@
 # the docker containers for consistency
 services:
   mongodb:
-    image: mongo:6.0.13
+    image: mongo:7.0.15
     volumes:
      - mongodb-data:/data/db
     ports:

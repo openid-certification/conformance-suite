@@ -6,7 +6,7 @@
 # --fintechlabs.devmode=true --spring.mongodb.uri=mongodb://127.0.0.1:27017/test_suite
 services:
   mongodb:
-    image: mongo:6.0.13
+    image: mongo:7.0.15
     volumes:
      - ./mongo/data:/data/db
     ports:

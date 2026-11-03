@@ -1,7 +1,7 @@
 { pkgs, lib, config, inputs, ... }:
 
 let
-  pkgs-mongo6 = import inputs.nixpkgs-mongo6 { system = pkgs.stdenv.hostPlatform.system; config = { allowUnfree = true; }; };
+  pkgs-mongo7 = import inputs.nixpkgs-mongo7 { system = pkgs.stdenv.hostPlatform.system; config = { allowUnfree = true; }; };
   pkgs-nginx = import inputs.nixpkgs-nginx { system = pkgs.stdenv.hostPlatform.system; };
 in
 {
@@ -45,7 +45,7 @@ in
 
   services.mongodb = {
     enable = true;
-    package = pkgs-mongo6.mongodb-6_0;
+    package = pkgs-mongo7.mongodb-ce;
   };
   # production uses nginx/nginx-ingress:4.0.0 which bundles nginx 1.27.3
   services.nginx = {
