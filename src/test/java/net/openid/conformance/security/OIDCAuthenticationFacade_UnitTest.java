@@ -65,6 +65,23 @@ public class OIDCAuthenticationFacade_UnitTest {
 	}
 
 	@Test
+	public void display_name_of_a_bearer_token_prefers_email() {
+		authenticateAs(apiToken(Map.of(
+			"iss", "https://issuer.example.com", "sub", "a-user",
+			"email", "user@example.com", "name", "A User")));
+
+		Assertions.assertEquals("user@example.com", facade.getDisplayName());
+	}
+
+	@Test
+	public void display_name_of_a_bearer_token_uses_name_when_there_is_no_email() {
+		authenticateAs(apiToken(Map.of(
+			"iss", "https://issuer.example.com", "sub", "a-user", "name", "A User")));
+
+		Assertions.assertEquals("A User", facade.getDisplayName());
+	}
+
+	@Test
 	public void display_name_of_an_oidc_login_prefers_email_then_the_user_name_attribute() {
 		authenticateAs(oidcLogin(Map.of("iss", "https://idp.example.com", "sub", "a-user",
 			"email", "user@example.com", "name", "A User")));
