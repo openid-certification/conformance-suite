@@ -64,12 +64,50 @@ public class Application {
 			currentVersion,
 			targetFeatureCompatibilityVersion));
 
-		if (!targetFeatureCompatibilityVersion.isBlank() &&
-				!currentVersion.equals(targetFeatureCompatibilityVersion)) {
-			Document command = new Document("setFeatureCompatibilityVersion", targetFeatureCompatibilityVersion);
-			mongoClient.getDatabase("admin").runCommand(command);
-			logger.info("mongodb command setFeatureCompatibilityVersion " + targetFeatureCompatibilityVersion + " executed successfully");
+		if (targetFeatureCompatibilityVersion.isBlank()) {
+			return;
 		}
+		int comparison = compareFeatureCompatibilityVersions(currentVersion, targetFeatureCompatibilityVersion);
+		if (comparison < 0) {
+			adminDb.runCommand(setFeatureCompatibilityVersionCommand(targetFeatureCompatibilityVersion));
+			logger.info("mongodb command setFeatureCompatibilityVersion " + targetFeatureCompatibilityVersion + " executed successfully");
+		} else if (comparison > 0) {
+			// A database created by a newer server starts at that server's
+			// featureCompatibilityVersion. Lowering it would only be needed to
+			// downgrade the server, which is an operator's decision, not the app's.
+			logger.info("mongodb featureCompatibilityVersion '%s' is already above openid.mongodb.targetFeatureCompatibilityVersion '%s'; leaving it unchanged".formatted(
+				currentVersion, targetFeatureCompatibilityVersion));
+		}
+	}
+
+	/**
+	 * Compares two featureCompatibilityVersion values ("major.minor") numerically.
+	 */
+	static int compareFeatureCompatibilityVersions(String a, String b) {
+		int[] left = parseFeatureCompatibilityVersion(a);
+		int[] right = parseFeatureCompatibilityVersion(b);
+		int major = Integer.compare(left[0], right[0]);
+		return major != 0 ? major : Integer.compare(left[1], right[1]);
+	}
+
+	private static int[] parseFeatureCompatibilityVersion(String version) {
+		String[] parts = version.trim().split("\\.");
+		if (parts.length != 2) {
+			throw new IllegalArgumentException("featureCompatibilityVersion '" + version + "' is not of the form major.minor");
+		}
+		return new int[] { Integer.parseInt(parts[0]), Integer.parseInt(parts[1]) };
+	}
+
+	/**
+	 * MongoDB 7.0 introduced the confirm field and requires it to be true, so it
+	 * is only sent for a target of 7.0 or later.
+	 */
+	static Document setFeatureCompatibilityVersionCommand(String targetVersion) {
+		Document command = new Document("setFeatureCompatibilityVersion", targetVersion);
+		if (compareFeatureCompatibilityVersions(targetVersion, "7.0") >= 0) {
+			command.put("confirm", true);
+		}
+		return command;
 	}
 
 	private static String getMongoDBVersion(MongoDatabase adminDb) {
