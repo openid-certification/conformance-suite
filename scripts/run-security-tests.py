@@ -1043,6 +1043,11 @@ def run_tests():
     runner.check_rejected("IdP JWT: non-JSON payload rejected", c.get(f"{base_url}api/currentuser"))
     c.close()
 
+    # The API chain requires ROLE_USER/ROLE_ADMIN rather than merely being
+    # authenticated. The opaque API token must still satisfy that.
+    resp = owner_client.get(f"{base_url}api/currentuser")
+    runner.check_status("Authority: API token reaches the API chain", resp, 200)
+
     # ===================================================================
     # 3. UNAUTHENTICATED ACCESS REJECTION
     # ===================================================================

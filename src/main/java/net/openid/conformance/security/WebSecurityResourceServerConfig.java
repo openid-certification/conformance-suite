@@ -194,7 +194,7 @@ public class WebSecurityResourceServerConfig {
 				return true; // deny everything else
 			}).denyAll();
 
-			requests.requestMatchers(getApiMatcher()).authenticated();
+			requests.requestMatchers(getApiMatcher()).hasAnyAuthority("ROLE_USER", "ROLE_ADMIN");
 			// deny access for any unmatched API routes
 			requests.anyRequest().denyAll();
 		});
