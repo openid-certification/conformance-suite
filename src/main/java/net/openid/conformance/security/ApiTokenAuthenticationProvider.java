@@ -107,7 +107,7 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider {
 			"iss", OIDFJSON.getString(ownerClaims.get("iss")),
 			"sub", OIDFJSON.getString(ownerClaims.get("sub")));
 
-		return new Jwt(PLACEHOLDER_TOKEN_VALUE, issuedAt, expiresAt, Map.of("typ", "jwt"), tokenClaims);
+		return new Jwt(PLACEHOLDER_TOKEN_VALUE, issuedAt, expiresAt, Map.of("typ", "JWT"), tokenClaims);
 	}
 
 	@Override
