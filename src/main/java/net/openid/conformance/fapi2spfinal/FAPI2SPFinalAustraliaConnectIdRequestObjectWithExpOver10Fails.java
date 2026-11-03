@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi2spfinal;
 
+import net.openid.conformance.condition.client.ExpectRequestObjectWithExpOver10ClaimErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
@@ -19,5 +20,12 @@ public class FAPI2SPFinalAustraliaConnectIdRequestObjectWithExpOver10Fails exten
 	@Override
 	protected String[] getExpRequirements() {
 		return new String[] { "CID-SP-4.2-10", "OIDCC-6.1", "RFC7519-4.1.4" };
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectRequestObjectWithExpOver10ClaimErrorPage.class, getExpRequirements());
+
+		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}
 }

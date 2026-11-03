@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi2spfinal;
 
+import net.openid.conformance.condition.client.ExpectRequestObjectWithNbfOver10ClaimErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
@@ -19,5 +20,12 @@ public class FAPI2SPFinalAustraliaConnectIdEnsureRequestObjectWithNbfOver15Fails
 	@Override
 	protected String[] getNbfRequirements() {
 		return new String[] { "CID-SP-4.2-11", "FAPI2-MS-ID1-5.3.1-3" };
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndStopOnFailure(ExpectRequestObjectWithNbfOver10ClaimErrorPage.class, getNbfRequirements());
+
+		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}
 }
