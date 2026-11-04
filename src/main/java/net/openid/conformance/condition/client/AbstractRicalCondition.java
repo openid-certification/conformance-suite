@@ -172,6 +172,19 @@ public abstract class AbstractRicalCondition extends AbstractCondition {
 	}
 
 	/**
+	 * Whether the candidate issuer's public key verifies the chain certificate's signature.
+	 */
+	private boolean issuedChainCertificate(X509Cert candidateIssuer, X509Cert chainCert) {
+		try {
+			X509CertJvmKt.getJavaX509Certificate(chainCert)
+				.verify(X509CertJvmKt.getJavaX509Certificate(candidateIssuer).getPublicKey());
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	/**
 	 * F.3.2.6: "The CertificateInfo element of the first certificate (bottom-up) in the
 	 * certificate chain included in the RICAL shall be used to determine and apply the
 	 * associated Trust Constraints." A chain certificate is listed in its own right when an
@@ -185,19 +198,6 @@ public abstract class AbstractRicalCondition extends AbstractCondition {
 	 * so a key identifier that collides or was copied cannot select an entry that issued
 	 * nothing in this chain.
 	 */
-	/**
-	 * Whether the candidate issuer's public key verifies the chain certificate's signature.
-	 */
-	private boolean issuedChainCertificate(X509Cert candidateIssuer, X509Cert chainCert) {
-		try {
-			X509CertJvmKt.getJavaX509Certificate(chainCert)
-				.verify(X509CertJvmKt.getJavaX509Certificate(candidateIssuer).getPublicKey());
-			return true;
-		} catch (Exception e) {
-			return false;
-		}
-	}
-
 	protected org.multipaz.mdoc.rical.RicalCertificateInfo findFirstMatchingRicalEntry(
 			SignedRical signedRical, java.util.List<X509Cert> chainCerts) {
 		for (X509Cert chainCert : chainCerts) {
