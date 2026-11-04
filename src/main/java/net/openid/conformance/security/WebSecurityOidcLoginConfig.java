@@ -35,6 +35,7 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
@@ -52,6 +53,7 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.HeaderWriterLogoutHandler;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.ott.RedirectOneTimeTokenGenerationSuccessHandler;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.security.web.header.HeaderWriter;
@@ -82,7 +84,14 @@ import java.util.regex.Pattern;
 @EnableConfigurationProperties({OAuth2ClientProperties.class})
 class WebSecurityOidcLoginConfig {
 
-	private static final Logger logger = LoggerFactory.getLogger(DummyUserFilter.class);
+	private static final Logger logger = LoggerFactory.getLogger(WebSecurityOidcLoginConfig.class);
+
+	/**
+	 * `?logout=true` lights up the "You have been logged out." banner on
+	 * login.html (it gates on the param VALUE being truthy, so a bare
+	 * `?logout` would not trigger it).
+	 */
+	private static final String LOCAL_LOGOUT_URL = "/login.html?logout=true";
 
 	private static final Pattern QUERY_PARAM_PATTERN = Pattern.compile("(log|plan)=([A-Za-z0-9]+)");
 
@@ -365,10 +374,10 @@ class WebSecurityOidcLoginConfig {
 		});
 
 		http.logout(logout -> {
-			// `?logout=true` lights up the "You have been logged out." banner
-			// on login.html (it gates on the param VALUE being truthy, so a
-			// bare `?logout` would not trigger it).
-			logout.logoutSuccessUrl("/login.html?logout=true");
+			// Do NOT move this to addLogoutHandler(): handlers run before the
+			// success handler, so redirecting from one commits the response and
+			// the success handler's redirect is lost.
+			logout.logoutSuccessHandler(logoutSuccessHandler(clientRegistrationRepository));
 			// Pages are bfcache-eligible now that they send "Cache-Control:
 			// no-cache" instead of no-store (ApplicationConfig
 			// addResourceHandlers). Evict the browser's cache for this origin
@@ -399,6 +408,34 @@ class WebSecurityOidcLoginConfig {
 		}
 
 		return http.build();
+	}
+
+	/**
+	 * Sole owner of the logout redirect. A session from an OpenID Provider that
+	 * advertises an end_session_endpoint is propagated there (RP-initiated
+	 * logout) with id_token_hint, and the provider sends the browser back to
+	 * {@link #LOCAL_LOGOUT_URL}. Every other session (private link, a provider
+	 * without an end-session endpoint, anonymous) goes there directly.
+	 */
+	private LogoutSuccessHandler logoutSuccessHandler(ClientRegistrationRepository clientRegistrationRepository) {
+		// The registrations are resolved lazily from discovery, so the lookup can
+		// throw while a provider is unreachable. The local session is already
+		// gone by then; finish the logout locally rather than render an error page.
+		ClientRegistrationRepository lenientRepository = registrationId -> {
+			try {
+				return clientRegistrationRepository.findByRegistrationId(registrationId);
+			} catch (RuntimeException e) {
+				logger.warn("Could not resolve client registration '{}' during logout; logging out locally only",
+					registrationId, e);
+				return null;
+			}
+		};
+		OidcClientInitiatedLogoutSuccessHandler handler = new OidcClientInitiatedLogoutSuccessHandler(lenientRepository);
+		handler.setDefaultTargetUrl(LOCAL_LOGOUT_URL);
+		// From configuration, not the request's Host header: the value has to
+		// match the post-logout redirect URI registered at the provider.
+		handler.setPostLogoutRedirectUri(baseURL + LOCAL_LOGOUT_URL);
+		return handler;
 	}
 
 	@Bean
