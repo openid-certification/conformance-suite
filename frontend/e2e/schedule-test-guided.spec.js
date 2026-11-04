@@ -156,9 +156,7 @@ test.describe("schedule-test.html — guided journey", () => {
     expect(consoleErrors).toEqual([]);
   });
 
-  test("Chile → OP resolves to FAPI2 message signing with Grant Management enabled", async ({
-    page,
-  }) => {
+  test("Chile → OP resolves to Dedicated test plan", async ({ page }) => {
     await setupScheduleTestRoutes(page);
     await page.goto("/schedule-test.html");
 
@@ -168,15 +166,14 @@ test.describe("schedule-test.html — guided journey", () => {
     await expect(page.locator("#guidedStage h1")).toHaveText("Here's the plan we resolved");
 
     await expect(page.locator("#guidedStage .plan-name-code").first()).toHaveText(
-      "fapi2-message-signing-final-test-plan",
+      "cmf-chile-fapi2-message-signing-op-test-plan",
     );
 
-    // Chile pins Grant Management on, and the review table renders it in plain language
-    // rather than as the raw enum value.
+    // Chile pins several specs and the review table shouldn't show details
     const table = page.locator("#guidedStage table.variant-table");
-    await expect(table).toContainText("Grant Management");
-    await expect(table).toContainText("Enabled");
-    await expect(table).toContainText("Rich Authorization Requests (RAR)");
+    await expect(table).not.toContainText("Grant Management");
+    await expect(table).not.toContainText("Enabled");
+    await expect(table).not.toContainText("Rich Authorization Requests (RAR)");
     await expect(table).not.toContainText("openbanking_chile");
   });
 
