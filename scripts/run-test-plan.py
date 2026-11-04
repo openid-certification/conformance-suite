@@ -1423,6 +1423,11 @@ async def main():
             untested_test_modules.remove(m)
             continue
 
+        if re.match(r'(cmf-chile.*)', m):
+            # remove the backported chile tests modules
+            untested_test_modules.remove(m)
+            continue
+
         if all_test_modules[m]['profile'] in ['FAPI1-Advanced-Final-Br-v1']:
             # skip CI brazil v1 as it's deprecated and due to be remoeved 31 Dec 2023
             untested_test_modules.remove(m)
