@@ -253,7 +253,7 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 			receivedAuthorizationRequest = true;
 			return handleAuthorizationEndpointRequest(requestId);
 		} else {
-			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+			return reportUnexpectedHttpRequest(path, env.getObject(requestId));
 		}
 	}
 

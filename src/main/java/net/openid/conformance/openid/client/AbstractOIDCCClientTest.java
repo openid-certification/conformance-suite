@@ -578,7 +578,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 		} else {
 
-			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+			return reportUnexpectedHttpRequest(path, env.getObject(requestId));
 
 		}
 	}
