@@ -84,7 +84,7 @@ import java.util.regex.Pattern;
 @EnableConfigurationProperties({OAuth2ClientProperties.class})
 class WebSecurityOidcLoginConfig {
 
-	private static final Logger logger = LoggerFactory.getLogger(DummyUserFilter.class);
+	private static final Logger logger = LoggerFactory.getLogger(WebSecurityOidcLoginConfig.class);
 
 	/**
 	 * `?logout=true` lights up the "You have been logged out." banner on
