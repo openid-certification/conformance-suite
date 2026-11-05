@@ -3,12 +3,11 @@ package net.openid.conformance.vci10issuer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.FetchServerKeys;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.fapi2spfinal.AbstractFAPI2SPFinalDiscoveryEndpointVerification;
+import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.sequence.client.VCIDiscoveryEndpointChecks;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
@@ -159,24 +158,16 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 
 			// The authorization server's signing keys (jwks_uri is OPTIONAL in plain OAuth2 / RFC 8414):
 			// if present, the JWKS must be fetchable, well-formed and contain only public asymmetric keys.
+			// A key the suite cannot use is reported, not failed (RFC 7517 section 5).
+			// server_jwks is cleared first so a server without jwks_uri is not judged by the previous server's keys.
+			env.removeObject("server_jwks");
 			call(condition(FetchServerKeys.class)
 				.skipIfElementMissing("server", "jwks_uri")
 				.onSkip(Condition.ConditionResult.INFO)
 				.onFail(Condition.ConditionResult.FAILURE)
 				.requirement("RFC8414-2")
 				.dontStopOnFailure());
-			call(condition(ValidateServerJWKs.class)
-				.skipIfElementMissing("server", "jwks_uri")
-				.onSkip(Condition.ConditionResult.INFO)
-				.onFail(Condition.ConditionResult.FAILURE)
-				.requirement("RFC8414-2")
-				.dontStopOnFailure());
-			call(condition(EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys.class)
-				.skipIfElementMissing("server", "jwks_uri")
-				.onSkip(Condition.ConditionResult.INFO)
-				.onFail(Condition.ConditionResult.FAILURE)
-				.requirement("RFC7518-6.3.2.1")
-				.dontStopOnFailure());
+			call(new ValidateJwksSequence("server_jwks", null, "authorization server JWKS", "RFC8414-2"));
 
 			if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
 				call(new AbstractFAPI2SPFinalDiscoveryEndpointVerification.ClientAttestationChecks());
