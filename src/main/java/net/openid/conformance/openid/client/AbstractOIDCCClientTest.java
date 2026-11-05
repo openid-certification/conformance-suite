@@ -488,7 +488,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		if (path.equals("token")) {
 			responseObject = handleTokenEndpointRequest(requestId);
 		} else {
-			throw new TestFailureException(getId(), "Got unexpected MTLS HTTP call to " + path);
+			responseObject = reportUnexpectedHttpRequest(path, env.getObject(requestId));
 		}
 		if (!finishTestIfAllRequestsAreReceived()) {
 			setStatus(Status.WAITING);
