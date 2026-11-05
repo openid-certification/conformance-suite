@@ -15,10 +15,12 @@ import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointRespons
 import net.openid.conformance.condition.as.AddDpopSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfiguration;
 import net.openid.conformance.condition.as.AddIssSupportedToServerConfiguration;
+import net.openid.conformance.condition.as.AddJwksUriToServerConfiguration;
 import net.openid.conformance.condition.as.AddIssToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddResponseTypeCodeToServerConfiguration;
 import net.openid.conformance.condition.as.AddSupportedAuthorizationTypesToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
+import net.openid.conformance.condition.as.AddUnusableKeysToServerPublicJwks;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
 import net.openid.conformance.condition.as.CheckForInvalidCharsInNonce;
@@ -388,6 +390,9 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		// We create a configuration that contains mtls_endpoint_aliases in all cases - it's mandatory for clients to
 		// support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
+		// jwks_uri is OPTIONAL in RFC 8414 metadata; advertising it lets a wallet fetch the server's keys
+		// and lets the paired oid4vci-1_0-issuer-metadata-test validate the published JWKS.
+		call(condition(AddJwksUriToServerConfiguration.class));
 
 		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
 		configureServerJWKS();
@@ -645,6 +650,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		call(new ValidateJwksSequence("server_jwks", null, "server signing keys", "RFC7517-1.1").allowingPrivateKeys());
 		callAndContinueOnFailure(AugmentRealJwksWithDecoys.class, ConditionResult.WARNING, "FAPI2-SP-FINAL-5.4.3-3");
 		callAndStopOnFailure(SetRsaAltServerJwks.class);
+		callAndStopOnFailure(AddUnusableKeysToServerPublicJwks.class, "RFC7517-5");
 	}
 
 	@Override
