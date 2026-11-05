@@ -127,6 +127,8 @@ _makeFapiTestPart1() {
     TESTS="${TESTS} fapi2-message-signing-final-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=cbuae][fapi_response_mode=plain_response][authorization_request_type=rar] authlete-fapi2securityprofile-privatekey-jar-cbuae.json"
 
     # FAPI2 message signing - jar + rar + grant management + Chile Open Finance
+    TESTS="${TESTS} fapi2-message-signing-final-test-plan[openid=openid_connect][client_auth_type=mtls][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=openbanking_chile][fapi_response_mode=plain_response][authorization_request_type=rar][grant_management=enabled] authlete-fapi2securityprofile-mtls-jar-chile.json"
+    # Chile Open Finance Test
     TESTS="${TESTS} cmf-chile-fapi2-message-signing-op-test-plan[openid=openid_connect] authlete-chile.json"
 
     #FAPI2 KSA profile2

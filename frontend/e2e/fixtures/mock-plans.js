@@ -143,7 +143,10 @@ export const MOCK_PLANS = [
  * one of them to exercise the dead-end.
  *
  * - fapi2-message-signing-final-test-plan: KSA → OP → private_key_jwt →
- *   SAMA v2 resolution target, and the Chile → OP leaf (mTLS + Grant Management).
+ *   SAMA v2 resolution target.
+ * - cmf-chile-fapi2-message-signing-op-test-plan /
+ *   cmf-chile-fapi2-message-signing-rp-test-plan: Chile OP and RP leaves; the
+ *   CMF profile fixes every variant, so they declare none.
  * - fapi-ciba-id1-client-test-plan / fapi-ciba-id1-test-plan: Brazil and
  *   ConnectID CIBA guided leaves.
  * - fapi1-advanced-final-test-plan: Brazil OP FAPI leaf (carries the
@@ -271,6 +274,51 @@ export const MOCK_GUIDED_PLANS = [
         notApplicableWhen: { fapi_profile: { consumerdataright_au: ["dpop"] } },
       },
     },
+  },
+  {
+    planName: "cmf-chile-fapi2-message-signing-op-test-plan",
+    displayName:
+      "Chile Open Finance (CMF): FAPI2-Message-Signing-Final - Authorization server test",
+    profile: "Test an OpenID Provider / Authorization Server",
+    specFamily: "FAPI2 Message Signing",
+    specVersion: "Final",
+    summary: "",
+    modules: [
+      {
+        testModule: "cmf-chile-op-happy-flow",
+        configurationFields: [
+          "server.discoveryUrl",
+          "client.client_id",
+          "client.scope",
+          "client.jwks",
+          "mtls.key",
+          "mtls.cert",
+        ],
+      },
+    ],
+    variants: {},
+  },
+  {
+    planName: "cmf-chile-fapi2-message-signing-rp-test-plan",
+    displayName:
+      "Chile Open Finance (CMF): FAPI2-Message-Signing-Final - Relying Party (client) test",
+    profile: "Test a Relying Party / OAuth2 Client",
+    specFamily: "FAPI2 Message Signing",
+    specVersion: "Final",
+    summary: "",
+    modules: [
+      {
+        testModule: "cmf-chile-rp-happy-path",
+        configurationFields: [
+          "client.client_id",
+          "client.scope",
+          "client.redirect_uri",
+          "client.certificate",
+          "client.jwks",
+        ],
+      },
+    ],
+    variants: {},
   },
   {
     planName: "fapi-ciba-id1-client-test-plan",
