@@ -40,6 +40,22 @@ final class PoppyTestData {
 		}
 		""";
 
+	static final String CLIENT_METADATA = """
+		{
+		  "client_id": "https://agent.example/agent.json",
+		  "client_name": "Example Agent",
+		  "logo_uri": "https://agent.example/logo.png",
+		  "jwks_uri": "https://agent.example/jwks.json",
+		  "redirect_uris": ["https://agent.example/oauth/callback"],
+		  "token_endpoint_auth_method": "private_key_jwt"
+		}
+		""";
+
+	static final String PUBLIC_JWKS = """
+		{"keys": [{"kty": "EC", "use": "sig", "crv": "P-256", "kid": "k1",
+		  "x": "W7GYo8l5peUH8trIGV3JoJFe_5xoJ9j37oYNLPR0GGw", "y": "qO8C9AFSbtdIoKoFuOQ_pBBcPv05iL_ys1JiYf1GT-c", "alg": "ES256"}]}
+		""";
+
 	static JsonObject json(String s) {
 		return JsonParser.parseString(s).getAsJsonObject();
 	}
