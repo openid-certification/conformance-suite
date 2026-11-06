@@ -1,5 +1,9 @@
 package net.openid.conformance.poppy.condition;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import net.openid.conformance.testmodule.OIDFJSON;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -38,5 +42,21 @@ final class PoppyUtil {
 			&& uri.getRawQuery() == null
 			&& uri.getRawFragment() == null
 			&& !value.endsWith("/");
+	}
+
+	/**
+	 * The member as a string, or null if it is absent or not a JSON string.
+	 */
+	static String stringMember(JsonObject object, String name) {
+		JsonElement e = object.get(name);
+		return e != null && OIDFJSON.isString(e) ? OIDFJSON.getString(e) : null;
+	}
+
+	/**
+	 * The member as a long, or null if it is absent or not a JSON number.
+	 */
+	static Long longMember(JsonObject object, String name) {
+		JsonElement e = object.get(name);
+		return e != null && e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber() ? OIDFJSON.getLong(e) : null;
 	}
 }

@@ -19,7 +19,10 @@ import java.util.regex.Pattern;
 public class GeneratePoppyCompanyDocuments extends AbstractCondition {
 
 	private static final Pattern HOST_NAME = Pattern.compile("[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)*");
-	private static final String SCOPE = "orders:read";
+
+	private static String[] sortedScopes() {
+		return PoppyConstants.COMPANY_SCOPES.stream().sorted().toArray(String[]::new);
+	}
 
 	private static JsonArray array(String... values) {
 		JsonArray array = new JsonArray();
@@ -55,12 +58,14 @@ public class GeneratePoppyCompanyDocuments extends AbstractCondition {
 		organization.addProperty("domain", domain);
 
 		JsonObject scopes = new JsonObject();
-		scopes.addProperty(SCOPE, "See your orders");
-		JsonObject hint = new JsonObject();
-		hint.addProperty("changes", "none");
-		hint.addProperty("personal_data", true);
 		JsonObject scopeHints = new JsonObject();
-		scopeHints.add(SCOPE, hint);
+		for (String scope : sortedScopes()) {
+			scopes.addProperty(scope, "See your orders");
+			JsonObject hint = new JsonObject();
+			hint.addProperty("changes", "none");
+			hint.addProperty("personal_data", true);
+			scopeHints.add(scope, hint);
+		}
 		JsonObject auth = new JsonObject();
 		auth.add("scopes", scopes);
 		auth.add("scope_hints", scopeHints);
@@ -88,7 +93,7 @@ public class GeneratePoppyCompanyDocuments extends AbstractCondition {
 		server.addProperty("token_endpoint", issuer + "/token");
 		server.addProperty("revocation_endpoint", issuer + "/revoke");
 		server.add("grant_types_supported", array("authorization_code", "refresh_token"));
-		server.add("scopes_supported", array(SCOPE));
+		server.add("scopes_supported", array(sortedScopes()));
 		server.add("protected_resources", array(origin));
 		server.add("token_endpoint_auth_methods_supported", array("private_key_jwt"));
 		server.add("token_endpoint_auth_signing_alg_values_supported", array("ES256", "PS384"));
