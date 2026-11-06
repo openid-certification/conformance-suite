@@ -60,12 +60,54 @@ public class TestDispatcher implements DataUtils {
 	public static final String TEST_PATH = "/test/"; // path for incoming test requests
 	public static final String TEST_MTLS_PATH = "/test-mtls/"; // path for incoming MTLS requests
 	public static final String WELL_KNOWN = "/.well-known/";
+	public static final String ROOT_WELL_KNOWN_ALIAS = "root-well-known";
 
 	@Autowired
 	private TestRunnerSupport support;
 
 	@Autowired
 	private EventLog eventLog;
+
+	/**
+	 * The test a request is routed to, or the response to send when no test can be chosen.
+	 */
+	record RouteTarget(String testId, String restOfPath, ResponseEntity<?> error) {
+	}
+
+	/**
+	 * Works out which test a request is for. A request for a single file directly under /.well-known/
+	 * goes to the test registered under {@link #ROOT_WELL_KNOWN_ALIAS}.
+	 */
+	static RouteTarget resolveRoute(String path, String finalPath, TestRunnerSupport support) {
+		if (path.startsWith(WELL_KNOWN) && !finalPath.contains("/")) {
+			if (!support.hasAlias(ROOT_WELL_KNOWN_ALIAS)) {
+				return new RouteTarget(null, null, new ResponseEntity<>(
+					Map.of("error", "No test found with alias '" + ROOT_WELL_KNOWN_ALIAS + "'"), HttpStatus.NOT_FOUND));
+			}
+			return new RouteTarget(support.getTestIdForAlias(ROOT_WELL_KNOWN_ALIAS), finalPath, null);
+		}
+
+		Iterator<String> pathParts = Splitter.on("/").split(finalPath).iterator();
+
+		String testId = pathParts.next(); // used to route to the right test
+		if (path.startsWith(WELL_KNOWN)) {
+			pathParts.next(); // skip over the "openid-credential-issuer/" part
+			testId = pathParts.next(); // skip over the "test/" part
+		}
+
+		if (testId.equals("a")) {
+			// it's an aliased test, look it up
+			String alias = pathParts.next();
+			if (!support.hasAlias(alias)) {
+				return new RouteTarget(null, null, new ResponseEntity<>(
+					Map.of("error", "No test found with alias '" + alias + "'"), HttpStatus.NOT_FOUND));
+			}
+			testId = support.getTestIdForAlias(alias);
+		}
+
+		// wrap up all the rest of the path as a string again, stripping off the initial bits
+		return new RouteTarget(testId, Joiner.on("/").join(pathParts), null);
+	}
 
 	/**
 	 * Dispatch a request to a running test. This came in on the /test/ URL either as /test/test-id-string or /test/a/test-alias.
@@ -93,22 +135,12 @@ public class TestDispatcher implements DataUtils {
 		AntPathMatcher apm = new AntPathMatcher();
 		String finalPath = apm.extractPathWithinPattern(bestMatchPattern, path);
 
-		Iterator<String> pathParts = Splitter.on("/").split(finalPath).iterator();
-
-		String testId = pathParts.next(); // used to route to the right test
-		if (path.startsWith(WELL_KNOWN)) {
-			pathParts.next(); // skip over the "openid-credential-issuer/" part
-			testId = pathParts.next(); // skip over the "test/" part
+		RouteTarget route = resolveRoute(path, finalPath, support);
+		if (route.error() != null) {
+			return route.error();
 		}
-
-		if (testId.equals("a")) {
-			// it's an aliased test, look it up
-			String alias = pathParts.next();
-			if (!support.hasAlias(alias)) {
-				return new ResponseEntity<>(Map.of("error", "No test found with alias '"+alias+"'"), HttpStatus.NOT_FOUND);
-			}
-			testId = support.getTestIdForAlias(alias);
-		}
+		String testId = route.testId();
+		String restOfPath = route.restOfPath();
 
 		if (!support.hasTestId(testId)) {
 			return new ResponseEntity<>(Map.of("error", "No test found with test id '"+testId+"'"), HttpStatus.NOT_FOUND);
@@ -121,9 +153,6 @@ public class TestDispatcher implements DataUtils {
 		}
 
 		try {
-
-			// wrap up all the rest of the path as a string again, stripping off the initial bits
-			String restOfPath = Joiner.on("/").join(pathParts);
 
 			// convert the parameters and headers into a JSON object to make it easier for the test modules to ingest
 			JsonObject requestParts = new JsonObject();
