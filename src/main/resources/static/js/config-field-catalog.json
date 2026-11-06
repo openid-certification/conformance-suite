@@ -138,7 +138,7 @@
           "label": "Authorization Server URL Override",
           "type": "string",
           "format": "uri",
-          "tooltip": "Full issuer URL for the OAuth2 Authorization Server. When this is not set, the testsuite will use the discoveryIssuer as authorizationServer, otherwise when this is set the testsuite will use this authorization server to obtain an access_token for the tests."
+          "tooltip": "Issuer URL of the authorization server to obtain access tokens from; it must be listed in authorization_servers in the credential issuer metadata. When this is not set, the only listed authorization server is used; if several are listed, the credential issuer is used when it is one of them, otherwise this field is required. If the metadata lists none, the credential issuer is used."
         },
         {
           "key": "vci.static_tx_code",
