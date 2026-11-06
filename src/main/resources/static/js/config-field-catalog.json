@@ -275,6 +275,18 @@
       ]
     },
     {
+      "key": "poppy",
+      "title": "Poppy",
+      "fields": [
+        {
+          "key": "poppy.company_domain",
+          "label": "Company domain",
+          "type": "string",
+          "tooltip": "Company test: the Company's domain (a hostname, no port; an https:// URL is accepted). The suite fetches https://<domain>/.well-known/poppy.json and https://<domain>/.well-known/oauth-protected-resource. Personal Agent test: the hostname at which this conformance suite is reachable on port 443, announced as organization.domain."
+        }
+      ]
+    },
+    {
       "key": "client",
       "title": "Client",
       "fields": [
