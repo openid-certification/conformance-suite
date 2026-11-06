@@ -61,6 +61,10 @@ class ClassifyTest(unittest.TestCase):
         self.assertEqual("excluded", sl.classify("https://consumerdatastandardsaustralia.github.io/standards/#")["kind"])
         self.assertEqual("excluded", sl.classify("https://github.com/openid/OpenID4VCI/issues/")["kind"])
 
+    def test_poppy_spec_page_is_plain_markdown(self):
+        self.assertEqual("plain-md", sl.classify("https://personalagentprotocol.org/docs/0.4/spec#")["kind"])
+        self.assertEqual("excluded", sl.classify("https://personalagentprotocol.org/docs/0.4/other#")["kind"])
+
     def test_ob_bitbucket_reason_names_the_real_source_not_a_mutable_url(self):
         c = sl.classify("https://bitbucket.org/openid/obuk/src/b36035c22e96ce160524066c7fde9a45cbaeb949/"
                                 "uk-openbanking-security-profile.md?at=master&fileviewer=file-view-default#")
@@ -116,6 +120,16 @@ class HeadingsTest(unittest.TestCase):
 
 
 class SeedTest(unittest.TestCase):
+    def test_seed_plain_md_entry(self):
+        out = io.StringIO()
+        sl.cmd_seed(links={"POPPY-": "https://personalagentprotocol.org/docs/0.4/spec#"},
+                    exists=lambda url: False, out=out, print_only=True)
+        self.assertEqual({"personal-agent-protocol-0_4": {
+            "prefixes": ["POPPY-"], "link_url": "https://personalagentprotocol.org/docs/0.4/spec",
+            "versions": [{"role": "linked", "file": "openid/personal-agent-protocol-0_4.txt",
+                          "source_url": "https://personalagentprotocol.org/docs/0.4/spec.md",
+                          "source_format": "plain-md"}]}}, json.loads(out.getvalue())["documents"])
+
     def test_seed_generates_manifest_from_links(self):
         links = {"RFC6749-": "https://tools.ietf.org/html/rfc6749#section-",
                  "RFC6749A-": "https://tools.ietf.org/html/rfc6749#appendix-",
@@ -323,6 +337,22 @@ class RenderTest(unittest.TestCase):
         dest = os.path.join(self.dir.name, v["file"])
         sl.render_version(v, self.LINK, dest, fetch=fetch, run=run or self._xml2rfc_run())
         return dest
+
+    def test_plain_md_is_stored_unchanged_and_headings_are_found(self):
+        body = b"# Title\n\n## 1. Introduction\n\n1. a list item\n\n### 1.1 Layers\n\n```\n# 2 not a heading\n```\n\n## A Note\n"
+        page = ('<h2>1. Introduction</h2><h3>1.1 Layers</h3>')
+        v = {"role": "linked", "file": "openid/spec.txt", "source_url": "https://x/spec.md",
+             "source_format": "plain-md"}
+        dest = self.render(v, self._fetch(body, page))
+        self.assertEqual(body, pathlib.Path(dest).read_bytes())
+        self.assertEqual({"1": "Introduction", "1.1": "Layers"}, sl.md_headings(body.decode()))
+        self.assertEqual(hashlib.sha256(body).hexdigest(), v["sha256"])
+
+    def test_plain_md_heading_difference_from_the_page_is_rejected(self):
+        v = {"role": "linked", "file": "openid/spec.txt", "source_url": "https://x/spec.md",
+             "source_format": "plain-md"}
+        with self.assertRaises(sl.HeadingMismatch):
+            self.render(v, self._fetch(b"## 1. Introduction\n", "<h2>1. Overview</h2>"))
 
     def test_txt_is_stored_byte_for_byte(self):
         body = b"1.  Introduction\n\n   RFC text \x0c with form feed and trailing space \n"

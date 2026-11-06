@@ -94,6 +94,7 @@ public class SpecFamilyResolver {
 		SpecFamilyNames.oidcc,
 		SpecFamilyNames.oidccLogout,
 		SpecFamilyNames.oidccSessionManagement,
+		SpecFamilyNames.poppy,
 		SpecFamilyNames.ssf);
 
 	private final Map<String, String> planNameToFamily;

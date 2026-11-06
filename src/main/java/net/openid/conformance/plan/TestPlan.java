@@ -24,6 +24,8 @@ public interface TestPlan {
 		String verifierTest = "Test a OpenID4VP Verifier";
 		String federationTest = "Test an OpenID Federation entity";
 		String authzenTest = "Test an AuthZEN PDP server";
+		String poppyCompanyTest = "Test a Poppy Company";
+		String poppyAgentTest = "Test a Poppy Personal Agent";
 	}
 
 	interface SpecFamilyNames {
@@ -39,6 +41,7 @@ public interface TestPlan {
 		String oidcc = "OpenID Connect Core";
 		String oidccLogout = "OpenID Connect Logout";
 		String oidccSessionManagement = "OpenID Connect Session Management";
+		String poppy = "Poppy";
 		String ssf = "Shared Signals Framework";
 	}
 

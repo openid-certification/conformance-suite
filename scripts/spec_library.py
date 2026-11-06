@@ -38,6 +38,10 @@ BCP_RE = re.compile(r"/(bcp\d+)$")
 DRAFT_RE = re.compile(r"/(draft-[a-z0-9-]+-\d\d)(?:\.html)?$")
 # "5.8.  Title", "Appendix A.  Title" and "A.1.  Title"; the section id is group 1.
 TEXT_HEADING_RE = re.compile(r"^(?:Appendix )?((?:\d+|[A-Z])(?:\.\d+)*)\.\s+(\S.*)$")
+# Markdown "## 3.4 Versions" and "## 1. Introduction": numeric ids only, so "## A Note" is not a section.
+MD_HEADING_RE = re.compile(r"^#{1,6}\s+(\d+(?:\.\d+)*)\.?\s+(\S.*?)\s*#*\s*$")
+NUMBERED_TITLE_RE = re.compile(r"^(\d+(?:\.\d+)*)\.?\s+(\S.*)$")
+PLAIN_MD_LINK_RE = re.compile(r"^https://personalagentprotocol\.org/docs/(\d+(?:\.\d+)*)/spec$")
 HTML_HEADING_RE = re.compile(r"<h[1-6][^>]*>(.*?)</h[1-6]>", re.S)
 THIRD_PARTY = "third-party specification; redistribution rights not confirmed (#1957 first import is IETF+OIDF only)"
 
@@ -73,6 +77,8 @@ def classify(url):
         return {"kind": "openid"}
     if host == "www.iso.org":
         return {"kind": "iso"}
+    if PLAIN_MD_LINK_RE.match(base):
+        return {"kind": "plain-md"}
     if "/issues/" in base:
         return {"kind": "excluded", "reason": "issue tracker, not a specification"}
     if host == "bitbucket.org" and "/openid/obuk/" in base:
@@ -86,6 +92,18 @@ def classify(url):
 
 def _norm_title(s):
     return re.sub(r"\s+", " ", html.unescape(s)).strip()
+
+
+def md_headings(text):
+    """Numbered '#' headings of a Markdown page, outside fenced code. Numbered list items are not headings."""
+    out, fenced = {}, False
+    for line in text.split("\n"):
+        if line.lstrip().startswith("```"):
+            fenced = not fenced
+        m = None if fenced else MD_HEADING_RE.match(line)
+        if m:
+            out[m.group(1)] = _norm_title(m.group(2))
+    return out
 
 
 def text_headings(text):
@@ -108,10 +126,12 @@ def text_headings(text):
     return out
 
 
-def html_headings(page):
+def html_headings(page, loose=False):
+    """loose accepts the unpunctuated "3.4 Versions" numbering of a plain-md page."""
     out = {}
     for inner in HTML_HEADING_RE.findall(page):
-        m = TEXT_HEADING_RE.match(_norm_title(re.sub(r"<[^>]+>", "", inner)))
+        title = _norm_title(re.sub(r"<[^>]+>", " " if loose else "", inner))
+        m = TEXT_HEADING_RE.match(title) or (NUMBERED_TITLE_RE.match(title) if loose else None)
         if m:
             out[m.group(1)] = m.group(2)
     return out
@@ -244,7 +264,17 @@ def render_version(version, link, dest, cache_dir=None, fetch=http_get, run=subp
     fmt = version["source_format"]
     data = fetch(version["source_url"])
     os.makedirs(os.path.dirname(dest), exist_ok=True)
-    if fmt == "txt":
+    if fmt == "plain-md":
+        out = data.decode("utf-8").replace("\r\n", "\n").encode("utf-8")
+        headings = md_headings(out.decode("utf-8"))
+        if not headings:
+            raise HeadingMismatch(f"{version['file']} fetched from {version['source_url']}: "
+                                  f"text has no numbered headings")
+        diffs = diff_headings(headings, html_headings(fetch(link).decode("utf-8", "replace"), loose=True))
+        if diffs:
+            raise HeadingMismatch(f"{version['file']} fetched from {version['source_url']} does not match "
+                                  f"{link}:\n  " + "\n  ".join(diffs[:10]))
+    elif fmt == "txt":
         out = data
         # A soft 404 or interstitial HTML page served at a .txt URL has no numbered headings.
         if not text_headings(out.decode("utf-8", "replace")):
@@ -292,6 +322,13 @@ def seed_skeleton(links, exists=http_exists):
             doc_id, src = ietf_source(url)
             d = docs.setdefault(doc_id, {"prefixes": [], "link_url": link_url(url), "versions": [
                 {"role": "linked", "file": f"ietf/{doc_id}.txt", "source_url": src, "source_format": "txt"}]})
+            d["prefixes"].append(prefix)
+        elif c["kind"] == "plain-md":
+            base = link_url(url)
+            doc_id = "personal-agent-protocol-" + base.rsplit("/", 2)[1].replace(".", "_")
+            d = docs.setdefault(doc_id, {"prefixes": [], "link_url": base, "versions": [
+                {"role": "linked", "file": f"openid/{doc_id}.txt", "source_url": base + ".md",
+                 "source_format": "plain-md"}]})
             d["prefixes"].append(prefix)
         else:
             base = link_url(url)[:-len(".html")]

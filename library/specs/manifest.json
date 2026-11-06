@@ -661,6 +661,22 @@
         }
       ]
     },
+    "personal-agent-protocol-0_4": {
+      "link_url": "https://personalagentprotocol.org/docs/0.4/spec",
+      "prefixes": [
+        "POPPY-"
+      ],
+      "versions": [
+        {
+          "fetched": "2026-11-05",
+          "file": "openid/personal-agent-protocol-0_4.txt",
+          "role": "linked",
+          "sha256": "0cfac086b506b726530094fb1f9304853f8e5b26ab20331c38bd027874e2f2ea",
+          "source_format": "plain-md",
+          "source_url": "https://personalagentprotocol.org/docs/0.4/spec.md"
+        }
+      ]
+    },
     "rfc2585": {
       "link_url": "https://tools.ietf.org/html/rfc2585",
       "prefixes": [

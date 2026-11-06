@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class SpecFamilyResolver_UnitTest {
 
-	/** The 13 {@link SpecFamilyNames} constants, in declaration order. */
+	/** The 14 {@link SpecFamilyNames} constants, in declaration order. */
 	private static final List<String> DECLARED_FAMILIES = List.of(
 		SpecFamilyNames.authzen,
 		SpecFamilyNames.ekyc,
@@ -30,6 +30,7 @@ class SpecFamilyResolver_UnitTest {
 		SpecFamilyNames.oidcc,
 		SpecFamilyNames.oidccLogout,
 		SpecFamilyNames.oidccSessionManagement,
+		SpecFamilyNames.poppy,
 		SpecFamilyNames.ssf);
 
 	@Test

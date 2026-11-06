@@ -38,11 +38,13 @@ First import covers IETF and OIDF only. Third-party ecosystem profiles are liste
   - `role`: `linked` (exactly one per document, required) or `latest`.
   - `file`: path under `specs/`, e.g. `ietf/rfc6749.txt`.
   - `source_url`: where `sync` fetches the source from.
-  - `source_format`: `txt` (stored as fetched, no rendering), `zip-xml`, `xml`, `md`, or
+  - `source_format`: `txt` (stored as fetched, no rendering), `plain-md` (a plain Markdown page
+    stored as fetched, headings checked against the published page; `seed` picks it for
+    `personalagentprotocol.org/docs/<version>/spec` links), `zip-xml`, `xml`, `md`, or
     `github-md` (a `.tar.gz` of a repository at a pinned commit; needs `path`, below).
   - `sha256`: hash of the stored file; filled in by `sync`.
   - `fetched`: the date `sync` last wrote the file.
-  - For rendered versions (every format except `txt`), `sync` also records `source_sha256`
+  - For rendered versions (every format except `txt` and `plain-md`), `sync` also records `source_sha256`
     (hash of the fetched source, before rendering), `doc_name` (the XML `docName`, for humans;
     not compared against anything) and `generator` (the `xml2rfc --version` string).
   - `published_url` (optional): the page to cross-check rendered headings against, when it
