@@ -56,7 +56,6 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 import org.springframework.security.web.authentication.ott.RedirectOneTimeTokenGenerationSuccessHandler;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.security.web.header.HeaderWriter;
-import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter;
 import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
@@ -462,12 +461,7 @@ class WebSecurityOidcLoginConfig {
 	 * TLS proxy.
 	 */
 	static AuthenticationSuccessHandler oidcLoginSuccessHandler() {
-		LoginReturnTo.SuccessHandler savedRequestRedirect = new LoginReturnTo.SuccessHandler();
-		ClearSiteDataHeaderWriter clearCache = new ClearSiteDataHeaderWriter(ClearSiteDataHeaderWriter.Directive.CACHE);
-		return (request, response, authentication) -> {
-			clearCache.writeHeaders(request, response);
-			savedRequestRedirect.onAuthenticationSuccess(request, response, authentication);
-		};
+		return new LoginReturnTo.SuccessHandler();
 	}
 
 	protected HeaderWriter getXFrameOptionsHeaderWriter() {

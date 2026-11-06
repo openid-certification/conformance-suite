@@ -46,8 +46,8 @@ public class OidcLoginSuccessHandler_UnitTest {
 		WebSecurityOidcLoginConfig.oidcLoginSuccessHandler()
 			.onAuthenticationSuccess(secureRequest(new MockHttpSession()), response, user);
 
-		Assertions.assertEquals("\"cache\"", response.getHeader("Clear-Site-Data"),
-			"login must evict cached static assets so stale long-lived copies are refetched");
+		Assertions.assertNull( response.getHeader("Clear-Site-Data"),
+			"login must not dictate how the cache should be handled");
 	}
 
 	@Test
@@ -69,7 +69,7 @@ public class OidcLoginSuccessHandler_UnitTest {
 		Assertions.assertEquals(HttpServletResponse.SC_FOUND, response.getStatus());
 		Assertions.assertEquals(BASE + "/plans.html?owner=ci&continue", response.getRedirectedUrl(),
 			"login must keep returning the user to the page they originally requested");
-		Assertions.assertEquals("\"cache\"", response.getHeader("Clear-Site-Data"));
+		Assertions.assertNull( response.getHeader("Clear-Site-Data"));
 	}
 
 	@Test
