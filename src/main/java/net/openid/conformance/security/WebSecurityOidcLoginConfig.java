@@ -52,12 +52,10 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
-import org.springframework.security.web.authentication.logout.HeaderWriterLogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.ott.RedirectOneTimeTokenGenerationSuccessHandler;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.security.web.header.HeaderWriter;
-import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter;
 import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
@@ -378,18 +376,11 @@ class WebSecurityOidcLoginConfig {
 			// success handler, so redirecting from one commits the response and
 			// the success handler's redirect is lost.
 			logout.logoutSuccessHandler(logoutSuccessHandler(clientRegistrationRepository));
-			// Pages are bfcache-eligible now that they send "Cache-Control:
-			// no-cache" instead of no-store (ApplicationConfig
-			// addResourceHandlers). Evict the browser's cache for this origin
-			// on logout so the Back button cannot restore an
-			// authenticated-looking shell on a shared machine. CACHE only:
-			// cookies/storage are owned by the session logout itself.
-			// Requires the request to look secure, which forward-headers
-			// handling guarantees behind the TLS proxy
-			// (server.forward-headers-strategy=NATIVE) and
-			// RejectPlainHttpTrafficFilter enforces.
-			logout.addLogoutHandler(new HeaderWriterLogoutHandler(
-				new ClearSiteDataHeaderWriter(ClearSiteDataHeaderWriter.Directive.CACHE)));
+			// No Clear-Site-Data header here: the page shells are served with
+			// "Cache-Control: no-store" (ApplicationConfig.pageCacheControl), so
+			// the Back button cannot restore an authenticated-looking shell after
+			// logout, and the browser has nothing to purge before it follows the
+			// redirect to the IdP.
 		});
 
 		//added to disable x-frame-options only for certain paths
@@ -465,17 +456,12 @@ class WebSecurityOidcLoginConfig {
 	 * /lib, /images and /templates were once served without Cache-Control
 	 * and with a fixed 1980 Last-Modified, which browsers treat as fresh for
 	 * years without asking the server again; clearing the cache at login
-	 * makes them refetch under the current revalidating policy. Logout sends
-	 * the same header. The writer only emits it on secure requests, which
-	 * the chain enforces behind the TLS proxy.
+	 * makes them refetch under the current revalidating policy. The writer
+	 * only emits it on secure requests, which the chain enforces behind the
+	 * TLS proxy.
 	 */
 	static AuthenticationSuccessHandler oidcLoginSuccessHandler() {
-		LoginReturnTo.SuccessHandler savedRequestRedirect = new LoginReturnTo.SuccessHandler();
-		ClearSiteDataHeaderWriter clearCache = new ClearSiteDataHeaderWriter(ClearSiteDataHeaderWriter.Directive.CACHE);
-		return (request, response, authentication) -> {
-			clearCache.writeHeaders(request, response);
-			savedRequestRedirect.onAuthenticationSuccess(request, response, authentication);
-		};
+		return new LoginReturnTo.SuccessHandler();
 	}
 
 	protected HeaderWriter getXFrameOptionsHeaderWriter() {
