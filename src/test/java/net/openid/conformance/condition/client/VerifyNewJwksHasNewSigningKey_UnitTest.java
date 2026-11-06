@@ -312,6 +312,55 @@ public class VerifyNewJwksHasNewSigningKey_UnitTest {
 	}
 
 
+	private static final String AKP_KEY = """
+		{
+		  "kty": "AKP",
+		  "alg": "ML-DSA-44",
+		  "kid": "ml-dsa-key",
+		  "use": "sig",
+		  "pub": "Z0FOY29uZm9ybWFuY2UtdGVzdC1wbGFjZWhvbGRlci1wdWJsaWMta2V5"
+		}""";
+
+	// RFC 7517 appendix A.1 and RFC 7515 appendix A.3 test vectors
+	private static final String EC_KEY_1 = """
+		{
+		  "crv": "P-256",
+		  "x": "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4",
+		  "y": "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM",
+		  "kty": "EC",
+		  "kid": "ec-key-1",
+		  "use": "sig"
+		}""";
+
+	private static final String EC_KEY_2 = """
+		{
+		  "crv": "P-256",
+		  "x": "f83OJ3D2xF1Bg8vub9tLe1gHMzV76e8Tus9uPHvRVEU",
+		  "y": "x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0",
+		  "kty": "EC",
+		  "kid": "ec-key-2",
+		  "use": "sig"
+		}""";
+
+	@Test
+	public void testUnusableKeyNextToNewSigningKeyIsIgnored() {
+		// RFC 7517 section 5: a key type the suite does not understand (here an ML-DSA key) is skipped,
+		// and the EC key that was added is still recognised as the new signing key
+		env.putObject("original_jwks", JsonParser.parseString("{\"keys\": [" + AKP_KEY + "," + EC_KEY_1 + "]}").getAsJsonObject());
+		env.putObject("new_jwks", JsonParser.parseString("{\"keys\": [" + AKP_KEY + "," + EC_KEY_1 + "," + EC_KEY_2 + "]}").getAsJsonObject());
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testUnusableKeyIsNotCountedAsNewSigningKey() {
+		// an added key the suite cannot use is not evidence of rotation
+		env.putObject("original_jwks", JsonParser.parseString("{\"keys\": [" + EC_KEY_1 + "]}").getAsJsonObject());
+		env.putObject("new_jwks", JsonParser.parseString("{\"keys\": [" + EC_KEY_1 + "," + AKP_KEY + "]}").getAsJsonObject());
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
 	@Test
 	public void testInvalidKeys() {
 		assertThrows(ConditionError.class, () -> {

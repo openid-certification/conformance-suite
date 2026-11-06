@@ -1,14 +1,17 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.util.JSONObjectUtils;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.JWKUtil;
 
 import java.text.ParseException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,8 +39,33 @@ public class VerifyNewJwksHasNewSigningKey extends AbstractCompareJwks {
 		}).collect(Collectors.toSet());
 	}
 
+	/**
+	 * Drops the keys the suite cannot use (unknown kty, unsupported curve, unrecognised alg): a
+	 * relying party ignores them (RFC 7517 section 5), so they neither count as the new signing key
+	 * nor fail the comparison. ValidateJwksSequence has already warned about them.
+	 */
+	private Set<JsonObject> withoutUnusableKeys(Set<JsonObject> keys, String label) {
+		Set<JsonObject> usable = new HashSet<>();
+		for (JsonObject key : keys) {
+			JsonObject singleKeySet = new JsonObject();
+			JsonArray keysArray = new JsonArray();
+			keysArray.add(key);
+			singleKeySet.add("keys", keysArray);
+			List<JWKUtil.JwkIssue> issues = JWKUtil.findUnusableKeys(singleKeySet);
+			if (issues.isEmpty()) {
+				usable.add(key);
+			} else {
+				log("Ignoring a key in the " + label + " JWKS that the suite cannot use",
+					args("key", key, "issues", JWKUtil.issuesToJson(issues)));
+			}
+		}
+		return usable;
+	}
+
 	@Override
-	protected void compareJwks(Set<JsonObject> originalSigningKeys, Set<JsonObject> latestSigningKeys) {
+	protected void compareJwks(Set<JsonObject> allOriginalSigningKeys, Set<JsonObject> allLatestSigningKeys) {
+		Set<JsonObject> originalSigningKeys = withoutUnusableKeys(allOriginalSigningKeys, "original");
+		Set<JsonObject> latestSigningKeys = withoutUnusableKeys(allLatestSigningKeys, "new");
 		Set<JsonObject> origSigningPubKeys = getPubKeysWithKeyId(originalSigningKeys);
 		Set<JsonObject> latestSigningPubKeys = getPubKeysWithKeyId(latestSigningKeys);
 		Set<JsonObject> keysOnlyInNew = new HashSet<>(latestSigningPubKeys);
