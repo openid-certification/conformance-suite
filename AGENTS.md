@@ -85,7 +85,7 @@ If save-and-see does not work, you are most likely running the packaged fat JAR 
 Use `scripts/run-integration-tests.sh`, which handles building, server lifecycle, readiness checks, and test execution in one command. Output is automatically captured to `/tmp/integration-test-<timestamp>.log` — the script prints the log path before redirecting, then use `Read` to inspect results.
 
 Available options (passed through to `.gitlab-ci/run-tests.sh`):
-`--client-tests`, `--oidcc-tests`, `--fapi-tests`, `--ciba-tests`, `--local-provider-tests`, `--panva-tests`, `--ekyc-tests`, `--authzen-tests`, `--federation-tests`, `--ssf-tests`, `--vc-tests`
+`--client-tests`, `--oidcc-tests`, `--fapi-tests`, `--ciba-tests`, `--local-provider-tests`, `--panva-tests`, `--ekyc-tests`, `--authzen-tests`, `--poppy-tests`, `--federation-tests`, `--ssf-tests`, `--vc-tests`
 
 ```bash
 # List numbered plans to find the right --rerun number (no build/server needed)

@@ -501,6 +501,15 @@ vc_test:
     - set_up_for_running_test_plan
     - run_vc_test_plan
 
+poppy_test:
+  <<: *deployment_test
+  rules:
+    - if: $CI_COMMIT_BRANCH
+      when: on_success
+  script:
+    - set_up_for_running_test_plan
+    - run_poppy_test_plan
+
 ssf_test:
   <<: *deployment_test
   script:
@@ -1087,6 +1096,11 @@ security_test:
   function run_vc_test_plan() {
     echo "Running automated tests against $CONFORMANCE_SERVER"
     ../conformance-suite/.gitlab-ci/run-tests.sh --vc-tests
+  }
+
+  function run_poppy_test_plan() {
+    echo "Running automated tests against $CONFORMANCE_SERVER"
+    ../conformance-suite/.gitlab-ci/run-tests.sh --poppy-tests
   }
 
   function run_ssf_test_plan() {

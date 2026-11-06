@@ -1,0 +1,47 @@
+{
+    "alias": "oidf-poppy-company-test",
+    "description": "Poppy Company test (suite as Agent) paired with the Agent test",
+    "poppy": {
+        "company_domain": "{HOSTNAME}"
+    },
+    "client": {
+        "scope": "orders:read",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "EC",
+                    "crv": "P-256",
+                    "x": "B0Dwt3kVoiL3oaRS8wYSAvKaWeG2num0gXt2s8zM2C8",
+                    "y": "XMQ4nqgMf_MO62jBS7M_jnb5-yuiLM7Iob0MdPB65WI",
+                    "d": "A4P5_i0Jxqh_SvIDpKSmyI1pwO6LSvRqvirElEUCNu4",
+                    "kid": "poppy-agent-es256-1",
+                    "alg": "ES256",
+                    "use": "sig"
+                }
+            ]
+        }
+    },
+    "resource": {
+        "resourceUrl": "{BASEURL}test/a/root-well-known/api/me"
+    },
+    "browser": [
+        {
+            "comment": "expect an immediate redirect back to the conformance suite",
+            "match": "https://*/test/a/root-well-known/authorize*",
+            "tasks": [
+                {
+                    "task": "Verify Complete",
+                    "match": "https://*/test/a/oidf-poppy-company-test/callback*",
+                    "commands": [
+                        [
+                            "wait",
+                            "id",
+                            "submission_complete",
+                            10
+                        ]
+                    ]
+                }
+            ]
+        }
+    ]
+}

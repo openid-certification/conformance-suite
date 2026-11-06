@@ -1483,6 +1483,7 @@ async def main():
         ekyc_test = re.match(r'ekyc-server-', m)
         authzen_test = re.match(r'authzen-pdp-', m)
         federation_test = re.match(r'openid-federation-', m)
+        poppy = all_test_modules[m]['profile'] in ['Poppy-0.4']
         ssf_test = all_test_modules[m]['profile'] in ['OIDSSF']
         fapi1r = all_test_modules[m]['profile'] in ['FAPI-R']
         fapi1 = all_test_modules[m]['profile'] in ['FAPI1-Advanced-Final']
@@ -1507,7 +1508,7 @@ async def main():
                 continue
         elif show_untested == 'server-oidc-provider':
             # Only run server test, ignore all client/CIBA test, plus we don't run the FAPI tests against oidc provider
-            if fapi1r or fapi1 or fapi2 or ciba_op_test or client_test or ekyc_test or authzen_test or oid4vp or oid4vci or federation_test or ssf_test:
+            if fapi1r or fapi1 or fapi2 or ciba_op_test or client_test or ekyc_test or authzen_test or oid4vp or oid4vci or federation_test or ssf_test or poppy:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'oidcc':
@@ -1515,14 +1516,14 @@ async def main():
                 untested_test_modules.remove(m)
                 continue
             # ignore client/CIBA/logout/ekyc/authzen/federation/ssf tests (separate jobs)
-            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or authzen_test or federation_test or ssf_test:
+            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or authzen_test or federation_test or ssf_test or poppy:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'fapi-authlete':
             # ignore client/CIBA/logout/ekyc/authzen/federation tests (separate jobs)
             # ignore oidcc (separate oidcc_test job) and vp (separate vc_test job)
             # we've not yet setup fapi2 brazil dcr or uk test runs
-            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or authzen_test or federation_test or ssf_test or fapi2id2 or (fapi2 and (brazildcr or obuk)) or oid4vp or oid4vci or oidcc:
+            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or authzen_test or federation_test or ssf_test or poppy or fapi2id2 or (fapi2 and (brazildcr or obuk)) or oid4vp or oid4vci or oidcc:
                 untested_test_modules.remove(m)
                 continue
             # The KSA-specific FAPI2 OP modules have no server to run against in CI. Unlike
@@ -1542,7 +1543,7 @@ async def main():
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server-panva':
-            if ekyc_test or authzen_test or ciba_op_test or fapi1r or client_test or brazildcr or fapi1 or fapi2 or oidcc or oid4vp or oid4vci or federation_test or ssf_test:
+            if ekyc_test or authzen_test or ciba_op_test or fapi1r or client_test or brazildcr or fapi1 or fapi2 or oidcc or oid4vp or oid4vci or federation_test or ssf_test or poppy:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'ekyc':
@@ -1565,6 +1566,10 @@ async def main():
             ):
                 untested_test_modules.remove(m)
                 continue
+        elif show_untested == 'poppy':
+            if not poppy:
+                untested_test_modules.remove(m)
+                continue
         elif show_untested == 'federation':
             if(
                 not federation_test
@@ -1578,7 +1583,7 @@ async def main():
                 continue
         elif show_untested == 'all-except-logout':
             # we don't run the rp initiated logout tests against Authlete; SSF has its own job
-            if rp_initiated_logout or ssf_test:
+            if rp_initiated_logout or ssf_test or poppy:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'ssf':

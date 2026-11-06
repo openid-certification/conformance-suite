@@ -26,8 +26,8 @@ echo
 SUITE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 TESTS=""
-EXPECTED_FAILURES_FILE="${SUITE_DIR}/.gitlab-ci/expected-failures-oidcc.json|${SUITE_DIR}/.gitlab-ci/expected-failures-fapi.json|${SUITE_DIR}/.gitlab-ci/expected-failures-vc.json|${SUITE_DIR}/.gitlab-ci/expected-failures-ciba.json|${SUITE_DIR}/.gitlab-ci/expected-failures-client.json"
-EXPECTED_SKIPS_FILE="${SUITE_DIR}/.gitlab-ci/expected-skips-oidcc.json|${SUITE_DIR}/.gitlab-ci/expected-skips-fapi.json|${SUITE_DIR}/.gitlab-ci/expected-skips-vc.json|${SUITE_DIR}/.gitlab-ci/expected-skips-ciba.json|${SUITE_DIR}/.gitlab-ci/expected-skips-client.json"
+EXPECTED_FAILURES_FILE="${SUITE_DIR}/.gitlab-ci/expected-failures-oidcc.json|${SUITE_DIR}/.gitlab-ci/expected-failures-fapi.json|${SUITE_DIR}/.gitlab-ci/expected-failures-vc.json|${SUITE_DIR}/.gitlab-ci/expected-failures-ciba.json|${SUITE_DIR}/.gitlab-ci/expected-failures-client.json|${SUITE_DIR}/.gitlab-ci/expected-failures-poppy.json"
+EXPECTED_SKIPS_FILE="${SUITE_DIR}/.gitlab-ci/expected-skips-oidcc.json|${SUITE_DIR}/.gitlab-ci/expected-skips-fapi.json|${SUITE_DIR}/.gitlab-ci/expected-skips-vc.json|${SUITE_DIR}/.gitlab-ci/expected-skips-ciba.json|${SUITE_DIR}/.gitlab-ci/expected-skips-client.json|${SUITE_DIR}/.gitlab-ci/expected-skips-poppy.json"
 
 makeClientTest() {
     . ./node-client-setup.sh
@@ -884,6 +884,11 @@ makeAuthzenTests() {
     :
 }
 
+makePoppyTests() {
+    CONFIGS="${SUITE_DIR}/scripts/test-configs-rp-against-op"
+    TESTS="${TESTS} poppy-agent-test-plan:poppy-agent-happy-flow{poppy-company-test-plan:poppy-company-happy-flow}${CONFIGS}/poppy-company-test-config.json ${CONFIGS}/poppy-agent-test-config.json"
+}
+
 makeLocalProviderTests() {
     # OIDCC certification tests - server supports discovery, using dcr
     TESTS="${TESTS} oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=dynamic_client] ${SUITE_DIR}/.gitlab-ci/local-provider-oidcc-conformance-config.json"
@@ -1064,6 +1069,15 @@ elif [ "$SUITE_ARG" = "--authzen-tests" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules authzen"
     TESTS="${TESTS} --export-dir ${SUITE_DIR}"
+elif [ "$SUITE_ARG" = "--poppy-tests" ]; then
+    echo "Run Poppy tests"
+    makePoppyTests
+    EXPECTED_FAILURES_FILE="${SUITE_DIR}/.gitlab-ci/expected-failures-poppy.json"
+    EXPECTED_SKIPS_FILE="${SUITE_DIR}/.gitlab-ci/expected-skips-poppy.json"
+    TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
+    TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
+    TESTS="${TESTS} --show-untested-test-modules poppy"
+    TESTS="${TESTS} --export-dir ${SUITE_DIR}"
 elif [ "$SUITE_ARG" = "--federation-tests" ]; then
     echo "Run federation tests"
     makeFederationTests
@@ -1113,7 +1127,7 @@ elif [ "$SUITE_ARG" = "--security-tests" ]; then
     python3 "${SUITE_DIR}/scripts/run-security-tests.py"
     exit $?
 else
-    echo "Syntax: run-tests.sh [--client-tests|--oidcc-tests|--fapi-tests|--ciba-tests|--local-provider-tests|--panva-tests|--ekyc-tests|--authzen-tests|--federation-tests|--ssf-tests|--vc-tests|--security-tests] [--rerun N|N:M|N,M,...]"
+    echo "Syntax: run-tests.sh [--client-tests|--oidcc-tests|--fapi-tests|--ciba-tests|--local-provider-tests|--panva-tests|--ekyc-tests|--authzen-tests|--poppy-tests|--federation-tests|--ssf-tests|--vc-tests|--security-tests] [--rerun N|N:M|N,M,...]"
     exit 1
 fi
 

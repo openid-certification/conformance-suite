@@ -1,0 +1,7 @@
+{
+    "alias": "root-well-known",
+    "description": "Poppy Agent test (suite as Company) paired with the Company test",
+    "poppy": {
+        "company_domain": "{HOSTNAME}"
+    }
+}
