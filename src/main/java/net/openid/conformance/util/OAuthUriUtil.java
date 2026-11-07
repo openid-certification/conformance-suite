@@ -4,7 +4,10 @@ import org.springframework.web.util.UriUtils;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class OAuthUriUtil {
 
@@ -39,6 +42,50 @@ public class OAuthUriUtil {
 
 	private static String formUrlEncode(String value) {
 		return UriUtils.encode(value, StandardCharsets.UTF_8);
+	}
+
+	/** Decodes a form-urlencoded name; a malformed percent sequence leaves it as sent, this is a diagnostic. */
+	private static String decodeLeniently(String raw) {
+		try {
+			return java.net.URLDecoder.decode(raw, StandardCharsets.UTF_8);
+		} catch (IllegalArgumentException e) {
+			return raw;
+		}
+	}
+
+	/**
+	 * Parameters whose values are space-delimited lists or free text, so a literal '+' in them is the usual
+	 * encoding of a space rather than a sign of a mis-encoded '+'.
+	 */
+	private static final Set<String> SPACE_CONTAINING_PARAMETERS = Set.of(
+		"scope", "response_type", "prompt", "acr_values", "ui_locales", "claims_locales", "error_description");
+
+	/**
+	 * Names of the parameters in a raw application/x-www-form-urlencoded string (a URL query or a form body)
+	 * whose name or value contains a literal '+'. A form decoder reads that as a space (RFC 6749 appendix B);
+	 * space-delimited list and free-text parameters, where that is the expected encoding, are left out. Names are returned
+	 * decoded, in order of first appearance, without duplicates.
+	 */
+	public static List<String> parametersWithLiteralPlus(String rawFormEncoded) {
+		List<String> names = new ArrayList<>();
+		if (rawFormEncoded == null || rawFormEncoded.indexOf('+') == -1) {
+			return names;
+		}
+		for (String pair : rawFormEncoded.split("&")) {
+			if (pair.indexOf('+') == -1) {
+				continue;
+			}
+			int eq = pair.indexOf('=');
+			String rawName = eq == -1 ? pair : pair.substring(0, eq);
+			String name = decodeLeniently(rawName);
+			if (SPACE_CONTAINING_PARAMETERS.contains(name)) {
+				continue;
+			}
+			if (!names.contains(name)) {
+				names.add(name);
+			}
+		}
+		return names;
 	}
 
 	/**

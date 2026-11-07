@@ -11,8 +11,10 @@ import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.EventLog;
+import net.openid.conformance.util.OAuthUriUtil;
 import net.openid.conformance.openid.client.AbstractOIDCCClientTest;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.DataUtils;
@@ -133,10 +135,12 @@ public class TestDispatcher implements DataUtils {
 			requestParts.addProperty("method", req.getMethod().toUpperCase()); // method is always uppercase
 			requestParts.addProperty("request_url", req.getRequestURL().toString());
 
+			boolean bodyReconstructedFromDecodedParams = false;
 			if (contentType != null
 				&& body == null
 				&& contentType.equalsTypeAndSubtype(MediaType.APPLICATION_FORM_URLENCODED)
 				&& !CollectionUtils.isEmpty(requestParams)) {
+				bodyReconstructedFromDecodedParams = true;
 				// workaround for changes in request body parsing when migrating from Spring Boot V2 to Spring Boot V3.
 				// Sometimes the request body for a FORM POST was empty, but `requestParams` properly captured the form parameter and query parameter values.
 				// The following ensures that the body is properly populated.
@@ -168,6 +172,10 @@ public class TestDispatcher implements DataUtils {
 
 			Object response;
 			logIncomingHttpRequest(test, path, requestParts);
+			noteLiteralPlus(test, path, "query string", req.getQueryString());
+			if (requestParts.has("body_form_params") && !bodyReconstructedFromDecodedParams) {
+				noteLiteralPlus(test, path, "form body", body);
+			}
 
 			if (TestModule.Status.CREATED.equals(test.getStatus())) {
 				if (path.endsWith("/client1_jwks") || path.endsWith("/.well-known/openid-federation")) {
@@ -294,6 +302,7 @@ public class TestDispatcher implements DataUtils {
 				requestParts.add("query_string_params", mapToJsonObject(convertQueryStringParamsToMap(servletRequest.getQueryString()), false));
 				requestParts.addProperty("method", servletRequest.getMethod().toUpperCase()); // method is always uppercase
 				logIncomingHttpRequest(test, "/.well-known/webfinger", requestParts);
+				noteLiteralPlus(test, "/.well-known/webfinger", "query string", servletRequest.getQueryString());
 				if (TestModule.Status.CREATED.equals(test.getStatus())) {
 					throw new TestFailureException(test.getId(), "Please wait for the test to be in WAITING state. The current status is CREATED");
 				}
@@ -322,6 +331,27 @@ public class TestDispatcher implements DataUtils {
 			queryParams.add(pair.getName(), pair.getValue());
 		}
 		return queryParams;
+	}
+
+	/**
+	 * The suite decodes incoming queries and form bodies as application/x-www-form-urlencoded, so a literal '+'
+	 * became a space in {@code convertQueryStringParamsToMap}. That is the format's own encoding of a space
+	 * (RFC 6749 appendix B), so it is not a finding, but a sender that meant '+' and forgot to send "%2B" sees
+	 * an unexplained space in later checks; this entry explains it. Space-delimited and free-text parameters are skipped.
+	 */
+	protected void noteLiteralPlus(TestModule test, String path, String where, String rawFormEncoded) {
+		List<String> names = OAuthUriUtil.parametersWithLiteralPlus(rawFormEncoded);
+		if (names.isEmpty()) {
+			return;
+		}
+		eventLog.log(test.getId(), "CheckIncomingParametersForLiteralPlus", test.getOwner(), args(
+			"msg", "The " + where + " of the request to " + path + " contains a literal '+' in the parameter(s) "
+				+ String.join(", ", names) + ". The conformance suite decoded it as a space, which is what '+' means"
+				+ " in the application/x-www-form-urlencoded format. If a '+' character was intended it must be sent"
+				+ " as '%2B'.",
+			"result", Condition.ConditionResult.INFO,
+			"requirements", List.of("RFC6749A-B"),
+			"parameters", names));
 	}
 
 	protected void logIncomingHttpRequest(TestModule test, String path, JsonObject requestParts) {

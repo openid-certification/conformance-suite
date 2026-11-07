@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -44,6 +45,31 @@ class OAuthUriUtilTest {
 		params.put("client_id", "abc");
 		String actual = OAuthUriUtil.appendFormUrlEncodedQuery("https://example.com/authorize", params);
 		assertEquals("https://example.com/authorize?state&client_id=abc", actual);
+	}
+
+	@Test
+	public void literalPlusIsReportedExceptInSpaceDelimitedParameters() {
+		String raw = "scope=openid+profile&response_type=code+id_token&client_metadata=%7B%22dc+sd-jwt%22%7D"
+			+ "&error_description=End-User+authentication+is+required&login_hint=joe%2Btag%40example.com&state=a+b&state=c+d&ok=x";
+		assertEquals(List.of("client_metadata", "state"), OAuthUriUtil.parametersWithLiteralPlus(raw));
+	}
+
+	@Test
+	public void literalPlusWithMalformedPercentSequenceDoesNotThrow() {
+		assertEquals(List.of("a%zz"), OAuthUriUtil.parametersWithLiteralPlus("a%zz=b+c"));
+		assertEquals(List.of("state"), OAuthUriUtil.parametersWithLiteralPlus("state=%E0%A4%A+x"));
+	}
+
+	@Test
+	public void literalPlusInParameterNameIsReported() {
+		assertEquals(List.of("a b"), OAuthUriUtil.parametersWithLiteralPlus("a+b=1"));
+	}
+
+	@Test
+	public void noLiteralPlusGivesEmptyList() {
+		assertEquals(List.of(), OAuthUriUtil.parametersWithLiteralPlus("scope=openid%20profile&x=%2B"));
+		assertEquals(List.of(), OAuthUriUtil.parametersWithLiteralPlus(""));
+		assertEquals(List.of(), OAuthUriUtil.parametersWithLiteralPlus(null));
 	}
 
 	@Test
