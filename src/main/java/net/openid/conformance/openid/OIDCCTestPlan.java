@@ -45,6 +45,7 @@ public class OIDCCTestPlan implements TestPlan {
 					OIDCCScopePhone.class,
 					OIDCCScopeProfile.class,
 					OIDCCAlternateHappyFlow.class,
+					OIDCCEnsureSpaceAsPlusInScopeSucceeds.class,
 					OIDCCPromptLogin.class,
 					OIDCCPromptNoneLoggedIn.class,
 					OIDCCPromptNoneNotLoggedIn.class,

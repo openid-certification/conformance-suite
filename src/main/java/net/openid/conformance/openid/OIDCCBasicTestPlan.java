@@ -55,6 +55,7 @@ public class OIDCCBasicTestPlan implements TestPlan {
 					OIDCCScopePhone.class, // OP-scope-phone
 					OIDCCScopeAll.class, // OP-scope-All
 					OIDCCAlternateHappyFlow.class, // new test in java suite
+					OIDCCEnsureSpaceAsPlusInScopeSucceeds.class,
 					OIDCCDisplayPage.class, // OP-display-page
 					OIDCCDisplayPopup.class, // OP-display-popup
 					OIDCCPromptLogin.class, // OP-prompt-login
