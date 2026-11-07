@@ -21,7 +21,9 @@
     },
     {
         "test-name": "oid4vp-1final-verifier-happy-flow",
-        "variant": "*",
+        "variant": {
+            "request_method": "request_uri_signed"
+        },
         "configuration-filename": "*vp-verifier-test-config-with-redirect*.json",
         "current-block": "Authorization endpoint",
         "condition": "CheckForUnexpectedParametersInVpAuthorizationRequest",
@@ -30,7 +32,9 @@
     },
     {
         "test-name": "oid4vp-1final-verifier-happy-flow",
-        "variant": "*",
+        "variant": {
+            "request_method": "request_uri_signed"
+        },
         "configuration-filename": "*vp-verifier-test-config-with-redirect*.json",
         "current-block": "Authorization endpoint",
         "condition": "ValidateRequestObjectIssIfPresent",
