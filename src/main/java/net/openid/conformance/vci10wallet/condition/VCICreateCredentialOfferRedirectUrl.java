@@ -3,8 +3,10 @@ package net.openid.conformance.vci10wallet.condition;
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.OAuthUriUtil;
 import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
-import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.Map;
 
 public class VCICreateCredentialOfferRedirectUrl extends AbstractCondition {
 
@@ -18,19 +20,15 @@ public class VCICreateCredentialOfferRedirectUrl extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		String credentialOfferEndpointUrl = env.getString("config", "vci.credential_offer_endpoint");
-		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(credentialOfferEndpointUrl);
-		switch (vciCredentialOfferParameterVariantType) {
+		Map<String, String> params = switch (vciCredentialOfferParameterVariantType) {
 			case BY_VALUE -> {
 				JsonElement credentialOfferObject = env.getElementFromObject("vci", "credential_offer");
-				builder.queryParam("credential_offer", credentialOfferObject);
+				yield Map.of("credential_offer", credentialOfferObject.toString());
 			}
-			case BY_REFERENCE -> {
-				String credentialOfferUri = env.getString("vci", "credential_offer_uri");
-				builder.queryParam("credential_offer_uri", credentialOfferUri);
-			}
-		}
+			case BY_REFERENCE -> Map.of("credential_offer_uri", env.getString("vci", "credential_offer_uri"));
+		};
 
-		String url = builder.toUriString();
+		String url = OAuthUriUtil.appendFormUrlEncodedQuery(credentialOfferEndpointUrl, params);
 		env.putString("vci","credential_offer_redirect_url", url);
 
 		logSuccess("Created credential offer redirect url", args("credential_offer_redirect_url", url, "credential_offer_type", vciCredentialOfferParameterVariantType));
