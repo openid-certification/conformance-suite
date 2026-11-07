@@ -469,7 +469,11 @@ makeVcTests() {
     # VP 1.0 Final
     SANDNS="client_id_prefix=x509_san_dns" # final changed scheme -> prefix
     HASH="client_id_prefix=x509_hash"
+    REDIRECTURI="client_id_prefix=redirect_uri"
+    URLQUERY="request_method=url_query"
     TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-verifier-happy-flow{oid4vp-1final-wallet-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-wallet-happy-flow}${CONFIGS}/vp-wallet-test-config-dcql-sdjwt.json ${CONFIGS}/vp-verifier-test-config.json"
+    # url_query carries the JSON parameters in the query string; checks the '+' in dc+sd-jwt survives both encoders
+    TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$VPPROFILE][$SDJWT][$REDIRECTURI][$URLQUERY][$DIRECTPOST]:oid4vp-1final-verifier-happy-flow{oid4vp-1final-wallet-test-plan[$VPPROFILE][$SDJWT][$REDIRECTURI][$URLQUERY][$DIRECTPOST]:oid4vp-1final-wallet-happy-flow}${CONFIGS}/vp-wallet-test-config-dcql-sdjwt.json ${CONFIGS}/vp-verifier-test-config-with-redirect-no-client-id.json"
     # the wallet tests' built-in DCQL queries, i.e. configurations with no dcql of their own
     PIDTYPE="credential_type=eudi_pid"
     MDLTYPE="credential_type=mdl"
