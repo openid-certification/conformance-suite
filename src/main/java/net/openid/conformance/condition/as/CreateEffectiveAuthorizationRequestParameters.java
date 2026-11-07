@@ -54,6 +54,8 @@ public class CreateEffectiveAuthorizationRequestParameters extends AbstractCondi
 		convertJsonStringParam(effective, "authorization_details");
 		convertJsonStringParam(effective, "dcql_query");
 		convertJsonStringParam(effective, "client_metadata");
+		convertJsonStringParam(effective, "verifier_info");
+		convertJsonStringParam(effective, "transaction_data");
 
 		// Normalize numeric HTTP query params (e.g. max_age arrives as string "99" from URL).
 		// This runs BEFORE the request object merge so that request object types are preserved —
@@ -86,8 +88,9 @@ public class CreateEffectiveAuthorizationRequestParameters extends AbstractCondi
 	}
 
 	/**
-	 * When parameters like dcql_query, client_metadata, or authorization_details are passed as URL query
-	 * params (URL_QUERY request method), they arrive as JSON-serialized strings. Parse them back into
+	 * When parameters like dcql_query, client_metadata, verifier_info, transaction_data or
+	 * authorization_details are passed as URL query params (URL_QUERY request method), they arrive as
+	 * JSON-serialized strings. Parse them back into
 	 * JSON so downstream conditions can work with them the same way as when they come from a signed
 	 * request object (JAR).
 	 */

@@ -113,6 +113,32 @@ public class CreateEffectiveAuthorizationRequestParameters_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_verifierInfoStringParsedToJson() {
+		JsonObject httpReqParams = new JsonObject();
+		httpReqParams.addProperty("verifier_info", "[{\"format\":\"registration_certificate_jwt\",\"data\":\"eyJ.e30.sig\"}]");
+		env.putObject("authorization_endpoint_http_request_params", httpReqParams);
+
+		cond.execute(env);
+
+		JsonObject res = env.getObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY);
+		assertTrue(res.get("verifier_info").isJsonArray(),
+			"verifier_info JSON array string should be parsed into a JsonArray");
+	}
+
+	@Test
+	public void testEvaluate_transactionDataStringParsedToJson() {
+		JsonObject httpReqParams = new JsonObject();
+		httpReqParams.addProperty("transaction_data", "[\"eyJ0eXBlIjoiZXhhbXBsZSJ9\"]");
+		env.putObject("authorization_endpoint_http_request_params", httpReqParams);
+
+		cond.execute(env);
+
+		JsonObject res = env.getObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY);
+		assertTrue(res.get("transaction_data").isJsonArray(),
+			"transaction_data JSON array string should be parsed into a JsonArray");
+	}
+
+	@Test
 	public void testEvaluate_authorizationDetailsObjectStringAccepted() {
 		// An object-valued authorization_details string should be parsed without error;
 		// array type validation (per RFC 9396) is handled downstream by
