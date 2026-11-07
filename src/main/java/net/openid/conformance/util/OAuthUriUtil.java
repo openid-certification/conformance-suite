@@ -26,17 +26,30 @@ public class OAuthUriUtil {
 		String beforeFragment = fragmentStart == -1 ? url : url.substring(0, fragmentStart);
 		String fragment = fragmentStart == -1 ? "" : url.substring(fragmentStart);
 		StringBuilder sb = new StringBuilder(beforeFragment);
-		char separator = beforeFragment.indexOf('?') == -1 ? '?' : '&';
+		if (!parameters.isEmpty()) {
+			sb.append(beforeFragment.indexOf('?') == -1 ? '?' : '&');
+			sb.append(formUrlEncodedQuery(parameters));
+		}
+		sb.append(fragment);
+		return sb.toString();
+	}
+
+	/**
+	 * The parameters as an application/x-www-form-urlencoded string without a leading '?', encoded as in
+	 * {@link #appendFormUrlEncodedQuery}; for use as the fragment of a response_mode=fragment redirect.
+	 */
+	public static String formUrlEncodedQuery(Map<String, String> parameters) {
+		StringBuilder sb = new StringBuilder();
 		for (Map.Entry<String, String> entry : parameters.entrySet()) {
-			sb.append(separator);
-			separator = '&';
+			if (sb.length() > 0) {
+				sb.append('&');
+			}
 			sb.append(formUrlEncode(entry.getKey()));
 			if (entry.getValue() != null) {
 				sb.append('=');
 				sb.append(formUrlEncode(entry.getValue()));
 			}
 		}
-		sb.append(fragment);
 		return sb.toString();
 	}
 

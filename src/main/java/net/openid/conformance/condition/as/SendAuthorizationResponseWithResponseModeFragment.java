@@ -6,7 +6,10 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import org.springframework.web.util.UriComponentsBuilder;
+import net.openid.conformance.util.OAuthUriUtil;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class SendAuthorizationResponseWithResponseModeFragment extends AbstractCondition {
 
@@ -18,18 +21,11 @@ public class SendAuthorizationResponseWithResponseModeFragment extends AbstractC
 		JsonObject params = env.getObject(CreateAuthorizationEndpointResponseParams.ENV_KEY);
 		String redirectUri = OIDFJSON.getString(params.remove("redirect_uri"));
 
-		UriComponentsBuilder builder = UriComponentsBuilder.newInstance();
-
+		Map<String, String> fragmentParams = new LinkedHashMap<>();
 		for(String paramName : params.keySet()) {
-			builder.queryParam(paramName, OIDFJSON.getString(params.get(paramName)));
+			fragmentParams.put(paramName, OIDFJSON.getString(params.get(paramName)));
 		}
-
-		String paramsAsString = builder.toUriString();
-		if(paramsAsString.startsWith("?")) {
-			paramsAsString = paramsAsString.substring(1);
-		}
-
-		String redirectTo = redirectUri + "#" + paramsAsString;
+		String redirectTo = redirectUri + "#" + OAuthUriUtil.formUrlEncodedQuery(fragmentParams);
 
 		log("Redirecting back to client", args("uri", redirectTo));
 

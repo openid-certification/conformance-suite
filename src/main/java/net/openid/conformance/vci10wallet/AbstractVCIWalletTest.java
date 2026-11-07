@@ -186,9 +186,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.text.ParseException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @ConfigurationFields({
@@ -2308,14 +2308,14 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		if (redirectUri == null) {
 			throw new TestFailureException(getId(), "Cannot send authorization error redirect: no redirect_uri available");
 		}
-		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(redirectUri);
-		builder.queryParam("error", error);
-		builder.queryParam("error_description", errorDescription);
+		Map<String, String> params = new LinkedHashMap<>();
+		params.put("error", error);
+		params.put("error_description", errorDescription);
 		String state = findAuthorizationParam("state");
 		if (state != null) {
-			builder.queryParam("state", state);
+			params.put("state", state);
 		}
-		return new RedirectView(builder.toUriString(), false, false, false);
+		return new RedirectView(OAuthUriUtil.appendFormUrlEncodedQuery(redirectUri, params), false, false, false);
 	}
 
 	protected void validateParRedirectUri() {

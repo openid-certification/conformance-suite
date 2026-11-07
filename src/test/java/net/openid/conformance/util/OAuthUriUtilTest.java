@@ -33,6 +33,15 @@ class OAuthUriUtilTest {
 	}
 
 	@Test
+	public void formUrlEncodedQueryWithoutUrlHasNoLeadingSeparator() {
+		Map<String, String> params = new LinkedHashMap<>();
+		params.put("code", "abc");
+		params.put("state", "a+b c");
+		assertEquals("code=abc&state=a%2Bb%20c", OAuthUriUtil.formUrlEncodedQuery(params));
+		assertEquals("", OAuthUriUtil.formUrlEncodedQuery(Map.of()));
+	}
+
+	@Test
 	public void formUrlEncodedQueryGoesBeforeAnyFragment() {
 		String actual = OAuthUriUtil.appendFormUrlEncodedQuery("https://example.com/authorize#top", Map.of("client_id", "abc"));
 		assertEquals("https://example.com/authorize?client_id=abc#top", actual);

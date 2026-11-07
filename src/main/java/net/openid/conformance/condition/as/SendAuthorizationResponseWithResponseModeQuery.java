@@ -6,7 +6,10 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import org.springframework.web.util.UriComponentsBuilder;
+import net.openid.conformance.util.OAuthUriUtil;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class SendAuthorizationResponseWithResponseModeQuery extends AbstractCondition {
 
@@ -18,12 +21,11 @@ public class SendAuthorizationResponseWithResponseModeQuery extends AbstractCond
 		JsonObject params = env.getObject(CreateAuthorizationEndpointResponseParams.ENV_KEY);
 		String redirectUri = OIDFJSON.getString(params.remove("redirect_uri"));
 
-		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(redirectUri);
+		Map<String, String> queryParams = new LinkedHashMap<>();
 		for(String paramName : params.keySet()) {
-			builder.queryParam(paramName, OIDFJSON.getString(params.get(paramName)));
+			queryParams.put(paramName, OIDFJSON.getString(params.get(paramName)));
 		}
-
-		String redirectTo = builder.toUriString();
+		String redirectTo = OAuthUriUtil.appendFormUrlEncodedQuery(redirectUri, queryParams);
 
 		log("Redirecting back to client", args("uri", redirectTo));
 
