@@ -42,6 +42,16 @@ class OAuthUriUtilTest {
 	}
 
 	@Test
+	public void spaceAsPlusWritesSpacesAsPlusAndPlusesAsPercent2B() {
+		Map<String, String> params = new LinkedHashMap<>();
+		params.put("scope", "openid email");
+		params.put("state", "a+b c");
+		assertEquals("https://example.com/authorize?scope=openid+email&state=a%2Bb+c",
+			OAuthUriUtil.appendFormUrlEncodedQuery("https://example.com/authorize", params, true));
+		assertEquals("openid email", URLDecoder.decode("openid+email", StandardCharsets.UTF_8));
+	}
+
+	@Test
 	public void formUrlEncodedQueryGoesBeforeAnyFragment() {
 		String actual = OAuthUriUtil.appendFormUrlEncodedQuery("https://example.com/authorize#top", Map.of("client_id", "abc"));
 		assertEquals("https://example.com/authorize?client_id=abc#top", actual);

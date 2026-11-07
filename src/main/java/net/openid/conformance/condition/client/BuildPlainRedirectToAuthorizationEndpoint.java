@@ -57,13 +57,18 @@ public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition
 
 		}
 
-		String redirectTo = OAuthUriUtil.appendFormUrlEncodedQuery(authorizationEndpoint, params);
+		String redirectTo = OAuthUriUtil.appendFormUrlEncodedQuery(authorizationEndpoint, params, encodeSpaceAsPlus());
 
 		logSuccess("Sending to authorization endpoint", args("redirect_to_authorization_endpoint", redirectTo, "auth_request", authorizationEndpointRequest));
 
 		env.putString("redirect_to_authorization_endpoint", redirectTo);
 
 		return env;
+	}
+
+	/** Whether a space in a parameter value is written as "+" rather than "%20"; both are valid form encodings. */
+	protected boolean encodeSpaceAsPlus() {
+		return false;
 	}
 
 	protected Collection<String> getParameterOrder(JsonObject authorizationEndpointRequest) {

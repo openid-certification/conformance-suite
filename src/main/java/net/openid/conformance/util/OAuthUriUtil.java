@@ -22,13 +22,21 @@ public class OAuthUriUtil {
 	 * "openid4vp://" (OID4VP 1.0 section 13.1.2) are not valid java.net.URI values.
 	 */
 	public static String appendFormUrlEncodedQuery(String url, Map<String, String> parameters) {
+		return appendFormUrlEncodedQuery(url, parameters, false);
+	}
+
+	/**
+	 * As {@link #appendFormUrlEncodedQuery(String, Map)}, but with {@code spaceAsPlus} a space is written as "+",
+	 * the other encoding RFC 6749 appendix B allows, to check the receiver decodes it as a space.
+	 */
+	public static String appendFormUrlEncodedQuery(String url, Map<String, String> parameters, boolean spaceAsPlus) {
 		int fragmentStart = url.indexOf('#');
 		String beforeFragment = fragmentStart == -1 ? url : url.substring(0, fragmentStart);
 		String fragment = fragmentStart == -1 ? "" : url.substring(fragmentStart);
 		StringBuilder sb = new StringBuilder(beforeFragment);
 		if (!parameters.isEmpty()) {
 			sb.append(beforeFragment.indexOf('?') == -1 ? '?' : '&');
-			sb.append(formUrlEncodedQuery(parameters));
+			sb.append(formUrlEncodedQuery(parameters, spaceAsPlus));
 		}
 		sb.append(fragment);
 		return sb.toString();
@@ -39,18 +47,27 @@ public class OAuthUriUtil {
 	 * {@link #appendFormUrlEncodedQuery}; for use as the fragment of a response_mode=fragment redirect.
 	 */
 	public static String formUrlEncodedQuery(Map<String, String> parameters) {
+		return formUrlEncodedQuery(parameters, false);
+	}
+
+	private static String formUrlEncodedQuery(Map<String, String> parameters, boolean spaceAsPlus) {
 		StringBuilder sb = new StringBuilder();
 		for (Map.Entry<String, String> entry : parameters.entrySet()) {
 			if (sb.length() > 0) {
 				sb.append('&');
 			}
-			sb.append(formUrlEncode(entry.getKey()));
+			sb.append(formUrlEncode(entry.getKey(), spaceAsPlus));
 			if (entry.getValue() != null) {
 				sb.append('=');
-				sb.append(formUrlEncode(entry.getValue()));
+				sb.append(formUrlEncode(entry.getValue(), spaceAsPlus));
 			}
 		}
 		return sb.toString();
+	}
+
+	private static String formUrlEncode(String value, boolean spaceAsPlus) {
+		String encoded = formUrlEncode(value);
+		return spaceAsPlus ? encoded.replace("%20", "+") : encoded;
 	}
 
 	private static String formUrlEncode(String value) {
