@@ -988,13 +988,14 @@ security_test:
     mkdir reference
     cd reference
     for i in $*; do
-      echo "Fetching master branch latest passed pipeline results for '$*'"
-      res=0
-      curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --silent --show-error --fail -L -o $i.zip "$CI_API_V4_URL/projects/${CI_PROJECT_ID}/jobs/artifacts/master/download?job=$i" || res=$?
-      if [ $res -eq 0 ]; then
-        unzip $i.zip
-        rm $i.zip
-      fi
+      echo "Fetching master branch latest passed pipeline results for '$i'"
+      code=$(curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --silent --show-error -L --retry 5 --retry-delay 5 --retry-connrefused -o $i.zip -w '%{http_code}' "$CI_API_V4_URL/projects/${CI_PROJECT_ID}/jobs/artifacts/master/download?job=$i") || code=000
+      case "$code" in
+        200) unzip $i.zip && rm $i.zip ;;
+        # no passed master run has artifacts for this job yet; exit 16 shows the job as a warning
+        404) echo "No master results for '$i' yet - nothing to compare against"; exit 16 ;;
+        *) echo "Failed to fetch master results for '$i' (HTTP $code)"; exit 1 ;;
+      esac
     done
     cd ..
     ./scripts/compare-results.py reference .
