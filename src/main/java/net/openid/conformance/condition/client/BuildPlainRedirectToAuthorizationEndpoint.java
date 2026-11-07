@@ -8,12 +8,14 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import org.springframework.web.util.UriComponentsBuilder;
+import net.openid.conformance.util.OAuthUriUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition {
 
@@ -35,7 +37,7 @@ public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition
 		}
 
 		// send a front channel request to start things off
-		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(authorizationEndpoint);
+		Map<String, String> params = new LinkedHashMap<>();
 
 		for (String key : getParameterOrder(authorizationEndpointRequest)) {
 			JsonElement element = authorizationEndpointRequest.get(key);
@@ -43,19 +45,19 @@ public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition
 			// for nonce, state, client_id, redirect_uri, etc.
 			if (element.isJsonPrimitive()) {
 				if (key.equals("max_age")) {
-					builder.queryParam(key, OIDFJSON.getNumber(element));
+					params.put(key, OIDFJSON.getNumber(element).toString());
 				} else {
-					builder.queryParam(key, OIDFJSON.getString(element));
+					params.put(key, OIDFJSON.getString(element));
 				}
 			}
 			// for JSON objects/arrays (claims, dcql_query, client_metadata, etc.)
 			else {
-				builder.queryParam(key, element.toString());
+				params.put(key, element.toString());
 			}
 
 		}
 
-		String redirectTo = builder.toUriString();
+		String redirectTo = OAuthUriUtil.appendFormUrlEncodedQuery(authorizationEndpoint, params);
 
 		logSuccess("Sending to authorization endpoint", args("redirect_to_authorization_endpoint", redirectTo, "auth_request", authorizationEndpointRequest));
 

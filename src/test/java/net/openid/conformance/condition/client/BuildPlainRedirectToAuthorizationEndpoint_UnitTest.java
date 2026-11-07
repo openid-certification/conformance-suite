@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
@@ -15,7 +16,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -89,11 +91,11 @@ public class BuildPlainRedirectToAuthorizationEndpoint_UnitTest {
 		UriComponents redirectUriComponents = UriComponentsBuilder.fromUriString(env.getString("redirect_to_authorization_endpoint")).build();
 		Map<String, List<String>> redirectUriParams = redirectUriComponents.getQueryParams();
 
-		assertThat(redirectUriParams.get("response_type")).containsExactly(UriUtils.encodeQueryParam(responseType, Charset.defaultCharset().name()));
-		assertThat(redirectUriParams.get("client_id")).containsExactly(UriUtils.encodeQueryParam(clientId, Charset.defaultCharset().name()));
-		assertThat(redirectUriParams.get("redirect_uri")).containsExactly(UriUtils.encodeQueryParam(redirectUri, Charset.defaultCharset().name()));
-		assertThat(redirectUriParams.get("scope")).containsExactly(UriUtils.encodeQueryParam(scope, Charset.defaultCharset().name()));
-		assertThat(redirectUriParams.get("state")).containsExactly(UriUtils.encodeQueryParam(state, Charset.defaultCharset().name()));
+		assertThat(redirectUriParams.get("response_type")).containsExactly(UriUtils.encode(responseType, StandardCharsets.UTF_8));
+		assertThat(redirectUriParams.get("client_id")).containsExactly(UriUtils.encode(clientId, StandardCharsets.UTF_8));
+		assertThat(redirectUriParams.get("redirect_uri")).containsExactly(UriUtils.encode(redirectUri, StandardCharsets.UTF_8));
+		assertThat(redirectUriParams.get("scope")).containsExactly(UriUtils.encode(scope, StandardCharsets.UTF_8));
+		assertThat(redirectUriParams.get("state")).containsExactly(UriUtils.encode(state, StandardCharsets.UTF_8));
 	}
 
 	@Test
@@ -124,11 +126,36 @@ public class BuildPlainRedirectToAuthorizationEndpoint_UnitTest {
 
 		cond.execute(env);
 
-		// This expected result is incorrect - the '+' should have been encoded to '%2B', as a + in the url
-		// query means "space". The existing code doesn't handle that correctly, and I can't quickly find a way
-		// to make Spring do the correct thing.
-		// see https://github.com/spring-projects/spring-framework/issues/21577
-		assertThat(env.getString("redirect_to_authorization_endpoint")).isEqualTo("https://example.com/oauth/authorize?state=x%3Dy%26z;foo%20bar+foo%2520bar");
+		// a '+' in a form-urlencoded query means "space", so it must be sent as %2B
+		assertThat(env.getString("redirect_to_authorization_endpoint")).isEqualTo("https://example.com/oauth/authorize?state=x%3Dy%26z%3Bfoo%20bar%2Bfoo%2520bar");
+	}
+
+	@Test
+	public void testJsonValueWithPlusIsFormUrlEncoded() {
+		server.addProperty("authorization_endpoint", "openid4vp://authorize");
+		authorizationEndpointRequest = new JsonObject();
+		JsonObject clientMetadata = JsonParser.parseString("{\"vp_formats_supported\":{\"dc+sd-jwt\":{}}}").getAsJsonObject();
+		authorizationEndpointRequest.add("client_metadata", clientMetadata);
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
+
+		cond.execute(env);
+
+		String redirect = env.getString("redirect_to_authorization_endpoint");
+		assertThat(redirect).isEqualTo("openid4vp://authorize?client_metadata=%7B%22vp_formats_supported%22%3A%7B%22dc%2Bsd-jwt%22%3A%7B%7D%7D%7D");
+		// a wallet decoding the query as application/x-www-form-urlencoded reads the original JSON back
+		assertThat(URLDecoder.decode(redirect.substring(redirect.indexOf('=') + 1), StandardCharsets.UTF_8)).isEqualTo(clientMetadata.toString());
+	}
+
+	@Test
+	public void testExistingEndpointQueryIsRetained() {
+		server.addProperty("authorization_endpoint", "https://example.com/oauth/authorize?tenant=a%20b");
+		authorizationEndpointRequest = new JsonObject();
+		authorizationEndpointRequest.addProperty("client_id", clientId);
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
+
+		cond.execute(env);
+
+		assertThat(env.getString("redirect_to_authorization_endpoint")).isEqualTo("https://example.com/oauth/authorize?tenant=a%20b&client_id=" + clientId);
 	}
 
 }

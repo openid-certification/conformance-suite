@@ -17,7 +17,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -148,10 +148,10 @@ public class BuildRequestObjectByValueRedirectToAuthorizationEndpoint_UnitTest {
 		UriComponents redirectUriComponents = UriComponentsBuilder.fromUriString(env.getString("redirect_to_authorization_endpoint")).build();
 		Map<String, List<String>> redirectUriParams = redirectUriComponents.getQueryParams();
 
-		assertThat(redirectUriParams.get("response_type")).containsExactly(UriUtils.encodeQueryParam("code id_token", Charset.defaultCharset().name()));
-		assertThat(redirectUriParams.get("client_id")).containsExactly(UriUtils.encodeQueryParam("s6BhdRkqt3", Charset.defaultCharset().name()));
-		assertThat(redirectUriParams.get("scope")).containsExactly(UriUtils.encodeQueryParam("openid", Charset.defaultCharset().name()));
-		assertThat(redirectUriParams.get("redirect_uri")).containsExactly(UriUtils.encodeQueryParam("https://client.example.org/cb", Charset.defaultCharset().name()));
+		assertThat(redirectUriParams.get("response_type")).containsExactly(UriUtils.encode("code id_token", StandardCharsets.UTF_8));
+		assertThat(redirectUriParams.get("client_id")).containsExactly(UriUtils.encode("s6BhdRkqt3", StandardCharsets.UTF_8));
+		assertThat(redirectUriParams.get("scope")).containsExactly(UriUtils.encode("openid", StandardCharsets.UTF_8));
+		assertThat(redirectUriParams.get("redirect_uri")).containsExactly(UriUtils.encode("https://client.example.org/cb", StandardCharsets.UTF_8));
 		assertThat(redirectUriParams.get("state")).isNull();
 		assertThat(redirectUriParams.get("nonce")).isNull();
 
@@ -175,8 +175,8 @@ public class BuildRequestObjectByValueRedirectToAuthorizationEndpoint_UnitTest {
 		UriComponents redirectUriComponents = UriComponentsBuilder.fromUriString(env.getString("redirect_to_authorization_endpoint")).build();
 		Map<String, List<String>> redirectUriParams = redirectUriComponents.getQueryParams();
 
-		assertThat(redirectUriParams.get("state")).containsExactly(UriUtils.encodeQueryParam("abcdefghijk", Charset.defaultCharset().name()));
-		assertThat(redirectUriParams.get("nonce")).containsExactly(UriUtils.encodeQueryParam("0123456789ab", Charset.defaultCharset().name()));
+		assertThat(redirectUriParams.get("state")).containsExactly(UriUtils.encode("abcdefghijk", StandardCharsets.UTF_8));
+		assertThat(redirectUriParams.get("nonce")).containsExactly(UriUtils.encode("0123456789ab", StandardCharsets.UTF_8));
 
 	}
 

@@ -7,7 +7,7 @@ import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import org.springframework.web.util.UriComponentsBuilder;
+import net.openid.conformance.util.OAuthUriUtil;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -99,12 +99,7 @@ public abstract class AbstractBuildRequestObjectRedirectToAuthorizationEndpoint 
 			}
 		}
 
-		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(authorizationEndpoint);
-		for (Map.Entry<String, String> entry : params.entrySet()) {
-			builder.queryParam(entry.getKey(), entry.getValue());
-		}
-
-		String redirectTo = builder.toUriString();
+		String redirectTo = OAuthUriUtil.appendFormUrlEncodedQuery(authorizationEndpoint, params);
 
 		logSuccess("Sending to authorization endpoint", args("redirect_to_authorization_endpoint", redirectTo));
 

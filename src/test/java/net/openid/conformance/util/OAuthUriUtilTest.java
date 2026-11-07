@@ -2,9 +2,65 @@ package net.openid.conformance.util;
 
 import org.junit.jupiter.api.Test;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class OAuthUriUtilTest {
+
+	@Test
+	public void formUrlEncodedQueryEncodesPlusAndSpaceDistinctly() {
+		Map<String, String> params = new LinkedHashMap<>();
+		params.put("scope", "openid profile");
+		params.put("format", "dc+sd-jwt");
+		params.put("redirect_uri", "https://client.example.com/cb?x=1&y=2");
+
+		String actual = OAuthUriUtil.appendFormUrlEncodedQuery("https://example.com/authorize", params);
+
+		assertEquals("https://example.com/authorize?scope=openid%20profile&format=dc%2Bsd-jwt"
+			+ "&redirect_uri=https%3A%2F%2Fclient.example.com%2Fcb%3Fx%3D1%26y%3D2", actual);
+		// RFC 6749 appendix B decoding (URLDecoder treats '+' as a space) gives the original values back
+		Map<String, String> decoded = new LinkedHashMap<>();
+		for (String pair : actual.substring(actual.indexOf('?') + 1).split("&")) {
+			String[] nameValue = pair.split("=", 2);
+			decoded.put(URLDecoder.decode(nameValue[0], StandardCharsets.UTF_8), URLDecoder.decode(nameValue[1], StandardCharsets.UTF_8));
+		}
+		assertEquals(params, decoded);
+	}
+
+	@Test
+	public void formUrlEncodedQueryGoesBeforeAnyFragment() {
+		String actual = OAuthUriUtil.appendFormUrlEncodedQuery("https://example.com/authorize#top", Map.of("client_id", "abc"));
+		assertEquals("https://example.com/authorize?client_id=abc#top", actual);
+	}
+
+	@Test
+	public void formUrlEncodedQuerySendsNullValueAsBareName() {
+		Map<String, String> params = new LinkedHashMap<>();
+		params.put("state", null);
+		params.put("client_id", "abc");
+		String actual = OAuthUriUtil.appendFormUrlEncodedQuery("https://example.com/authorize", params);
+		assertEquals("https://example.com/authorize?state&client_id=abc", actual);
+	}
+
+	@Test
+	public void formUrlEncodedQueryAcceptsSchemeOnlyWalletEndpoint() {
+		assertEquals("openid4vp://?client_id=abc", OAuthUriUtil.appendFormUrlEncodedQuery("openid4vp://", Map.of("client_id", "abc")));
+	}
+
+	@Test
+	public void formUrlEncodedQueryRetainsExistingEndpointQuery() {
+		String actual = OAuthUriUtil.appendFormUrlEncodedQuery("https://example.com/authorize?tenant=t1", Map.of("client_id", "abc"));
+		assertEquals("https://example.com/authorize?tenant=t1&client_id=abc", actual);
+	}
+
+	@Test
+	public void formUrlEncodedQueryWithNoParametersLeavesUrlUnchanged() {
+		assertEquals("https://example.com/authorize", OAuthUriUtil.appendFormUrlEncodedQuery("https://example.com/authorize", Map.of()));
+	}
 
 	@Test
 	public void wellKnownUrlFromIssuer() {
