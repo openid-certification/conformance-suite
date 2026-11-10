@@ -1175,6 +1175,7 @@
     "CID-IDA-": "third-party specification; redistribution rights not confirmed (#1957 first import is IETF+OIDF only)",
     "CID-PURPOSE-": "third-party specification; redistribution rights not confirmed (#1957 first import is IETF+OIDF only)",
     "CID-SP-": "third-party specification; redistribution rights not confirmed (#1957 first import is IETF+OIDF only)",
+    "CMF-XJWS-": "third-party specification; redistribution rights not confirmed (#1957 first import is IETF+OIDF only)",
     "FAPI-ISSUES-": "issue tracker, not a specification",
     "FAPI2-IMP-": "OIDF working copy at a mutable URL; no published source sibling",
     "ISO18013-5-": {

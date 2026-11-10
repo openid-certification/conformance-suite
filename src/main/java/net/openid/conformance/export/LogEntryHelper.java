@@ -139,6 +139,7 @@ public class LogEntryHelper {
 		specLinks.put("CID-CIBA-", "https://cdn.connectid.com.au/specifications/connectid-fapi-ciba-profile-02.html#section-");
 		specLinks.put("OIDFED-", "https://openid.net/specs/openid-federation-1_0-final.html#section-");
 		specLinks.put("CBUAE", "https://openfinanceuae.atlassian.net/wiki/spaces/standardsv1final/pages/151846988/Security+Profile+-+FAPI");
+		specLinks.put("CMF-XJWS-", "https://openfinancechile.atlassian.net/wiki/spaces/OFAC/pages/778108930/Perfil+de+firma+de+mensajes+x-jws-signature+para+gu+as+de+pruebas#");
 		specLinks.put("AUTHZEN-", "https://openid.net/specs/authorization-api-1_0.html#section-");
 		specLinks.put("FAPI-ISSUES-", "https://bitbucket.org/openid/fapi/issues/");
 
@@ -186,6 +187,27 @@ public class LogEntryHelper {
 			brazilFapi22 + "6.2.-Signing-algorithm-considerations");
 		specSectionLinks.put("BrazilOB22-6.3",
 			brazilFapi22 + "6.3.-Encryption-algorithm-considerations");
+
+		String cmfXJws = specLinks.get("CMF-XJWS-");
+		specSectionLinks.put("CMF-XJWS-1", cmfXJws + "1.-Alcance");
+		specSectionLinks.put("CMF-XJWS-2", cmfXJws + "2.-Convenciones");
+		specSectionLinks.put("CMF-XJWS-3", cmfXJws + "3.-Referencias-normativas");
+		specSectionLinks.put("CMF-XJWS-4", cmfXJws + "4.-T%C3%A9rminos");
+		specSectionLinks.put("CMF-XJWS-5", cmfXJws + "5.-Perfil-de-firma");
+		specSectionLinks.put("CMF-XJWS-5.1", cmfXJws + "5.1-Perfil");
+		specSectionLinks.put("CMF-XJWS-5.2", cmfXJws + "5.2-Requisitos-para-las-solicitudes-a-recursos");
+		specSectionLinks.put("CMF-XJWS-5.2.1", cmfXJws + "5.2.1-Clientes-(firmante)");
+		specSectionLinks.put("CMF-XJWS-5.2.2", cmfXJws + "5.2.2-Servidores-de-recursos-(verificador)");
+		specSectionLinks.put("CMF-XJWS-5.3", cmfXJws + "5.3-Requisitos-para-las-respuestas-de-recursos");
+		specSectionLinks.put("CMF-XJWS-5.3.1", cmfXJws + "5.3.1-Servidores-de-recursos-(firmante)");
+		specSectionLinks.put("CMF-XJWS-5.3.2", cmfXJws + "5.3.2-Clientes-(verificador)");
+		specSectionLinks.put("CMF-XJWS-5.3.2.1", cmfXJws + "5.3.2.1-Endpoint-de-claves");
+		specSectionLinks.put("CMF-XJWS-6", cmfXJws + "6.-Consideraciones-de-seguridad");
+		specSectionLinks.put("CMF-XJWS-6.1", cmfXJws + "6.1-Respuesta-amarrada-a-la-solicitud");
+		specSectionLinks.put("CMF-XJWS-6.2", cmfXJws + "6.2-Digest-sobre-los-bytes-transmitidos");
+		specSectionLinks.put("CMF-XJWS-7", cmfXJws + "7.-Consideraciones-de-privacidad");
+		specSectionLinks.put("CMF-XJWS-A.1", cmfXJws + "A.1-C%C3%B3digo-de-firma-del-cliente");
+		specSectionLinks.put("CMF-XJWS-A.2", cmfXJws + "A.2-Vectores-de-prueba");
 	}
 
 	/**
