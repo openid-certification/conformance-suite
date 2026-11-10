@@ -3,6 +3,7 @@ package net.openid.conformance.openid.ssf.conditions.as;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
+import net.openid.conformance.testmodule.EnvironmentElementRef;
 import net.openid.conformance.testmodule.TestExecutionUnit;
 
 import java.lang.reflect.InvocationTargetException;
@@ -38,14 +39,20 @@ public class OIDSSFStopOnFirstFailureSequence extends AbstractConditionSequence 
 				call(unit);
 				continue;
 			}
-			ConditionCallBuilder stopping = step.getCondition() != null ? condition(step.getCondition()) : condition(step.getConditionClass());
-			stopping.onFail(step.getOnFail()).onSkip(step.getOnSkip()).requirements(step.getRequirements());
-			stopping.skipIfObjectsMissing(step.getSkipIfObjectsMissing().toArray(new String[0]));
-			stopping.skipIfStringsMissing(step.getSkipIfStringsMissing().toArray(new String[0]));
-			stopping.skipIfStringsPresent(step.getSkipIfStringsPresent().toArray(new String[0]));
-			stopping.skipIfLongsMissing(step.getSkipIfLongsMissing().toArray(new String[0]));
-			step.getSkipIfElementsMissing().forEach(pair -> stopping.skipIfElementMissing(pair.getLeft(), pair.getRight()));
-			step.getSkipIfElementsPresent().forEach(pair -> stopping.skipIfElementPresent(pair.getLeft(), pair.getRight()));
+			ConditionCallBuilder stopping = (step.getCondition() != null ? condition(step.getCondition()) : condition(step.getConditionClass()))
+				.onFail(step.getOnFail())
+				.onSkip(step.getOnSkip())
+				.requirements(step.getRequirements())
+				.skipIfObjectsMissing(step.getSkipIfObjectsMissing().toArray(new String[0]))
+				.skipIfStringsMissing(step.getSkipIfStringsMissing().toArray(new String[0]))
+				.skipIfStringsPresent(step.getSkipIfStringsPresent().toArray(new String[0]))
+				.skipIfLongsMissing(step.getSkipIfLongsMissing().toArray(new String[0]));
+			for (EnvironmentElementRef ref : step.getSkipIfElementsMissing()) {
+				stopping = stopping.skipIfElementMissing(ref.objectId(), ref.path());
+			}
+			for (EnvironmentElementRef ref : step.getSkipIfElementsPresent()) {
+				stopping = stopping.skipIfElementPresent(ref.objectId(), ref.path());
+			}
 			call(stopping);
 		}
 	}

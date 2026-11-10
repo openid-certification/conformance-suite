@@ -70,6 +70,48 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 	}
 
 	/**
+	 * A condition call that stops the test on failure
+	 */
+	protected ConditionCallBuilder stopOnFailure(Class<? extends Condition> conditionClass) {
+		return ConditionCallBuilder.stopOnFailure(conditionClass);
+	}
+
+	/**
+	 * A condition call that stops the test on failure
+	 */
+	protected ConditionCallBuilder stopOnFailure(Condition condition) {
+		return ConditionCallBuilder.stopOnFailure(condition);
+	}
+
+	/**
+	 * A condition call that logs a failure as FAILURE and continues
+	 */
+	protected ConditionCallBuilder continueOnFailure(Class<? extends Condition> conditionClass) {
+		return ConditionCallBuilder.continueOnFailure(conditionClass);
+	}
+
+	/**
+	 * A condition call that logs a failure as FAILURE and continues
+	 */
+	protected ConditionCallBuilder continueOnFailure(Condition condition) {
+		return ConditionCallBuilder.continueOnFailure(condition);
+	}
+
+	/**
+	 * A condition call that logs a failure as WARNING and continues
+	 */
+	protected ConditionCallBuilder warnOnFailure(Class<? extends Condition> conditionClass) {
+		return ConditionCallBuilder.warnOnFailure(conditionClass);
+	}
+
+	/**
+	 * A condition call that logs a failure as WARNING and continues
+	 */
+	protected ConditionCallBuilder warnOnFailure(Condition condition) {
+		return ConditionCallBuilder.warnOnFailure(condition);
+	}
+
+	/**
 	 * Create a call to a set of execution parameters
 	 * @return
 	 */

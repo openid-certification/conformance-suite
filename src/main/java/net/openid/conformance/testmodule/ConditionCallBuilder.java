@@ -1,9 +1,8 @@
 package net.openid.conformance.testmodule;
 
+import com.google.errorprone.annotations.CheckReturnValue;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,8 +11,55 @@ import java.util.List;
 /**
  * Utility class to collect the attributes related to a Condition call, such as which class
  * to call, what to do on failure, when the call should be skipped.
+ *
+ * <p>A builder does nothing until it is handed to {@code call(...)}. The class is
+ * {@link CheckReturnValue} so that a chain such as {@code warnOnFailure(X.class).requirements("R");}
+ * that is never passed to {@code call(...)} fails compilation instead of silently skipping the check.
  */
+@CheckReturnValue
 public class ConditionCallBuilder implements TestExecutionUnit {
+
+	/**
+	 * A call that stops the test if the condition fails, logging the failure as FAILURE.
+	 */
+	public static ConditionCallBuilder stopOnFailure(Class<? extends Condition> conditionClass) {
+		return new ConditionCallBuilder(conditionClass);
+	}
+
+	/**
+	 * A call that stops the test if the condition fails, logging the failure as FAILURE.
+	 */
+	public static ConditionCallBuilder stopOnFailure(Condition condition) {
+		return new ConditionCallBuilder(condition);
+	}
+
+	/**
+	 * A call that logs a failing condition as FAILURE and lets the test continue.
+	 */
+	public static ConditionCallBuilder continueOnFailure(Class<? extends Condition> conditionClass) {
+		return new ConditionCallBuilder(conditionClass).dontStopOnFailure();
+	}
+
+	/**
+	 * A call that logs a failing condition as FAILURE and lets the test continue.
+	 */
+	public static ConditionCallBuilder continueOnFailure(Condition condition) {
+		return new ConditionCallBuilder(condition).dontStopOnFailure();
+	}
+
+	/**
+	 * A call that logs a failing condition as WARNING and lets the test continue.
+	 */
+	public static ConditionCallBuilder warnOnFailure(Class<? extends Condition> conditionClass) {
+		return continueOnFailure(conditionClass).onFail(ConditionResult.WARNING);
+	}
+
+	/**
+	 * A call that logs a failing condition as WARNING and lets the test continue.
+	 */
+	public static ConditionCallBuilder warnOnFailure(Condition condition) {
+		return continueOnFailure(condition).onFail(ConditionResult.WARNING);
+	}
 
 	private Class<? extends Condition> conditionClass = null;
 	private Condition condition = null;
@@ -25,8 +71,8 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 	private List<String> skipIfStringsMissing = new ArrayList<>();
 	private List<String> skipIfStringsPresent = new ArrayList<>();
 	private List<String> skipIfLongsMissing = new ArrayList<>();
-	private List<Pair<String, String>> skipIfElementsMissing = new ArrayList<>();
-	private List<Pair<String, String>> skipIfElementsPresent = new ArrayList<>();
+	private List<EnvironmentElementRef> skipIfElementsMissing = new ArrayList<>();
+	private List<EnvironmentElementRef> skipIfElementsPresent = new ArrayList<>();
 
 	/**
 	 * Create a new condition call based on the given condition class.
@@ -254,7 +300,7 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 	 */
 	public ConditionCallBuilder skipIfElementMissing(String objId, String path) {
 		if (objId != null && path != null) {
-			this.skipIfElementsMissing.add(new ImmutablePair<>(objId, path));
+			this.skipIfElementsMissing.add(new EnvironmentElementRef(objId, path));
 		}
 		return this;
 	}
@@ -273,7 +319,7 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 	 */
 	public ConditionCallBuilder skipIfElementPresent(String objId, String path) {
 		if (objId != null && path != null) {
-			this.skipIfElementsPresent.add(new ImmutablePair<>(objId, path));
+			this.skipIfElementsPresent.add(new EnvironmentElementRef(objId, path));
 		}
 		return this;
 	}
@@ -376,7 +422,7 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 	 *
 	 * @return the list of elements to search for
 	 */
-	public List<Pair<String,String>> getSkipIfElementsMissing() {
+	public List<EnvironmentElementRef> getSkipIfElementsMissing() {
 		return skipIfElementsMissing;
 	}
 
@@ -385,7 +431,7 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 	 *
 	 * @return the list of elements to search for
 	 */
-	public List<Pair<String,String>> getSkipIfElementsPresent() {
+	public List<EnvironmentElementRef> getSkipIfElementsPresent() {
 		return skipIfElementsPresent;
 	}
 

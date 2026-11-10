@@ -127,7 +127,7 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 				? new String[] { "HAIP-6.1.1", "ISO18013-5-9.3.1" }
 				: new String[] { "ISO18013-5-9.3.1" });
 		if (!haip) {
-			chainValidation.skipIfStringsMissing("credential_trust_anchor_pem")
+			chainValidation = chainValidation.skipIfStringsMissing("credential_trust_anchor_pem")
 				.onSkip(ConditionResult.INFO);
 		}
 		call(chainValidation);

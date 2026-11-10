@@ -23,7 +23,6 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.SkippedCondition;
 import net.openid.conformance.settings.ServerSettingsReader;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -472,15 +471,15 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 					return;
 				}
 			}
-			for (Pair<String, String> idx : builder.getSkipIfElementsMissing()) {
-				JsonElement el = env.getElementFromObject(idx.getLeft(), idx.getRight());
+			for (EnvironmentElementRef idx : builder.getSkipIfElementsMissing()) {
+				JsonElement el = env.getElementFromObject(idx.objectId(), idx.path());
 				if (el == null) {
-					logger.info(getId() + ": [skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find element in environment: " + idx.getLeft() + " " + idx.getRight());
+					logger.info(getId() + ": [skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find element in environment: " + idx.objectId() + " " + idx.path());
 					eventLog.log(condition.getMessage(), args(
-						"msg", "Skipped evaluation due to missing required element: " + idx.getLeft() + " " + idx.getRight(),
-						"object", idx.getLeft(),
-						"path", idx.getRight(),
-						"mapped", env.isKeyShadowed(idx.getLeft()) ? env.getEffectiveKey(idx.getLeft()) : null,
+						"msg", "Skipped evaluation due to missing required element: " + idx.objectId() + " " + idx.path(),
+						"object", idx.objectId(),
+						"path", idx.path(),
+						"mapped", env.isKeyShadowed(idx.objectId()) ? env.getEffectiveKey(idx.objectId()) : null,
 						"result", builder.getOnSkip(),
 						"requirements", builder.getRequirements()
  					// TODO: log the environment here?
@@ -489,9 +488,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 					return;
 				}
 			}
-			for (Pair<String, String> idx : builder.getSkipIfElementsPresent()) {
-				String key = idx.getLeft();
-				String path = idx.getRight();
+			for (EnvironmentElementRef idx : builder.getSkipIfElementsPresent()) {
+				String key = idx.objectId();
+				String path = idx.path();
 				JsonElement el = env.getElementFromObject(key, path);
 				if (el != null) {
 					logger.info(getId() + ": [skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, element present in environment: " + key + " " + path);
@@ -553,6 +552,48 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 */
 	protected ConditionCallBuilder condition(Condition condition) {
 		return new ConditionCallBuilder(condition);
+	}
+
+	/**
+	 * A condition call that stops the test on failure; pass it to call()
+	 */
+	protected ConditionCallBuilder stopOnFailure(Class<? extends Condition> conditionClass) {
+		return ConditionCallBuilder.stopOnFailure(conditionClass);
+	}
+
+	/**
+	 * A condition call that stops the test on failure; pass it to call()
+	 */
+	protected ConditionCallBuilder stopOnFailure(Condition condition) {
+		return ConditionCallBuilder.stopOnFailure(condition);
+	}
+
+	/**
+	 * A condition call that logs a failure as FAILURE and continues; pass it to call()
+	 */
+	protected ConditionCallBuilder continueOnFailure(Class<? extends Condition> conditionClass) {
+		return ConditionCallBuilder.continueOnFailure(conditionClass);
+	}
+
+	/**
+	 * A condition call that logs a failure as FAILURE and continues; pass it to call()
+	 */
+	protected ConditionCallBuilder continueOnFailure(Condition condition) {
+		return ConditionCallBuilder.continueOnFailure(condition);
+	}
+
+	/**
+	 * A condition call that logs a failure as WARNING and continues; pass it to call()
+	 */
+	protected ConditionCallBuilder warnOnFailure(Class<? extends Condition> conditionClass) {
+		return ConditionCallBuilder.warnOnFailure(conditionClass);
+	}
+
+	/**
+	 * A condition call that logs a failure as WARNING and continues; pass it to call()
+	 */
+	protected ConditionCallBuilder warnOnFailure(Condition condition) {
+		return ConditionCallBuilder.warnOnFailure(condition);
 	}
 
 	/**

@@ -728,7 +728,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		} else {
 			callAndStopOnFailure(FAPI2GenerateServerJWKs.class);
 		}
-		callAndContinueOnFailure(AugmentRealJwksWithDecoys.class, ConditionResult.WARNING, "FAPI2-SP-FINAL-5.4.3-3");
+		call(warnOnFailure(AugmentRealJwksWithDecoys.class).requirements("FAPI2-SP-FINAL-5.4.3-3"));
 		callAndStopOnFailure(SetRsaAltServerJwks.class);
 		// published in all RP tests so the check does not depend on when the client last fetched/cached the JWKS
 		callAndStopOnFailure(AddUnusableKeysToServerPublicJwks.class, "RFC7517-5");
@@ -1186,7 +1186,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		// later client_id checks see the request object's value, not the PAR form's
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE,
 			profileBehavior.getParClientIdRequirements());
-		callAndContinueOnFailure(EnsureClientIdIsNotEmptyOnTokenRequestIfPresent.class, ConditionResult.WARNING, "RFC6749-3.1");
+		call(warnOnFailure(EnsureClientIdIsNotEmptyOnTokenRequestIfPresent.class).requirements("RFC6749-3.1"));
 
 		if(clientAuthType == ClientAuthType.MTLS || profileRequiresMtlsEverywhere) {
 			// there is generally no requirement to present an MTLS certificate at the PAR endpoint when using private_key_jwt.
@@ -1369,7 +1369,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE,
 			profileBehavior.getTokenEndpointClientIdRequirements());
-		callAndContinueOnFailure(EnsureClientIdIsNotEmptyOnTokenRequestIfPresent.class, ConditionResult.WARNING, "RFC6749-3.2");
+		call(warnOnFailure(EnsureClientIdIsNotEmptyOnTokenRequestIfPresent.class).requirements("RFC6749-3.2"));
 
 		if (clientAuthType == ClientAuthType.MTLS || isMTLSConstrain()  || profileRequiresMtlsEverywhere) {
 			checkMtlsCertificate();
@@ -1647,7 +1647,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	 */
 	protected void validateRequestObjectCommonChecks() {
 		callAndStopOnFailure(FAPI2ValidateRequestObjectSigningAlg.class, "FAPI2-SP-FINAL-5.4");
-		callAndContinueOnFailure(FAPIValidateRequestObjectMediaType.class, Condition.ConditionResult.WARNING, "JAR-4");
+		call(warnOnFailure(FAPIValidateRequestObjectMediaType.class).requirements("JAR-4"));
 		if (fapiClientType == FAPIClientType.OIDC) {
 			call(profileBehavior.validateIdTokenAcrClaims());
 		}
@@ -1655,7 +1655,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		call(profileBehavior.validateRequestObjectExpNbf());
 		callAndStopOnFailure(ValidateRequestObjectClaims.class);
 		callAndStopOnFailure(ValidateRequestObjectMaxAge.class, "OIDCC-13.3");
-		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, Condition.ConditionResult.WARNING, "OIDCC-13.3");
+		call(warnOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class).requirements("OIDCC-13.3"));
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, ConditionResult.FAILURE, "OIDCC-6.1");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
 		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI2-MS-ID1-5.3.1-1");
