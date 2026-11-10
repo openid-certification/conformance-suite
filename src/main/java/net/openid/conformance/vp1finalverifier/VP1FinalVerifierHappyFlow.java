@@ -39,13 +39,13 @@ public class VP1FinalVerifierHappyFlow extends AbstractVP1FinalVerifierTest {
 
 		// Section 5.2 of OID4VP 1.0 Final requires the nonce to be a "fresh,
 		// cryptographically random number with sufficient entropy" but does not bound
-		// its length. The VP1FinalEnsureMinimumNonceEntropy check verifies the entropy
-		// requirement; the length checks promote interoperability by flagging values
-		// outside the range the suite itself generates on the wallet side.
-		// https://github.com/openid/OpenID4VP/pull/722/changes added entropy guidance (recommends at least 128 bits).
+		// its length. VP1FinalEnsureMinimumNonceEntropy flags nonces that are obviously
+		// not random (see its javadoc for the clauses and the threshold); the length
+		// checks promote interoperability by flagging values outside the range the
+		// suite itself generates on the wallet side.
 		callAndContinueOnFailure(CheckForInvalidCharsInNonce.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.2");
 		callAndContinueOnFailure(VP1FinalCheckNonceMinimumLength.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.2");
 		callAndContinueOnFailure(VP1FinalCheckNonceMaximumLength.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.2");
-		callAndContinueOnFailure(VP1FinalEnsureMinimumNonceEntropy.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.2");
+		callAndContinueOnFailure(VP1FinalEnsureMinimumNonceEntropy.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.2", "OID4VP-1FINAL-13.3-1");
 	}
 }
