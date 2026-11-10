@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
@@ -40,7 +41,11 @@ public class FetchServerKeys extends AbstractCondition {
 
 				log("Found JWK set string", args("jwk_string", jwkString));
 
-				JsonObject jwkSet = JsonParser.parseString(jwkString).getAsJsonObject();
+				JsonElement jwkSetElement = JsonParser.parseString(Strings.nullToEmpty(jwkString));
+				if (!jwkSetElement.isJsonObject()) {
+					throw error("Server JWK set is not a JSON object", args("jwks_uri", jwksUri, "jwk_string", jwkString));
+				}
+				JsonObject jwkSet = jwkSetElement.getAsJsonObject();
 				env.putObject("server_jwks", jwkSet);
 
 				logSuccess("Found server JWK set", args("server_jwks", jwkSet));

@@ -23,6 +23,7 @@ public class ValidateJwksSequence extends AbstractConditionSequence {
 	private final String label;
 	private final String[] requirements;
 	private boolean allowPrivateKeys = false;
+	private boolean logBlock = true;
 
 	/**
 	 * @param sourceKey the top-level environment object holding (or containing) the JWK set
@@ -48,9 +49,20 @@ public class ValidateJwksSequence extends AbstractConditionSequence {
 		return this;
 	}
 
+	/**
+	 * Log the results in the caller's current log block rather than in a block of their own, for
+	 * a caller that runs inside a block it has not finished yet.
+	 */
+	public ValidateJwksSequence withoutLogBlock() {
+		this.logBlock = false;
+		return this;
+	}
+
 	@Override
 	public void evaluate() {
-		call(exec().startBlock("Validate the JWK set in " + label));
+		if (logBlock) {
+			call(exec().startBlock("Validate the JWK set in " + label));
+		}
 
 		call(exec()
 			.putString("jwks_validation_source_key", sourceKey)
@@ -93,7 +105,9 @@ public class ValidateJwksSequence extends AbstractConditionSequence {
 			.removeObject("jwks_to_validate")
 			.removeNativeValue("jwks_validation_source_key")
 			.removeNativeValue("jwks_validation_source_path")
-			.removeNativeValue("jwks_source_label")
-			.endBlock());
+			.removeNativeValue("jwks_source_label"));
+		if (logBlock) {
+			call(exec().endBlock());
+		}
 	}
 }

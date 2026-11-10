@@ -5,7 +5,6 @@ import net.openid.conformance.condition.client.CheckCredentialStatus;
 import net.openid.conformance.condition.client.ClearStatusListTokenEndpointResponse;
 import net.openid.conformance.condition.client.EnsureContentTypeStatusListJwt;
 import net.openid.conformance.condition.client.ExtractStatusListTokenFromStatusListTokenEndpointResponse;
-import net.openid.conformance.condition.client.FetchJwtVcIssuerMetadataForStatusListToken;
 import net.openid.conformance.condition.client.FetchStatusListToken;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
 import net.openid.conformance.condition.client.WarnIfSdJwtDigestAlgorithmNotSha256;
@@ -91,11 +90,11 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 				ConditionResult.WARNING, "HAIP-8");
 		} else {
 			// Outside HAIP no trust anchor is mandated: the key is resolved from the token itself,
-			// the credential, the issuer's JWT VC Issuer Metadata or the authorization server's JWKS
-			callAndContinueOnFailure(FetchJwtVcIssuerMetadataForStatusListToken.class,
-				ConditionResult.FAILURE, "OTSL-11.3", "SDJWTVC-5", "SDJWTVC-5.3");
+			// the credential, the issuer's JWT VC Issuer Metadata or the authorization server's JWKS,
+			// and only the signature is checked
+			call(sequence(ResolveStatusListTokenVerificationKey.class));
 			callAndContinueOnFailure(VerifyStatusListTokenSignature.class,
-				ConditionResult.FAILURE, "OTSL-5.1-2", "OTSL-11.3");
+				ConditionResult.FAILURE, "OTSL-5.1-2");
 		}
 		callAndContinueOnFailure(CheckCredentialStatus.class,
 			ConditionResult.FAILURE, "OTSL-6.2");

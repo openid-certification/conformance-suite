@@ -73,7 +73,10 @@ public class FetchServerKeys_UnitTest {
 				.willReturn(success(unsupportedJwksStr, "application/json")),
 			service("bad.example.com")
 				.get("/jwks.json")
-				.willReturn(success("This is not JSON!", "text/plain"))));
+				.willReturn(success("This is not JSON!", "text/plain")),
+			service("array.example.com")
+				.get("/jwks.json")
+				.willReturn(success("[]", "application/json"))));
 		hoverfly.resetJournal();
 
 		cond = new FetchServerKeys();
@@ -153,6 +156,16 @@ public class FetchServerKeys_UnitTest {
 
 			cond.execute(env);
 		});
+	}
+
+	@Test
+	public void testEvaluate_responseIsNotAJsonObject() {
+		JsonObject server = new JsonObject();
+		server.addProperty("jwks_uri", "https://array.example.com/jwks.json");
+		env.putObject("server", server);
+
+		ConditionError error = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertThat(error.getMessage()).contains("not a JSON object");
 	}
 
 	/**
