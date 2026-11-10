@@ -104,8 +104,6 @@ import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.as.jarm.GenerateJARMResponseClaims;
 import net.openid.conformance.condition.as.jarm.SendJARMResponseWitResponseModeQuery;
 import net.openid.conformance.condition.as.jarm.SignJARMResponse;
-import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestContainsOnlyExpectedParamsWhenUsingPAR;
-import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR;
 import net.openid.conformance.condition.as.par.EnsureRequestObjectContainsCodeChallengeWhenUsingPAR;
 import net.openid.conformance.condition.as.par.ExtractRequestObjectFromPAREndpointRequest;
 import net.openid.conformance.condition.client.AugmentRealJwksWithDecoys;
@@ -134,7 +132,6 @@ import net.openid.conformance.condition.rs.ExtractDpopAccessTokenFromHeader;
 import net.openid.conformance.condition.rs.ExtractDpopProofFromHeader;
 import net.openid.conformance.condition.rs.ExtractFapiDateHeader;
 import net.openid.conformance.condition.rs.ExtractFapiIpAddressHeader;
-import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.condition.rs.GenerateKSAAccountConsentId;
 import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.RequireDpopAccessToken;
@@ -145,7 +142,6 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.sequence.as.AddJARMToServerConfiguration;
-import net.openid.conformance.sequence.as.AddPARToServerConfiguration;
 import net.openid.conformance.sequence.as.PerformDpopProofParRequestChecks;
 import net.openid.conformance.sequence.as.PerformDpopProofResourceRequestChecks;
 import net.openid.conformance.sequence.as.PerformDpopProofTokenRequestChecks;
@@ -157,6 +153,9 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
+import net.openid.conformance.testmodule.endpoint.Channel;
+import net.openid.conformance.testmodule.endpoint.EndpointDispatcher;
+import net.openid.conformance.testmodule.endpoint.EndpointRequest;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
@@ -179,6 +178,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -305,6 +306,10 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	// setStatus(WAITING) has released that lock, so the visibility guarantee would
 	// otherwise rest on a happens-before edge from a lock that is no longer held.
 	protected volatile boolean startingShutdown = false;
+
+	private PushedAuthorizationRequestCapability parCapability;
+
+	private EndpointDispatcher endpointDispatcher;
 
 	protected Boolean profileRequiresMtlsEverywhere;
 
@@ -482,7 +487,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	 * Per FAPI2-SP-FINAL-5.2.2.1 ("MTLS ecosystems"), "client implementations shall use client
 	 * metadata use_mtls_endpoint_aliases. Check if this metadata parameter is present and set.
 	 */
-	private boolean clientRequestsMtlsEndpointAliases() {
+	protected boolean clientRequestsMtlsEndpointAliases() {
 		JsonElement el = env.getElementFromObject("client", "use_mtls_endpoint_aliases");
 		if (el == null || el.isJsonNull()) {
 			return false;
@@ -500,7 +505,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	 * for an endpoint with no alias in mtls_endpoint_aliases, RFC8705 section 5 has the client
 	 * use the conventional endpoint.
 	 */
-	private boolean clientMustUseMtlsAlias(String endpointName) {
+	protected boolean clientMustUseMtlsAlias(String endpointName) {
 		return clientRequestsMtlsEndpointAliases()
 			&& env.getElementFromObject("server", "mtls_endpoint_aliases." + endpointName) != null;
 	}
@@ -571,8 +576,9 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
 		call(profileBehavior.additionalServerConfiguration());
-		if (profileBehavior.shouldRegisterPAREndpoint()) {
-			call(sequence(AddPARToServerConfiguration.class));
+		PushedAuthorizationRequestCapability par = parCapability();
+		if (par.isEnabled()) {
+			call(sequence(par.serverConfigurationSteps()));
 		}
 
 		if(configureResponseModeSteps!=null) {
@@ -776,80 +782,98 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		env.putObject(requestId, requestParts);
 		env.mapKey("incoming_request", requestId);
 
-		Object response;
-		if (path.startsWith("/.well-known/oauth-authorization-server")) {
-			response = discoveryEndpoint();
-		} else {
-			Object profileResponse = profileBehavior.handleProfileSpecificWellKnown(path);
-			if (profileResponse != null) {
-				response = profileResponse;
-			} else {
-				response = super.handleWellKnown(path, req, res, session, requestParts);
-			}
-		}
-		return response;
+		return endpointDispatcher().dispatch(
+			EndpointRequest.of(Channel.WELL_KNOWN, path, req, res, session, requestParts).withRequestId(requestId));
 	}
 
 
-	protected Object handleClientRequestForPath(String requestId, String path){
-		if (path.equals("authorize")) {
-			refuseIfStartingShutdown(path);
-			return authorizationEndpoint(requestId);
-		} else if (path.equals("token")) {
-			refuseIfStartingShutdown(path);
-			if (tokenEndpointRequiresMtls()) {
-				throw new TestFailureException(getId(), "invalid_client",
-					"The token endpoint must be called over an mTLS secured connection using the token_endpoint found in mtls_endpoint_aliases.");
-			}
-			if (clientMustUseMtlsAlias("token_endpoint")) {
-				throw new TestFailureException(getId(), "invalid_client",
-					"The token endpoint must be called over an mTLS secured connection because use_mtls_endpoint_aliases is set in the client configuration.");
-			}
-			return tokenEndpoint(requestId);
-		} else if (path.equals("jwks")) {
-			return jwksEndpoint();
-		} else if (path.equals("userinfo")) {
-			refuseIfStartingShutdown(path);
-			if (userinfoEndpointRequiresMtls()) {
-				throw new TestFailureException(getId(), "The userinfo endpoint must be called over an mTLS secured connection.");
-			}
-			return userinfoEndpoint(requestId);
-		} else if (path.equals(".well-known/openid-configuration")) {
-			return discoveryEndpoint();
-		} else if (path.equals("par")) {
-			refuseIfStartingShutdown(path);
-			if (parEndpointRequiresMtls()) {
-				throw new TestFailureException(getId(), "The PAR endpoint must be called over an mTLS secured connection " +
-					"using the pushed_authorization_request_endpoint found in mtls_endpoint_aliases.");
-			}
-			if (clientMustUseMtlsAlias("pushed_authorization_request_endpoint")) {
-				throw new TestFailureException(getId(), "invalid_client",
-					"The PAR endpoint must be called over an mTLS secured connection because use_mtls_endpoint_aliases is set in the client configuration.");
-			}
-			return parEndpoint(requestId);
-		} else if (path.equals(ACCOUNTS_PATH)) {
-			refuseIfStartingShutdown(path);
+	/**
+	 * Dispatches a regular (non-mTLS) request to the endpoint that handles it. Subclasses that add endpoints
+	 * override {@link #endpointHandlers()}, or override this and fall back to it, so that the TLS checks in
+	 * {@link #handleHttp} still run on their requests.
+	 */
+	protected Object handleClientRequestForPath(String requestId, String path) {
+		return endpointDispatcher().dispatch(
+			EndpointRequest.of(Channel.HTTP, path, null, null, null, env.getObject(requestId)).withRequestId(requestId));
+	}
 
-			if (accountsEndpointRequiresMtls()) {
-				throw new TestFailureException(getId(), "The accounts endpoint must be called over an mTLS secured connection.");
-			}
-
-			return accountsEndpoint(requestId);
+	/**
+	 * The objects whose {@code @Endpoint} methods implement the emulated server: the core endpoints and the
+	 * enabled capabilities. Called once, on the first request.
+	 */
+	protected List<Object> endpointHandlers() {
+		List<Object> handlers = new ArrayList<>();
+		handlers.add(new FAPI2AuthorizationServerEndpoints(this));
+		PushedAuthorizationRequestCapability par = parCapability();
+		if (par.isEnabled()) {
+			handlers.add(par);
 		}
-		if (profileBehavior.claimsHttpPath(path)) {
-			refuseIfStartingShutdown(path);
-			setStatus(Status.RUNNING);
-			try {
-				FAPI2ClientProfileBehavior.PathDispatch dispatch = profileBehavior.getProfileSpecificPathDispatch(requestId, path);
-				if (dispatch != null) {
-					return runPathDispatch(dispatch, requestId);
+		return handlers;
+	}
+
+	protected synchronized PushedAuthorizationRequestCapability parCapability() {
+		if (parCapability == null) {
+			parCapability = new PushedAuthorizationRequestCapability(this);
+		}
+		return parCapability;
+	}
+
+	protected synchronized EndpointDispatcher endpointDispatcher() {
+		if (endpointDispatcher == null) {
+			endpointDispatcher = EndpointDispatcher.builder()
+				.endpoints(endpointHandlers().toArray())
+				.interceptor((request, chain) -> {
+					boolean refused = request.route()
+						.map(route -> route.handler().isAnnotationPresent(RefusedAfterShutdown.class))
+						.orElse(false);
+					if (refused) {
+						refuseIfStartingShutdown(request.path());
+					}
+					return chain.proceed(request);
+				})
+				.onUnmatched(this::handleUnmatchedRequest)
+				.build();
+		}
+		return endpointDispatcher;
+	}
+
+	/**
+	 * Requests no endpoint handler claims: paths the profile behavior serves, otherwise an unexpected request.
+	 */
+	protected Object handleUnmatchedRequest(EndpointRequest request) {
+		String path = request.path();
+		String requestId = request.requestId();
+		switch (request.channel()) {
+			case HTTP -> {
+				if (profileBehavior.claimsHttpPath(path)) {
+					refuseIfStartingShutdown(path);
+					setStatus(Status.RUNNING);
+					try {
+						FAPI2ClientProfileBehavior.PathDispatch dispatch = profileBehavior.getProfileSpecificPathDispatch(requestId, path);
+						if (dispatch != null) {
+							return runPathDispatch(dispatch, requestId);
+						}
+						return profileBehavior.handleProfileSpecificPath(requestId, path);
+					} finally {
+						setStatus(Status.WAITING);
+					}
 				}
-				return profileBehavior.handleProfileSpecificPath(requestId, path);
-			} finally {
-				setStatus(Status.WAITING);
+			}
+			case MTLS -> {
+				if (profileBehavior.claimsHttpMtlsPath(path)) {
+					return profileBehavior.handleProfileSpecificMtlsPath(requestId, path);
+				}
+			}
+			case WELL_KNOWN -> {
+				Object profileResponse = profileBehavior.handleProfileSpecificWellKnown(path);
+				if (profileResponse != null) {
+					return profileResponse;
+				}
+				return super.handleWellKnown(path, request.servletRequest(), request.servletResponse(),
+					request.session(), request.requestParts());
 			}
 		}
-		return unexpectedHttpRequest(path, env.getObject(requestId));
+		return unexpectedHttpRequest(path, request.requestParts());
 	}
 
 	/**
@@ -900,41 +924,8 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	 * this rather than {@link #handleHttpMtls}, so that the TLS checks above still run on their requests.
 	 */
 	protected Object handleClientRequestForMtlsPath(String requestId, String path) {
-		if (path.equals("token")) {
-			if (clientAuthType != ClientAuthType.MTLS && !isMTLSConstrain() && !profileRequiresMtlsEverywhere
-					&& !clientRequestsMtlsEndpointAliases()) {
-				throw new TestFailureException(getId(), "invalid_client",
-					"The token endpoint was called over an mTLS secured connection, but this is not " +
-					"expected when using " + clientAuthType + " client authentication with " +
-					fapi2SenderConstrainMethod + " sender-constraining and without " +
-					"use_mtls_endpoint_aliases. The regular (non-mTLS) token_endpoint must be used.");
-			}
-			return tokenEndpoint(requestId);
-		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
-			if (!accountsEndpointRequiresMtls()) {
-				throw new TestFailureException(getId(), "The accounts endpoint must not be called over an mTLS secured connection.");
-			}
-
-			return accountsEndpoint(requestId);
-		} else if (path.equals("userinfo")) {
-			return userinfoEndpoint(requestId);
-		} else if (path.equals("par")) {
-			if(startingShutdown){
-				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
-			}
-			if (!parEndpointRequiresMtls() && !clientRequestsMtlsEndpointAliases()) {
-				throw new TestFailureException(getId(), "invalid_client",
-					"The PAR endpoint was called over an mTLS secured connection, but this is not " +
-					"expected when using " + clientAuthType + " client authentication without " +
-					"use_mtls_endpoint_aliases. The regular (non-mTLS) " +
-					"pushed_authorization_request_endpoint must be used.");
-			}
-			return parEndpoint(requestId);
-		}
-		if (profileBehavior.claimsHttpMtlsPath(path)) {
-			return profileBehavior.handleProfileSpecificMtlsPath(requestId, path);
-		}
-		return unexpectedHttpRequest(path, env.getObject(requestId));
+		return endpointDispatcher().dispatch(
+			EndpointRequest.of(Channel.MTLS, path, null, null, null, env.getObject(requestId)).withRequestId(requestId));
 	}
 
 	protected void validateResourceEndpointHeaders() {
@@ -1575,8 +1566,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		call(exec().startBlock("Authorization endpoint").mapKey("authorization_endpoint_http_request", requestId));
 		setAuthorizationEndpointRequestParamsForHttpMethod();
-		callAndStopOnFailure(EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR.class);
-		callAndContinueOnFailure(EnsureAuthorizationRequestContainsOnlyExpectedParamsWhenUsingPAR.class, ConditionResult.FAILURE, "PAR-4", "FAPI2-SP-FINAL-5.3.3.2-6");
+		call(parCapability().authorizationRequestChecks());
 
 		skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
 
