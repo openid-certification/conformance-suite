@@ -201,6 +201,12 @@
           "tooltip": "Private key to be used by the server to sign id_tokens, this should be one key in JSON Web Key Set format."
         },
         {
+          "key": "server.response_signing_jwks",
+          "label": "response signing jwks",
+          "type": "object",
+          "tooltip": "Chile Open Finance only (required): private key the test suite, acting as the bank, uses to sign the x-jws-signature of its resource responses. This should be one RSA key with a 'kid', in JSON Web Key Set format. Its public part is served at the 'jws-signature-validation/v1/jwks' endpoint shown when the test starts."
+        },
+        {
           "key": "server.login_hint",
           "label": "login_hint",
           "type": "string",
@@ -718,6 +724,12 @@
           "label": "resourceUrl",
           "type": "string",
           "tooltip": "URL to use in resource server tests, must return a JSON response. For UK OpenBanking tests, this should be the base url for UK AISP APIs and hence must end '/open-banking/vX.Y/aisp/' (this form of URL is required by the UK OpenBanking specs). For Brazil OpenBanking you should use the accounts endpoint url, or the payments endpoint if you specify payments in the scope. For Brazil OpenInsurance, use the resources endpoint url. For KSA OpenBanking, use the accounts endpoint url."
+        },
+        {
+          "key": "resource.response_signing_jwks_uri",
+          "label": "response signing jwks uri",
+          "type": "string",
+          "tooltip": "Chile Open Finance only (required): https URL of the JSON Web Key Set holding the keys the bank's resource server signs the x-jws-signature of its responses with, normally the 'jws-signature-validation/v1/jwks' endpoint on the same host as the resource APIs. The test suite fetches it over mutual TLS."
         },
         {
           "key": "resource.resourceMethod",

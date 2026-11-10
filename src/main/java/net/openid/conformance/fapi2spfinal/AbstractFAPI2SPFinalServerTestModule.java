@@ -182,6 +182,9 @@ import java.util.function.Supplier;
 	"resource.brazilPixPayment",
 	"directory.keystore"
 })
+@VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_chile", configurationFields = {
+	"resource.response_signing_jwks_uri"
+})
 @VariantConfigurationFields(parameter = FAPI2SenderConstrainMethod.class, value = "mtls", configurationFields = {
 	"mtls.key",
 	"mtls.cert",
