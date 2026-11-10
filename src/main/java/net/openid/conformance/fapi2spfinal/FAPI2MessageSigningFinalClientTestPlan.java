@@ -221,7 +221,7 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 				}
 				return List.of("FAPI2MS RP KSA w/" + getClientAuth(clientAuth));
 			case "openbanking_chile":
-				if (privateKey) {
+				if (!"mtls".equals(clientAuth)) {
 					throw new RuntimeException("Invalid configuration for %s: Only MTLS client authentication is used for Chile".formatted(
 							MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
