@@ -91,6 +91,26 @@ public class LogEntryHelper_UnitTest {
 	}
 
 	@Test
+	public void cmfXJwsRequirementLabelsUseConfluenceHeadingAnchors() {
+		LogEntryHelper helper = new LogEntryHelper(new Document(), new Gson());
+		String spec = "https://openfinancechile.atlassian.net/wiki/spaces/OFAC/pages/778108930/" +
+			"Perfil+de+firma+de+mensajes+x-jws-signature+para+gu+as+de+pruebas#";
+
+		assertThat(helper.getRequirementLink("CMF-XJWS-5.2.1-3.4"))
+			.isEqualTo(spec + "5.2.1-Clientes-(firmante)");
+		assertThat(helper.getRequirementLink("CMF-XJWS-5.2.2-5"))
+			.isEqualTo(spec + "5.2.2-Servidores-de-recursos-(verificador)");
+		assertThat(helper.getRequirementLink("CMF-XJWS-5.3.2-3"))
+			.isEqualTo(spec + "5.3.2-Clientes-(verificador)");
+		assertThat(helper.getRequirementLink("CMF-XJWS-5.3.2.1"))
+			.isEqualTo(spec + "5.3.2.1-Endpoint-de-claves");
+		assertThat(helper.getRequirementLink("CMF-XJWS-4"))
+			.isEqualTo(spec + "4.-T%C3%A9rminos");
+		assertThat(helper.getRequirementLink("CMF-XJWS-A.2"))
+			.isEqualTo(spec + "A.2-Vectores-de-prueba");
+	}
+
+	@Test
 	public void brazilFapi22SectionPrefixDoesNotMatchASeparateLongerSection() {
 		LogEntryHelper helper = new LogEntryHelper(new Document(), new Gson());
 		String spec = "https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/1675395195/" +
