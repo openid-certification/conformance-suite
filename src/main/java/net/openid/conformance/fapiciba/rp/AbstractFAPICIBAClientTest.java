@@ -379,6 +379,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 				}
 				throw new TestFailureException(
 					getId(),
+					"invalid_client",
 					"Token endpoint must be called over an mTLS secured connection using the token_endpoint found in mtls_endpoint_aliases."
 				);
 			case "userinfo":

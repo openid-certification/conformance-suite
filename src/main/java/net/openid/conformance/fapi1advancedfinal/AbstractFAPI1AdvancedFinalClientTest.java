@@ -570,8 +570,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			// The token endpoint always requires a client certificate to bind the issued access
 			// token to (see checkMtlsCertificate() in tokenEndpoint()), regardless of client
 			// authentication type or profile, so it must always be called over mTLS.
-			throw new TestFailureException(getId(), "Token endpoint must be called over an mTLS secured connection " +
-				"using the token_endpoint found in mtls_endpoint_aliases.");
+			throw new TestFailureException(getId(), "invalid_client",
+				"Token endpoint must be called over an mTLS secured connection using the token_endpoint found in mtls_endpoint_aliases.");
 		} else if (path.equals("jwks")) {
 			return jwksEndpoint();
 		} else if (path.equals("userinfo")) {

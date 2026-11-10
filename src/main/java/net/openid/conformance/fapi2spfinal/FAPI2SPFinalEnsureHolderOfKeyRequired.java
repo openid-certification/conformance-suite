@@ -153,14 +153,8 @@ public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalS
 		// returns invalid_client (it cannot identify the client) rather than the holder-of-key error we expect.
 		addClientAuthenticationToTokenEndpointRequest();
 
-		if (isDpop()) {
-			// nothing to do; creating the new request above cleared out any previous DPoP header, so the request
-			// carries no DPoP proof. That missing holder-of-key mechanism is what this test checks the server rejects.
-		} else {
-			callAndStopOnFailure(RemoveMTLSCertificates.class);
-		}
+		callTokenEndpointWithoutHolderOfKey();
 
-		callAndStopOnFailure(CallTokenEndpointAllowingTLSFailure.class, Condition.ConditionResult.FAILURE,  "FAPI2-SP-FINAL-5.3.2.1-6");
 		boolean sslError = env.getBoolean("token_endpoint_response_ssl_error");
 		if (sslError) {
 			// the ssl connection was dropped; that's an acceptable way for a server to indicate that a TLS client cert
@@ -173,7 +167,7 @@ public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalS
 			callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.3.4");
 
 			if (env.getBoolean(CheckTokenEndpointReturnedJsonContentType.tokenEndpointResponseWasJsonKey)) {
-				call(sequence(validateTokenEndpointResponseSteps));
+				call(sequence(getValidateTokenEndpointResponseSteps()));
 				callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 				callAndContinueOnFailure(CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB.class, Condition.ConditionResult.WARNING, "RFC6749-5.2");
 				callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
@@ -182,6 +176,26 @@ public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalS
 		}
 
 		fireTestFinished();
+	}
+
+	/**
+	 * Calls the token endpoint with the request built by performPostAuthorizationFlow, leaving out the
+	 * holder-of-key mechanism. Must set token_endpoint_response_ssl_error, and token_endpoint_response_full
+	 * unless the TLS connection was dropped.
+	 */
+	protected void callTokenEndpointWithoutHolderOfKey() {
+		if (isDpop()) {
+			// nothing to do; creating the new request above cleared out any previous DPoP header, so the request
+			// carries no DPoP proof. That missing holder-of-key mechanism is what this test checks the server rejects.
+		} else {
+			callAndStopOnFailure(RemoveMTLSCertificates.class);
+		}
+
+		callAndStopOnFailure(CallTokenEndpointAllowingTLSFailure.class, Condition.ConditionResult.FAILURE,  "FAPI2-SP-FINAL-5.3.2.1-6");
+	}
+
+	protected Class<? extends ConditionSequence> getValidateTokenEndpointResponseSteps() {
+		return validateTokenEndpointResponseSteps;
 	}
 
 	public static class ValidateTokenEndpointResponseWithMTLS extends AbstractConditionSequence {

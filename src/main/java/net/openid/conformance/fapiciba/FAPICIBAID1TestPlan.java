@@ -90,6 +90,7 @@ import java.util.Map;
 		FAPICIBAID1RefreshToken.class,
 
 		FAPICIBAID1EnsureMTLSHolderOfKeyRequired.class,
+		FAPICIBAID1EnsureMTLSHolderOfKeyRequiredAtNonAliasTokenEndpoint.class,
 
 		// ConnectID specific tests
 		FAPICIBAID1ConnectIdEnsureAuthorizationRequestWithPurposeSucceeds.class,
