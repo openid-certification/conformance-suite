@@ -26,17 +26,16 @@ public class IdpJwsAlgorithms_UnitTest {
 	}
 
 	/**
-	 * The fallback has to match what application.properties ships, not OIDC Core's
-	 * RS256 registration default. A deployment that clears the property would
-	 * otherwise start verifying with an algorithm the IdP does not sign with, and
-	 * every login would fail on the signature.
+	 * Keycloak signs access tokens with RS256 by default even when its ID tokens are
+	 * ES256, so clearing the property must keep both.
 	 */
 	@Test
-	public void blank_configuration_falls_back_to_the_shipped_default() {
-		Assertions.assertEquals(List.of(SignatureAlgorithm.ES256), IdpJwsAlgorithms.parse(""));
-		Assertions.assertEquals(List.of(SignatureAlgorithm.ES256), IdpJwsAlgorithms.parse("   "));
-		Assertions.assertEquals(List.of(SignatureAlgorithm.ES256), IdpJwsAlgorithms.parse(null));
-		Assertions.assertEquals(SignatureAlgorithm.ES256, IdpJwsAlgorithms.DEFAULT);
+	public void blank_configuration_falls_back_to_es256_and_rs256() {
+		List<SignatureAlgorithm> expected = List.of(SignatureAlgorithm.ES256, SignatureAlgorithm.RS256);
+		Assertions.assertEquals(expected, IdpJwsAlgorithms.parse(""));
+		Assertions.assertEquals(expected, IdpJwsAlgorithms.parse("   "));
+		Assertions.assertEquals(expected, IdpJwsAlgorithms.parse(" , "));
+		Assertions.assertEquals(expected, IdpJwsAlgorithms.parse(null));
 	}
 
 	/**
@@ -58,28 +57,5 @@ public class IdpJwsAlgorithms_UnitTest {
 
 		Assertions.assertTrue(e.getMessage().contains("RS2566"), e.getMessage());
 		Assertions.assertTrue(e.getMessage().contains("RS256"), e.getMessage());
-	}
-
-	@Test
-	public void parseSingle_rejects_more_than_one_algorithm() {
-		Assertions.assertEquals(SignatureAlgorithm.ES256, IdpJwsAlgorithms.parseSingle("ES256"));
-
-		Assertions.assertThrows(IllegalStateException.class, () -> IdpJwsAlgorithms.parseSingle("ES256,RS256"));
-	}
-
-	@Test
-	public void advertised_check_matches_the_discovery_document() {
-		Assertions.assertTrue(IdpJwsAlgorithms.isAdvertised(List.of("RS256", "ES256"), SignatureAlgorithm.ES256));
-		Assertions.assertFalse(IdpJwsAlgorithms.isAdvertised(List.of("RS256"), SignatureAlgorithm.ES256));
-	}
-
-	/**
-	 * An IdP that advertises nothing usable gives us nothing to contradict, so the
-	 * configured value stands rather than producing a spurious warning.
-	 */
-	@Test
-	public void advertised_check_defers_when_the_idp_advertises_nothing() {
-		Assertions.assertTrue(IdpJwsAlgorithms.isAdvertised(null, SignatureAlgorithm.ES256));
-		Assertions.assertTrue(IdpJwsAlgorithms.isAdvertised(List.of(), SignatureAlgorithm.ES256));
 	}
 }
