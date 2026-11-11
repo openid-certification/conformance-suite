@@ -4,9 +4,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.core.oidc.OidcIdToken;
-import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
-import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.util.Collection;
@@ -14,10 +11,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Admin rights hang entirely off the "roles" claim, so both entry points — the
- * bearer-token converter and the OIDC-login authorities mapper — have to agree,
- * and neither may fail the request when an IdP sends the claim in a shape it did
- * not expect.
+ * Admin rights for IdP bearer tokens hang entirely off the "roles" claim, and an
+ * IdP sending the claim in a shape the converter did not expect must not fail the
+ * request.
  */
 public class RolesAuthoritiesConverter_UnitTest {
 
@@ -36,18 +32,6 @@ public class RolesAuthoritiesConverter_UnitTest {
 		}
 		return builder.build();
 	}
-
-	private static OidcUserAuthority oidcAuthorityWithClaim(Object roles) {
-		Map<String, Object> claims = roles == null
-			? Map.of("sub", "a-user")
-			: Map.of("sub", "a-user", "roles", roles);
-		OidcIdToken idToken = OidcIdToken.withTokenValue("token")
-			.claims(c -> c.putAll(claims))
-			.build();
-		return new OidcUserAuthority(idToken, new OidcUserInfo(claims));
-	}
-
-	// --- bearer token path -------------------------------------------------
 
 	@Test
 	public void convert_grants_user_but_not_admin_without_the_admin_role() {
@@ -94,54 +78,25 @@ public class RolesAuthoritiesConverter_UnitTest {
 		}
 	}
 
-	// --- OIDC login path ---------------------------------------------------
-
-	@Test
-	public void mapAuthorities_grants_admin_when_the_role_is_present() {
-		Collection<? extends GrantedAuthority> authorities =
-			converter.mapAuthorities(List.of(oidcAuthorityWithClaim(List.of(ADMIN_ROLE))));
-
-		Assertions.assertTrue(authorities.contains(ROLE_USER));
-		Assertions.assertTrue(authorities.contains(ROLE_ADMIN));
-	}
-
-	@Test
-	public void mapAuthorities_grants_user_but_not_admin_otherwise() {
-		Collection<? extends GrantedAuthority> authorities =
-			converter.mapAuthorities(List.of(oidcAuthorityWithClaim(List.of("some-other-role"))));
-
-		Assertions.assertTrue(authorities.contains(ROLE_USER));
-		Assertions.assertFalse(authorities.contains(ROLE_ADMIN));
-	}
-
-	@Test
-	public void mapAuthorities_tolerates_a_roles_claim_that_is_not_an_array() {
-		Collection<? extends GrantedAuthority> authorities = Assertions.assertDoesNotThrow(
-			() -> converter.mapAuthorities(List.of(oidcAuthorityWithClaim(Map.of(ADMIN_ROLE, Map.of())))));
-
-		Assertions.assertTrue(authorities.contains(ROLE_USER));
-		Assertions.assertFalse(authorities.contains(ROLE_ADMIN));
-	}
-
-	@Test
-	public void mapAuthorities_preserves_the_incoming_authorities() {
-		SimpleGrantedAuthority incoming = new SimpleGrantedAuthority("SCOPE_openid");
-
-		Collection<? extends GrantedAuthority> authorities = converter.mapAuthorities(List.of(incoming));
-
-		Assertions.assertTrue(authorities.contains(incoming));
-		Assertions.assertTrue(authorities.contains(ROLE_USER));
-	}
-
 	/**
-	 * The admin role name comes from configuration. A null one must not match
-	 * anything in the roles array, and must not hand out admin by accident.
+	 * The admin role name comes from configuration and has no default. Neither a
+	 * null nor a blank one may match anything in the roles array.
 	 */
 	@Test
 	public void a_null_admin_role_never_grants_admin() {
 		var unconfigured = new RolesAuthoritiesConverter(null);
 
 		Collection<GrantedAuthority> authorities = unconfigured.convert(jwtWithClaim(List.of(ADMIN_ROLE)));
+
+		Assertions.assertTrue(authorities.contains(ROLE_USER));
+		Assertions.assertFalse(authorities.contains(ROLE_ADMIN));
+	}
+
+	@Test
+	public void a_blank_admin_role_never_grants_admin() {
+		var unconfigured = new RolesAuthoritiesConverter("");
+
+		Collection<GrantedAuthority> authorities = unconfigured.convert(jwtWithClaim(List.of("")));
 
 		Assertions.assertTrue(authorities.contains(ROLE_USER));
 		Assertions.assertFalse(authorities.contains(ROLE_ADMIN));

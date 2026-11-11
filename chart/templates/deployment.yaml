@@ -45,6 +45,12 @@ spec:
           value: {{ .Values.service.url | quote }}
         - name: BASE_MTLS_URL
           value: {{ .Values.service.mtls | quote }}
+        - name: OIDC_IDP_ISS
+          value: {{ required "idp.iss must be set: the suite does not start without the IdP issuer" .Values.idp.iss | quote }}
+        - name: OIDC_IDP_API_AUDIENCE
+          value: {{ required "idp.apiAudience must be set: the suite does not start without the API audience" .Values.idp.apiAudience | quote }}
+        - name: OIDC_IDP_ADMIN_ROLE
+          value: {{ .Values.idp.adminRole | quote }}
         - name: MONGODB_HOST
           value: {{ template "appname" . }}-mongodb
         - name: JAVA_EXTRA_ARGS

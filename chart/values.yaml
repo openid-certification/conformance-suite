@@ -11,6 +11,14 @@ application:
   tier: web
   env_slug: ""
   path_slug: ""
+# The OpenID Provider whose access tokens the API accepts as bearer tokens
+# (oidc.idp.* in application.properties, which has no defaults). iss and
+# apiAudience are required by the template. apiAudience must match the 'aud' the
+# IdP puts in access tokens for this API.
+idp:
+  iss: https://openid.net/auth
+  apiAudience: conformance-suite-api
+  adminRole: conformance-admin
 nodeSelector: {}
 tolerations: {}
 service:

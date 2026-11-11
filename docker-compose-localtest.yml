@@ -52,6 +52,9 @@ services:
        --fintechlabs.base_http_url=http://server:8080
        --fintechlabs.devmode=$$DEVMODE
        --fintechlabs.startredir=true
+       --oidc.idp.iss=${OIDC_IDP_ISS:-https://openid.net/auth}
+       --oidc.idp.api-audience=${OIDC_IDP_API_AUDIENCE:-conformance-suite-api}
+       --oidc.idp.admin-role=${OIDC_IDP_ADMIN_ROLE:-conformance-admin}
     links:
      - mongodb:mongodb
     depends_on:

@@ -975,10 +975,16 @@ def run_tests():
     # an Authorization header must come back as a clean 401 -- never a 5xx, and
     # never an accepted identity.
     #
-    # Note: these tokens are rejected at signature verification, so they do not
-    # reach the roles->authorities converter. That converter's tolerance
-    # of oddly-shaped claims is covered by RolesAuthoritiesConverter_UnitTest,
-    # which is the only place it can be driven without the IdP's signing key.
+    # None of these tokens is signed by the IdP, so none reaches the checks that
+    # follow signature verification (token type, audience, expiry, subject) or
+    # the roles->authorities converter, and a validly signed token cannot be
+    # shown to get 200 here: this script does not have the IdP's signing key.
+    # IdpJwtDecoderChain_UnitTest drives the real decoder with correctly signed
+    # tokens against a local IdP for those cases, and
+    # RolesAuthoritiesConverter_UnitTest covers oddly-shaped roles claims.
+    #
+    # Tokens whose iss is not the configured IdP are rejected before any request
+    # to the IdP, so most of these cases do not depend on it being reachable.
     print("\n--- 2f. IdP JWT bearer tokens ---")
 
     now = int(time.time())
@@ -1012,11 +1018,9 @@ def run_tests():
     c.close()
 
     # A token minted for a different client of the same realm must not authenticate
-    # here. Like the cases above this one is rejected at signature verification, so
-    # it pins the outcome rather than the audience check itself -- the realm's
-    # signing key is not available to this script. IdpAudienceValidator_UnitTest is
-    # the authoritative coverage for a token that IS correctly signed but carries
-    # someone else's aud/azp.
+    # here. Like the cases above this one is never verified, so it pins the outcome
+    # rather than the audience check itself; IdpJwtDecoderChain_UnitTest covers a
+    # correctly signed token with someone else's aud.
     wrong_audience = forged_jwt(
         {"alg": "ES256", "typ": "JWT"},
         {"iss": "https://idp.example.invalid", "sub": "attacker", "aud": "some-other-app",
