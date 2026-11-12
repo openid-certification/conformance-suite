@@ -69,6 +69,8 @@ import net.openid.conformance.plan.TestPlan;
 		// Error handling at every level (certification scenario 3.1 with 5.4.2 and 5.4.6)
 		AuthzenPDPEvaluationsSubjectMissingTypeTest.class,
 		AuthzenPDPEvaluationsSubjectIsStringTest.class,
+		AuthzenPDPEvaluationsActionIsStringTest.class,
+		AuthzenPDPEvaluationsResourceIsStringTest.class,
 		AuthzenPDPEvaluationsActionNameIsNumberTest.class,
 		AuthzenPDPEvaluationsContextIsStringTest.class,
 		AuthzenPDPEvaluationsEvaluationsIsObjectTest.class,

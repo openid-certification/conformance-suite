@@ -9,7 +9,7 @@ import java.util.Set;
 	testName = "authzen-pdp-evaluations-evaluation-is-string",
 	displayName = "AuthZEN Evaluations API - Section 7.1: Evaluation item is a string",
 	summary = "Section 7.1 invalid field type in a batch (certification scenario 3.1 and 5.4.6). The only item of `evaluations` is a string instead of an object, although the top level supplies a complete subject, action and resource. Section 7.1 makes each item an object, and Section 7.2.1 lets an error in an individual evaluation be returned in the payload with the decision defaulting to closed (false). "
-		+ "This is why the module accepts HTTP 200, unlike the top-level `subject` and `context` invalid-type modules, which accept only HTTP 400: their invalid value is a top-level default that is not an object at all, which every evaluation inherits, so the whole payload is malformed (certification scenario 3.1 with 6.4.1), while here only one evaluation item is invalid. "
+		+ "This is why the module accepts HTTP 200, unlike the top-level `subject`, `action`, `resource` and `context` invalid-type modules, which accept only HTTP 400: their invalid value is a top-level default that is not an object at all, which every evaluation inherits, so the whole payload is malformed (certification scenario 3.1 with 6.4.1), while here only one evaluation item is invalid. "
 		+ "Whether a malformed item is a whole-payload error is a question for the working group, so the PDP MUST either reject the request with HTTP 400, or return HTTP 200 with `{ \"evaluations\": [{ \"decision\": false }] }`; it MUST NOT permit the evaluation.\n" + AuthzenPDPEvaluationsEvaluationIsStringTest.payload,
 	profile = "AuthZEN"
 )
