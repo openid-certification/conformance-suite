@@ -215,6 +215,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"directory.keystore"
 })
+@VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_chile", configurationFields = {
+	"server.response_signing_jwks"
+})
 @VariantHidesConfigurationFields(parameter = FAPIResponseMode.class, value = "jarm", configurationFields = {
 	"client2.client_id",
 	"client2.scope",

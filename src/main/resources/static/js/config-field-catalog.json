@@ -201,6 +201,12 @@
           "tooltip": "Private key to be used by the server to sign id_tokens, this should be one key in JSON Web Key Set format."
         },
         {
+          "key": "server.response_signing_jwks",
+          "label": "response signing jwks",
+          "type": "object",
+          "tooltip": "Chile Open Finance only (required): private key the test suite, acting as the bank, uses to sign the x-jws-signature of its resource responses. This should be one RSA key with a 'kid', in JSON Web Key Set format. Its public part is served at the 'jws-signature-validation/v1/jwks' endpoint shown when the test starts."
+        },
+        {
           "key": "server.login_hint",
           "label": "login_hint",
           "type": "string",
