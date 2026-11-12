@@ -119,7 +119,7 @@ class ValidateDiscoverySignedMetadata_UnitTest {
 	public void missingIssuer_failsResult() throws Exception {
 		putSignedMetadata(hmacSigned(new JWTClaimsSet.Builder().subject("not-an-issuer").build()));
 		Throwable e = assertThrows(TestFailureException.class, () -> module.runSequence());
-		assertTrue(e.getMessage().contains("MUST contain an `iss` (issuer) claim"));
+		assertTrue(e.getMessage().contains("has no `iss` (issuer) claim"));
 	}
 
 	@Test

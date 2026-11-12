@@ -57,17 +57,17 @@ public class ValidatePDPMetadataIssuer extends AbstractCondition {
 			try {
 				URI uri = new URI(issuer);
 				if (!uri.isAbsolute()) {
-					throw error(LABEL + " contains a ':', so RFC 7519 requires it to be a URI, but it is not an "
+					throw error(LABEL + " contains a ':', so it must be a URI, but it is not an "
 						+ "absolute one", args("metadata_issuer", issuer));
 				}
 			} catch (URISyntaxException e) {
-				throw error(LABEL + " contains a ':', so RFC 7519 requires it to be a URI, but it is not a valid "
+				throw error(LABEL + " contains a ':', so it must be a URI, but it is not a valid "
 					+ "one", e, args("metadata_issuer", issuer));
 			}
 		}
 
 		logSuccess("The `signed_metadata` `iss` claim will be checked against the configured 'Signed Metadata "
-			+ "Issuer', which AuthZEN §11.8 allows to be a party other than the PDP itself",
+			+ "Issuer', which may be a party other than the PDP itself",
 			args("metadata_issuer", issuer));
 		return env;
 	}

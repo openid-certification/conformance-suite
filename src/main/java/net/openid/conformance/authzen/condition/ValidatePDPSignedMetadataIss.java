@@ -35,7 +35,7 @@ public class ValidatePDPSignedMetadataIss extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		String actualIssuer = env.getString("pdp_signed_metadata", "claims.iss");
 		if(Strings.isNullOrEmpty(actualIssuer)) {
-			throw error("PDP `signed_metadata` MUST contain an `iss` (issuer) claim", args("issuer", actualIssuer));
+			throw error("PDP `signed_metadata` has no `iss` (issuer) claim, or it is empty", args("issuer", actualIssuer));
 		}
 
 		String configuredIssuer = SignedMetadataIssuerConfig.value(env);

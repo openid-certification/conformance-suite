@@ -20,10 +20,10 @@ public class EnsureAuthzenApiResponseHasWwwAuthenticate extends AbstractConditio
 	public Environment evaluate(Environment env) {
 		Integer status = env.getInteger("authzen_api_endpoint_response", "status");
 		if (status == null) {
-			throw error("AuthZEN API response has no HTTP status; cannot evaluate the Section 11.3 WWW-Authenticate SHOULD check");
+			throw error("AuthZEN API response has no HTTP status, so the WWW-Authenticate check cannot be made");
 		}
 		if (status != 401) {
-			log("Response status is not 401; the WWW-Authenticate SHOULD check applies only to 401 responses",
+			log("Response status is not 401; the WWW-Authenticate check applies only to 401 responses",
 				args("status", status));
 			return env;
 		}
@@ -47,7 +47,7 @@ public class EnsureAuthzenApiResponseHasWwwAuthenticate extends AbstractConditio
 					args("response_headers", headers));
 				return env;
 			}
-			throw error("PDP returned 401 without a WWW-Authenticate response header (Section 11.3 SHOULD)",
+			throw error("PDP returned 401 without a WWW-Authenticate response header",
 				args("response_headers", headers));
 		}
 		logSuccess("PDP returned a WWW-Authenticate response header on 401");

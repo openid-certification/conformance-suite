@@ -26,7 +26,7 @@ public class EnsureAuthzenApiEndpointPathContainsV1 extends AbstractCondition {
 		}
 		String path = uri.getPath();
 		if (path == null || !path.matches(".*/v1(/.*|$)")) {
-			throw error("API endpoint path SHOULD include a `v1` version segment (spec section 4)",
+			throw error("API endpoint path does not include a `v1` version segment",
 				args("endpoint", endpoint, "path", path));
 		}
 		logSuccess("API endpoint path contains the expected `v1` version segment",
