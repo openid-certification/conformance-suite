@@ -54,19 +54,16 @@ public class EnsurePolicyDecisionPointMatchesIssuer extends AbstractCondition {
 		String returned = returnedElement == null ? null : OIDFJSON.getString(returnedElement);
 		if (returned == null) {
 			throw error(capitalize(document) + " contains no `policy_decision_point`, so it cannot be checked "
-				+ "against the 'PDP Identifier' the metadata was fetched from. AuthZEN 9.2.3 requires the two to be "
-				+ "identical and says the data in the response MUST NOT be used otherwise, so the test stops here.");
+				+ "against the 'PDP Identifier' the metadata was fetched from. The two must be identical, and the data in "
+				+ "the response must not be used otherwise, so the test stops here.");
 		}
 		if (!configured.equals(returned)) {
 			// The difference goes in the message, not only in args: this failure ends the run, so the
 			// one line the tester reads first has to say what to change.
 			throw error("The `policy_decision_point` in " + document + " is not identical to the "
 					+ "'PDP Identifier' the metadata was fetched from - " + describeDifference(configured, returned)
-					+ ". AuthZEN 9.2.3: \"The policy_decision_point value returned MUST be identical to the Policy "
-					+ "Decision Point identifier value into which the well-known URI string was inserted to create "
-					+ "the URL used to retrieve the metadata. If these values are not identical, the data contained "
-					+ "in the response MUST NOT be used.\" The test stops here, because every endpoint it would use "
-					+ "next comes from this response. Make the two values identical - either correct the PDP's "
+					+ ". The two must be identical, and the data in a response where they differ must not be used. "
+					+ "The test stops here, because every endpoint it would use next comes from this response. Make the two values identical - either correct the PDP's "
 					+ "metadata, or correct the 'PDP Identifier' in the test configuration.",
 				args("configured_pdp_identifier", configured, "returned_policy_decision_point", returned));
 		}

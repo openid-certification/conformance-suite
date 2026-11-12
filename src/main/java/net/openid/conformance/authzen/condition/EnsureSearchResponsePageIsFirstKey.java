@@ -24,7 +24,7 @@ public class EnsureSearchResponsePageIsFirstKey extends AbstractCondition {
 		}
 		Map.Entry<String, com.google.gson.JsonElement> first = response.entrySet().iterator().next();
 		if (!"page".equals(first.getKey())) {
-			throw error("Section 8.3 RECOMMENDED that the search response `page` member be the first key",
+			throw error("The search response does not begin with the `page` member, which is recommended to be the first key",
 				args("first_key", first.getKey(), "response", response));
 		}
 		logSuccess("Search response begins with `page`");

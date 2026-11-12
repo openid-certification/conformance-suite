@@ -33,7 +33,7 @@ public class ValidateDiscoverySignedMetadata extends AbstractConditionSequence {
 
 	@Override
 	public void evaluate() {
-		callAndStopOnFailure(ExtractPDPSignedMetadata.class, "AUTHZEN-9.1.3");
+		callAndStopOnFailure(ExtractPDPSignedMetadata.class, "AUTHZEN-9.1.3", "RFC7519-4.1");
 		callAndStopOnFailure(ValidatePDPSignedMetadataAlg.class, "AUTHZEN-9.1.3");
 		callAndStopOnFailure(VerifyAuthzenSignedMetadataSignature.class, "AUTHZEN-9.1.3", "AUTHZEN-9.2.3");
 		callAndStopOnFailure(ValidatePDPSignedMetadataIss.class, "AUTHZEN-9.1.3", "RFC7519-4.1.1");
