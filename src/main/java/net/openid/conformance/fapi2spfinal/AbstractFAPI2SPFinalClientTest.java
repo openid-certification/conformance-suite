@@ -88,6 +88,7 @@ import net.openid.conformance.condition.as.SetRsaAltServerJwks;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToAttestJwtClientAuthOnly;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.CreateKSASignedConsentResponseClaims;
+import net.openid.conformance.condition.as.SerializeAccountsEndpointResponseBody;
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.SignKSAConsentResponse;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
@@ -176,9 +177,11 @@ import net.openid.conformance.condition.as.clientattestation.ValidateClientAuthe
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
 
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -1898,9 +1901,30 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			}
 			// at this point we can assume the test is fully done
 			resourceEndpointCallComplete();
-			responseEntity = new ResponseEntity<>(accountsEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
+			String serializedBody = env.getString(SerializeAccountsEndpointResponseBody.ACCOUNTS_RESPONSE_BODY);
+			if (serializedBody != null) {
+				responseEntity = serializedAccountsResponse(serializedBody, headerJson);
+			} else {
+				responseEntity = new ResponseEntity<>(accountsEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
+			}
 		}
 		return responseEntity;
+	}
+
+	/**
+	 * The accounts response for a profile that serialized the body itself, typically because a
+	 * signature covers those exact bytes: the string is written as is, in UTF-8, so the bytes on the
+	 * wire are the ones signed.
+	 */
+	private ResponseEntity<Object> serializedAccountsResponse(String body, JsonObject headerJson) {
+		HttpHeaders headers = headersFromJson(headerJson);
+		MediaType contentType = headers.getContentType();
+		if (contentType == null) {
+			headers.setContentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8));
+		} else if (contentType.getCharset() == null) {
+			headers.setContentType(new MediaType(contentType, StandardCharsets.UTF_8));
+		}
+		return new ResponseEntity<>(body, headers, HttpStatus.OK);
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
