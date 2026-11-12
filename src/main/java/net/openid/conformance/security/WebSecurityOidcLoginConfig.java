@@ -47,6 +47,7 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
+import org.springframework.security.oauth2.jwt.JwtDecoderFactory;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -136,6 +137,11 @@ class WebSecurityOidcLoginConfig {
 				new OAuth2ClientPropertiesMapper(properties).asClientRegistrations().values());
 			return new InMemoryClientRegistrationRepository(registrations);
 		}, devmode);
+	}
+
+	@Bean
+	public JwtDecoderFactory<ClientRegistration> idTokenDecoderFactory() {
+		return new IdTokenDecoderFactory();
 	}
 
 	@Bean
