@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Parses the configured JWS algorithm names used to verify access tokens issued by
- * the IdP.
+ * The JWS algorithms the IdP's tokens are verified with: the configured ones for
+ * its access tokens, and {@link #ID_TOKEN} for its ID tokens.
  * <p>
  * These have to be configuration rather than constants in the code: which algorithm
  * an IdP signs with is a deployment fact. Note that the IdP's discovery document is
@@ -27,6 +27,13 @@ public final class IdpJwsAlgorithms {
 	 * default even when its ID tokens are ES256.
 	 */
 	public static final List<SignatureAlgorithm> DEFAULT = List.of(SignatureAlgorithm.ES256, SignatureAlgorithm.RS256);
+
+	/**
+	 * Accepted on an ID token from a login through the IdP. Kept apart from
+	 * {@link #DEFAULT}: an IdP signs the two kinds of token independently, so a
+	 * deployment narrowing its access-token algorithms says nothing about these.
+	 */
+	public static final List<SignatureAlgorithm> ID_TOKEN = List.of(SignatureAlgorithm.ES256, SignatureAlgorithm.RS256);
 
 	/**
 	 * @param names comma-separated algorithm names, e.g. "ES256,RS256"; blank or null
