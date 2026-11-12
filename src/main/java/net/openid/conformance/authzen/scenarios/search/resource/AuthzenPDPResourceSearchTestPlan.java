@@ -48,7 +48,10 @@ import java.util.Map;
 		AuthzenPDPResourceSearchResourceMissingTypeTest.class,
 		AuthzenPDPResourceSearchMissingActionTest.class,
 		AuthzenPDPResourceSearchActionMissingNameTest.class,
+		AuthzenPDPResourceSearchSubjectIsStringTest.class,
+		AuthzenPDPResourceSearchActionIsStringTest.class,
 		AuthzenPDPResourceSearchResourceIsStringTest.class,
+		AuthzenPDPResourceSearchContextIsStringTest.class,
 		AuthzenPDPResourceSearchActionNameIsNumberTest.class,
 		// Extra resource.id ignored (Section 8.5.1)
 		AuthzenPDPResourceSearchExtraResourceIdIgnoredTest.class,
