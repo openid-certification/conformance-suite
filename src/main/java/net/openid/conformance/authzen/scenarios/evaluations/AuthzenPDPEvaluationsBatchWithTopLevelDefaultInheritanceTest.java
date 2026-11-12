@@ -48,4 +48,11 @@ public class AuthzenPDPEvaluationsBatchWithTopLevelDefaultInheritanceTest extend
 			}
 			""";
 	}
+
+	@Override
+	protected String[] additionalDecisionsRequirements() {
+		// Section 7.1.1: an evaluation inherits each top-level default it omits, and a key it gives
+		// "overrides the corresponding top-level default".
+		return new String[] {"AUTHZEN-7.1.1"};
+	}
 }
