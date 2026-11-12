@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -125,5 +126,24 @@ class EnsurePolicyDecisionPointMatchesIssuer_UnitTest {
 		put("https://pdp.example.com/", null);
 		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
 		assertTrue(e.getMessage().contains("The PDP's discovery document contains no `policy_decision_point`"), e.getMessage());
+		assertFalse(e.getMessage().contains("signed_metadata"), e.getMessage());
+	}
+
+	@Test
+	public void missingReturnedUrlWithSignedMetadata_explainsThePublishedDocumentMustCarryIt() {
+		put("https://pdp.example.com/", null);
+		env.getObject("server").addProperty("signed_metadata", "eyJhbGciOiJIUzI1NiJ9.e30.sig");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("If its signed_metadata carries `policy_decision_point`, that is not enough: a PEP may ignore signed metadata"), e.getMessage());
+	}
+
+	@Test
+	public void missingInSignedMetadataValues_doesNotMentionThePublishedDocument() {
+		cond = new EnsurePolicyDecisionPointMatchesIssuer(EnsurePolicyDecisionPointMatchesIssuer.SIGNED_METADATA);
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		put("https://pdp.example.com/", null);
+		env.getObject("server").addProperty("signed_metadata", "eyJhbGciOiJIUzI1NiJ9.e30.sig");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFalse(e.getMessage().contains("published document"), e.getMessage());
 	}
 }
