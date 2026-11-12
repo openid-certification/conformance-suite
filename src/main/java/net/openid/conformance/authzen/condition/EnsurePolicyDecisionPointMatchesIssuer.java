@@ -53,9 +53,20 @@ public class EnsurePolicyDecisionPointMatchesIssuer extends AbstractCondition {
 		}
 		String returned = returnedElement == null ? null : OIDFJSON.getString(returnedElement);
 		if (returned == null) {
+			// A published document that carries the identifier only in signed_metadata still fails: a PEP
+			// may ignore signed metadata, and one that does has no value to compare. The signed values are
+			// not verified yet, so the message cannot say whether signed_metadata carries it.
+			JsonElement signedMetadata = env.getElementFromObject("server", "signed_metadata");
+			boolean hasSignedMetadata = PUBLISHED_DOCUMENT.equals(document)
+				&& signedMetadata != null && !signedMetadata.isJsonNull();
 			throw error(capitalize(document) + " contains no `policy_decision_point`, so it cannot be checked "
 				+ "against the 'PDP Identifier' the metadata was fetched from. The two must be identical, and the data in "
-				+ "the response must not be used otherwise, so the test stops here.");
+				+ "the response must not be used otherwise, so the test stops here."
+				+ (hasSignedMetadata
+					? " If its signed_metadata carries `policy_decision_point`, that is not enough: a PEP may ignore signed "
+						+ "metadata, and one that does could not validate this response, so the published document must carry "
+						+ "`policy_decision_point` too."
+					: ""));
 		}
 		if (!configured.equals(returned)) {
 			// The difference goes in the message, not only in args: this failure ends the run, so the
