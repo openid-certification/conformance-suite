@@ -39,4 +39,11 @@ public class AuthzenPDPEvaluationsPerEvalOverridesDefaultTest extends AbstractAu
 			}
 			""";
 	}
+
+	@Override
+	protected String[] additionalDecisionsRequirements() {
+		// Section 7.1.1: a value in an evaluation takes precedence over the top-level default, and an
+		// evaluation that omits it inherits the default.
+		return new String[] {"AUTHZEN-7.1.1"};
+	}
 }
