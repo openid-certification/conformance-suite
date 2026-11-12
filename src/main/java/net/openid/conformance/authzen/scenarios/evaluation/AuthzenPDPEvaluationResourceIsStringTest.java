@@ -1,0 +1,42 @@
+package net.openid.conformance.authzen.scenarios.evaluation;
+
+import net.openid.conformance.authzen.AbstractAuthzenPDPEvaluationTest;
+import net.openid.conformance.testmodule.PublishTestModule;
+
+@PublishTestModule(
+	testName = "authzen-pdp-evaluation-resource-is-string",
+	displayName = "AuthZEN Evaluation API - Section 5.2: Resource is string -- expect HTTP 400",
+	summary = "Section 5.2 invalid field type (certification scenario 5.4.6). `resource` is the string \"record-1\" instead of an object; PDP MUST return HTTP 400.\n" + AuthzenPDPEvaluationResourceIsStringTest.payload,
+	profile = "AuthZEN"
+)
+public class AuthzenPDPEvaluationResourceIsStringTest extends AbstractAuthzenPDPEvaluationTest {
+
+	public static final String payload = """
+		{
+			"subject": { "type": "user", "id": "alice" },
+			"action": { "name": "read" },
+			"resource": "record-1"
+		}
+		""";
+
+	@Override
+	protected String getPayload() {
+		return payload;
+	}
+
+	@Override
+	protected int getExpectedHttpStatusCode() {
+		return 400;
+	}
+
+	@Override
+	protected boolean sendRawRequest() {
+		return true;
+	}
+
+	@Override
+	protected String[] additionalStatusRequirements() {
+		// Section 5.2: a Resource "is an object".
+		return new String[] {"AUTHZEN-5.2"};
+	}
+}

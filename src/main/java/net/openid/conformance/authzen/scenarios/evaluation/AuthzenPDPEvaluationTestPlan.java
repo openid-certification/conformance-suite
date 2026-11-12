@@ -37,6 +37,8 @@ import java.util.Map;
 		AuthzenPDPEvaluationResourceMissingTypeTest.class,
 		AuthzenPDPEvaluationResourceMissingIdTest.class,
 		AuthzenPDPEvaluationSubjectIsStringTest.class,
+		AuthzenPDPEvaluationActionIsStringTest.class,
+		AuthzenPDPEvaluationResourceIsStringTest.class,
 		AuthzenPDPEvaluationActionNameIsNumberTest.class,
 		AuthzenPDPEvaluationContextIsStringTest.class,
 		AuthzenPDPEvaluationSubjectPropertiesIsStringTest.class,
