@@ -20,8 +20,11 @@ public class EnsureSearchResponsePageCountMatchesResults extends AbstractConditi
 	@PreEnvironment(required = "authzen_search_endpoint_response")
 	public Environment evaluate(Environment env) {
 		JsonObject searchResponse = env.getObject("authzen_search_endpoint_response");
-		JsonElement count = env.getElementFromObject("authzen_search_endpoint_response", "page.count");
-		if (count == null) {
+		// Read through the page object rather than the "page.count" path, which throws on a null page.
+		// A null page or count is treated as absent, as EnsureValidSearchResponsePage does.
+		JsonElement page = searchResponse.get("page");
+		JsonElement count = page != null && page.isJsonObject() ? page.getAsJsonObject().get("count") : null;
+		if (count == null || count.isJsonNull()) {
 			log("Search response page object has no count");
 			return env;
 		}

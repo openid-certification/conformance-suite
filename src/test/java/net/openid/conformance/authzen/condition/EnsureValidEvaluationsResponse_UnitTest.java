@@ -89,4 +89,11 @@ class EnsureValidEvaluationsResponse_UnitTest {
 		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
 		assertTrue(e.getMessage().contains("context that is not an object"));
 	}
+
+	@Test
+	public void nullContext_succeeds() {
+		putResponse("""
+			{ "evaluations": [ { "decision": false, "context": null } ] }""");
+		cond.execute(env);
+	}
 }

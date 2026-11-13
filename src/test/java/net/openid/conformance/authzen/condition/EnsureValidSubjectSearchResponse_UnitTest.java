@@ -278,4 +278,13 @@ class EnsureValidSubjectSearchResponse_UnitTest {
 			}""");
 		cond.execute(env);
 	}
+
+	@Test
+	public void resultWithNullProperties_succeeds() {
+		putRequest("""
+			{ "subject": { "type": "user" } }""");
+		putResponse("""
+			{ "results": [ { "type": "user", "id": "alice", "properties": null } ] }""");
+		cond.execute(env);
+	}
 }

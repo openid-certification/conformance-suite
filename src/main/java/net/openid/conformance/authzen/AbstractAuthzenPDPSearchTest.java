@@ -15,6 +15,7 @@ import net.openid.conformance.authzen.condition.AbstractChangeAuthzenSearchReque
 import net.openid.conformance.authzen.condition.AggregateAuthzenSearchResults;
 import net.openid.conformance.authzen.condition.EnsureAuthzenSearchResponseValsMatchExpectedVals;
 import net.openid.conformance.authzen.condition.EnsureSearchFixtureEntitiesMatchBaseSearch;
+import net.openid.conformance.authzen.condition.WarnAuthzenDecisionNullMembers;
 import net.openid.conformance.authzen.condition.WarnSearchPageCapReached;
 import net.openid.conformance.authzen.condition.WarnSearchResultsIncludeDeniedFixtureEntities;
 import net.openid.conformance.authzen.condition.EnsureSearchPageTokenNotRepeated;
@@ -300,6 +301,7 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 				call(sequence(CallAuthzenApiEndpointAndVerifySuccessfulResponse.class));
 				callAndStopOnFailure(ExtractAuthzenApiEndpointDecisionResponse.class, "AUTHZEN-6.2");
 				callAndStopOnFailure(EnsureValidDecisionResponse.class, "AUTHZEN-6.2", "AUTHZEN-5.5");
+				callAndContinueOnFailure(WarnAuthzenDecisionNullMembers.class, ConditionResult.WARNING, "AUTHZEN-11.5");
 				callAndContinueOnFailure(EnsureSearchResultIsPermitted.class, ConditionResult.WARNING, "AUTHZEN-8.1");
 			} finally {
 				eventLog.endBlock();

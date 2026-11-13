@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 class CreateAuthzenEvaluationRequestForSearchResult_UnitTest {
@@ -98,5 +99,19 @@ class CreateAuthzenEvaluationRequestForSearchResult_UnitTest {
 		run(new CreateAuthzenEvaluationRequestForSearchResult(search, "action", json("""
 			{ "name": "read" }""")));
 		assertNull(env.getObject("authzen_api_endpoint_request_headers"));
+	}
+
+	@Test
+	public void evaluationRequest_leavesOutNullMembersOfTheResult() {
+		JsonObject search = json("""
+			{ "subject": { "type": "user" }, "action": { "name": "read" }, "resource": { "type": "record", "id": "record-1" } }""");
+		JsonObject result = json("""
+			{ "type": "user", "id": "alice", "properties": null }""");
+		run(new CreateAuthzenEvaluationRequestForSearchResult(search, "subject", result));
+		JsonObject subject = env.getObject("authzen_api_endpoint_request").getAsJsonObject("subject");
+		assertFalse(subject.has("properties"));
+		assertEquals("alice", OIDFJSON.getString(subject.get("id")));
+		// the search result itself is left unchanged
+		assertTrue(result.has("properties"));
 	}
 }

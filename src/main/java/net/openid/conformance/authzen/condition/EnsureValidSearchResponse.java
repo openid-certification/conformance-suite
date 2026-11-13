@@ -27,10 +27,11 @@ public class EnsureValidSearchResponse extends AbstractCondition {
 			ensureValidResponseResultsObject(elem.getAsJsonObject());
 		}
 
-		if(searchResponse.has("context")) {
-			if(!searchResponse.get("context").isJsonObject()) {
-				throw error("The context element in the search response not an object", args("authzen_search_endpoint_response", searchResponse));
-			}
+		// A null context or properties is reported by WarnAuthzenSearchResponseNullMembers and treated
+		// as absent here.
+		JsonElement contextElem = searchResponse.get("context");
+		if (contextElem != null && !contextElem.isJsonNull() && !contextElem.isJsonObject()) {
+			throw error("The context element in the search response not an object", args("authzen_search_endpoint_response", searchResponse));
 		}
 
 		// page will be checked by EnsureValidSearchResponsePage
@@ -66,11 +67,11 @@ public class EnsureValidSearchResponse extends AbstractCondition {
 	}
 
 	/**
-	 * Fails if the OPTIONAL `properties` member (Section 5) is present but not an object.
+	 * Fails if the OPTIONAL `properties` member (Section 5) is present, not null, and not an object.
 	 */
 	protected void ensurePropertiesIsObject(JsonObject resultsObj, String entity) {
 		JsonElement properties = resultsObj.get("properties");
-		if (properties != null && !properties.isJsonObject()) {
+		if (properties != null && !properties.isJsonNull() && !properties.isJsonObject()) {
 			throw error(entity + " in the results array has `properties` that is not an object", args("element", resultsObj));
 		}
 	}

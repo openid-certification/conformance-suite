@@ -36,8 +36,9 @@ public class EnsureValidEvaluationsResponse extends AbstractCondition {
 			if(!jsonPrimitive.isBoolean()) {
 				throw error("A Decision element in the evaluations response is not a boolean value", args("decision", decisionObj));
 			}
+			// A null context is reported by WarnAuthzenEvaluationsResponseNullMembers and treated as absent here.
 			JsonElement contextElement = decisionObj.get("context");
-			if (contextElement != null && !contextElement.isJsonObject()) {
+			if (contextElement != null && !contextElement.isJsonNull() && !contextElement.isJsonObject()) {
 				throw error("A Decision element in the evaluations response has a context that is not an object", args("decision", decisionObj));
 			}
 		}

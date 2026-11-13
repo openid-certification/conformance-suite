@@ -18,7 +18,7 @@ public class EnsureSearchResponsePageIsFirstKey extends AbstractCondition {
 	@PreEnvironment(required = "authzen_search_endpoint_response")
 	public Environment evaluate(Environment env) {
 		JsonObject response = env.getObject("authzen_search_endpoint_response");
-		if (!response.has("page")) {
+		if (response.get("page") == null || response.get("page").isJsonNull()) {
 			logSuccess("Response has no `page` member — ordering check trivially satisfied");
 			return env;
 		}

@@ -107,4 +107,11 @@ class EnsureValidSearchResponse_UnitTest {
 		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
 		assertTrue(e.getMessage().contains("context element"));
 	}
+
+	@Test
+	public void nullContext_succeeds() {
+		putResponse("""
+			{ "results": [], "context": null }""");
+		cond.execute(env);
+	}
 }

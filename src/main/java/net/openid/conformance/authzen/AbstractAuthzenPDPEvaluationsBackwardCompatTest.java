@@ -4,6 +4,7 @@ import net.openid.conformance.authzen.condition.EnsureAuthzenDecisionResponseVal
 import net.openid.conformance.authzen.condition.EnsureValidDecisionResponse;
 import net.openid.conformance.authzen.condition.ExtractAuthzenApiEndpointDecisionResponse;
 import net.openid.conformance.authzen.condition.ExtractAuthzenDecisionExpectedResponse;
+import net.openid.conformance.authzen.condition.WarnAuthzenDecisionNullMembers;
 import net.openid.conformance.authzen.condition.WarnAuthzenDecisionUnknownMembers;
 import net.openid.conformance.condition.Condition.ConditionResult;
 
@@ -26,6 +27,7 @@ public abstract class AbstractAuthzenPDPEvaluationsBackwardCompatTest extends Ab
 		// The request behaved like the single Access Evaluation request, so the response is an
 		// Access Evaluation response; an `evaluations` member is one a Decision does not define.
 		callAndContinueOnFailure(WarnAuthzenDecisionUnknownMembers.class, ConditionResult.WARNING, "AUTHZEN-5.5", "AUTHZEN-7.1");
+		callAndContinueOnFailure(WarnAuthzenDecisionNullMembers.class, ConditionResult.WARNING, "AUTHZEN-11.5");
 	}
 
 	@Override

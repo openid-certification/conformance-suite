@@ -33,7 +33,9 @@ public class EnsureSearchResponseResultsWithinPageLimit extends AbstractConditio
 		JsonObject searchResponse = env.getObject("authzen_search_endpoint_response");
 		int resultsSize = searchResponse.getAsJsonArray("results").size();
 		boolean requestHadToken = isNonEmptyString(env.getElementFromObject("authzen_api_endpoint_request", "page.token"));
-		boolean responseHasNextToken = isNonEmptyString(env.getElementFromObject("authzen_search_endpoint_response", "page.next_token"));
+		// Read through the page object rather than the "page.next_token" path, which throws on a null page.
+		JsonElement page = searchResponse.get("page");
+		boolean responseHasNextToken = page != null && page.isJsonObject() && isNonEmptyString(page.getAsJsonObject().get("next_token"));
 		if (!requestHadToken && !responseHasNextToken) {
 			log("The PDP returned the search in a single response, so it is not paginating this search and page.limit does not apply",
 				args("limit", limit, "results_size", resultsSize));

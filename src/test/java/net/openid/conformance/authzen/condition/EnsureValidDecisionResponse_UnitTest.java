@@ -80,4 +80,19 @@ class EnsureValidDecisionResponse_UnitTest {
 		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
 		assertTrue(e.getMessage().contains("context is not an object"));
 	}
+
+	@Test
+	public void nullContext_succeeds() {
+		// Section 11.5 makes omitting a null a SHOULD, which WarnAuthzenDecisionNullMembers reports.
+		putDecision("""
+			{ "decision": true, "context": null }""");
+		cond.execute(env);
+	}
+
+	@Test
+	public void nullDecision_throws() {
+		putDecision("""
+			{ "decision": null }""");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
 }
