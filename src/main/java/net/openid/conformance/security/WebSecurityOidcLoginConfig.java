@@ -1,12 +1,13 @@
 package net.openid.conformance.security;
 
 import com.google.common.base.Strings;
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.Filter;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import net.openid.conformance.info.TestPlanService;
+import net.openid.conformance.security.idp.RolesAuthoritiesConverter;
 import net.openid.conformance.sharing.AssetSharing;
 import net.openid.conformance.sharing.SharedAsset;
 import net.openid.conformance.sharing.privatelink.CustomOneTimeTokenService;
@@ -19,9 +20,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientProperties;
 import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientPropertiesMapper;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -70,6 +71,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -111,6 +113,10 @@ class WebSecurityOidcLoginConfig {
 	@Value("${oidc.admin.issuer}")
 	private String adminIss;
 
+	// Logins through this OpenID Provider take their roles from its "roles" claim.
+	@Value("${" + IdpProperties.ISSUER_PROPERTY + ":}")
+	private String idpIss;
+
 	// Allows to deduce ROLE_ADMIN by gitlab project role
 	@Value("#{${oidc.gitlab.admin-group-indicator-claims}}")
 	private Map<String, Set<String>> gitlabAdminGroupIndicatorClaims;
@@ -149,8 +155,23 @@ class WebSecurityOidcLoginConfig {
 		return new LoginUrlAuthenticationEntryPoint(baseURL + "/login.html");
 	}
 
+	/**
+	 * Authorities from the "roles" claim of an ID token the oidc.idp.* provider
+	 * issued; none for any other provider's, whose "roles" claim means nothing here.
+	 */
+	static Collection<GrantedAuthority> idpRoleAuthorities(OidcIdToken idToken, String idpIss, RolesAuthoritiesConverter converter) {
+		if (Strings.isNullOrEmpty(idpIss) || idToken.getIssuer() == null || !idpIss.equals(idToken.getIssuer().toString())) {
+			return List.of();
+		}
+		return converter.fromRolesClaim(idToken.getClaim(RolesAuthoritiesConverter.ROLES_CLAIM));
+	}
+
 	@Bean
-	public SecurityFilterChain filterChainOidc(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository, OneTimeTokenService oneTimeTokenService, PrivateLinkUserDetailsService privateLinkUserDetailsService) throws Exception {
+	public SecurityFilterChain filterChainOidc(HttpSecurity http,
+											   ClientRegistrationRepository clientRegistrationRepository,
+											   OneTimeTokenService oneTimeTokenService,
+											   PrivateLinkUserDetailsService privateLinkUserDetailsService,
+											   RolesAuthoritiesConverter rolesAuthoritiesConverter) throws Exception {
 
 		http.securityMatcher(request -> {
 			// only handle NON-API requests with this filter chain
@@ -361,6 +382,7 @@ class WebSecurityOidcLoginConfig {
 									extendedAuthorities.addAll(authoritiesByGitlabProject);
 								}
 							}
+							extendedAuthorities.addAll(idpRoleAuthorities(idToken, idpIss, rolesAuthoritiesConverter));
 						}
 					});
 

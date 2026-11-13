@@ -3,6 +3,7 @@ package net.openid.conformance.security;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletResponse;
+import net.openid.conformance.security.idp.RolesAuthoritiesConverter;
 import net.openid.conformance.info.TestPlanService;
 import net.openid.conformance.sharing.privatelink.PrivateLinkUserDetailsService;
 import org.junit.jupiter.api.AfterEach;
@@ -213,7 +214,7 @@ public class OidcListingPageAccess_UnitTest {
 
 	@Configuration
 	@EnableWebSecurity
-	@Import(WebSecurityOidcLoginConfig.class)
+	@Import({WebSecurityOidcLoginConfig.class, RolesAuthoritiesConverter.class})
 	static class TestSecurityConfig {
 
 		@Bean
