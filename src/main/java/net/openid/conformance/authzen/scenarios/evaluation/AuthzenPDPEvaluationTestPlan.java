@@ -51,8 +51,9 @@ import java.util.Map;
 		AuthzenPDPEvaluationUnknownSubjectFieldsTest.class,
 		AuthzenPDPEvaluationUnknownResourceFieldsTest.class,
 		AuthzenPDPEvaluationUnknownActionFieldsTest.class,
-		// Property values of every JSON type (Section 5.1.1) and member order (Section 10.1.1)
+		// Property values of every JSON type (Section 5.1.1), a null value (Section 11.5) and member order (Section 10.1.1)
 		AuthzenPDPEvaluationPropertyValueTypesTest.class,
+		AuthzenPDPEvaluationNullPropertyValueTest.class,
 		AuthzenPDPEvaluationMemberOrderTest.class,
 		// Transport binding negative tests (Section 10.1.1 / 10.1.2)
 		AuthzenPDPEvaluationRejectGetMethodTest.class,

@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-property-value-types-accepted",
 	displayName = "AuthZEN Evaluation API - Section 5.1.1: Property values of every JSON type",
-	summary = "Per Section 5.1.1, \"A property can contain both simple values, such as strings, numbers, booleans and nulls, and complex values, such as arrays and objects.\" The subject alice carries a string, a number, a boolean, an array and an object property, under names no fixture rule uses, on the fixture request alice reads record-1 (rule 1). No null is sent, as Section 11.5 says properties with a value of null SHOULD be omitted. The PDP MUST accept the request and return HTTP 200 with `{ \"decision\": true }`.\n" + AuthzenPDPEvaluationPropertyValueTypesTest.payload,
+	summary = "Per Section 5.1.1, \"A property can contain both simple values, such as strings, numbers, booleans and nulls, and complex values, such as arrays and objects.\" The subject alice carries a string, a number, a boolean, an array and an object property, under names no fixture rule uses, on the fixture request alice reads record-1 (rule 1). No null is sent here, as Section 11.5 says properties with a value of null SHOULD be omitted; the null-property-value module sends one on its own. The PDP MUST accept the request and return HTTP 200 with `{ \"decision\": true }`.\n" + AuthzenPDPEvaluationPropertyValueTypesTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPEvaluationPropertyValueTypesTest extends AbstractAuthzenPDPEvaluationTest {
