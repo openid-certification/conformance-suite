@@ -1,6 +1,7 @@
 package net.openid.conformance.authzen.condition;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
@@ -78,6 +79,25 @@ class EnsureAuthzenApiResponseHasWwwAuthenticate_UnitTest {
 		env.putString("client_auth_type", "api_key");
 		putResponse(401, new JsonObject());
 		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void status401WithoutWwwAuthenticateUnderACustomApiKeyHeader_failsSuggestingASchemeOfItsOwn() {
+		env.putString("client_auth_type", "api_key");
+		env.putObject("client", JsonParser.parseString("{ \"api_key\": \"k\", \"api_key_header\": \"X-API-Key\" }").getAsJsonObject());
+		putResponse(401, new JsonObject());
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("sent in the X-API-Key header"), e.getMessage());
+		assertTrue(e.getMessage().contains("such as ApiKey"), e.getMessage());
+	}
+
+	@Test
+	public void status401WithoutWwwAuthenticateUnderTheAuthorizationHeader_failsWithoutTheSchemeNote() {
+		env.putString("client_auth_type", "api_key");
+		env.putObject("client", JsonParser.parseString("{ \"api_key\": \"k\", \"api_key_header\": \"authorization\" }").getAsJsonObject());
+		putResponse(401, new JsonObject());
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(!e.getMessage().contains("such as ApiKey"), e.getMessage());
 	}
 
 	@Test

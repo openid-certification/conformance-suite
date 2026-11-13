@@ -62,7 +62,8 @@ import net.openid.conformance.variant.VariantSetup;
 	"client.client_secret"
 })
 @VariantConfigurationFields(parameter = PDPAuthType.class, value = "api_key", configurationFields = {
-	"client.api_key"
+	"client.api_key",
+	"client.api_key_header"
 })
 @VariantConfigurationFields(parameter = PDPAuthType.class, value = "mtls", configurationFields = {
 	"mtls.key",

@@ -47,6 +47,16 @@ public class EnsureAuthzenApiResponseHasWwwAuthenticate extends AbstractConditio
 					args("response_headers", headers));
 				return env;
 			}
+			String keyHeader = "api_key".equals(env.getString("client_auth_type"))
+				? env.getString("client", "api_key_header") : null;
+			if (keyHeader != null && !keyHeader.isBlank() && !"authorization".equalsIgnoreCase(keyHeader.trim())) {
+				// No registered HTTP authentication scheme names a key in a header of its own, but the
+				// scheme in a challenge only has to be a token, so the PDP can name one.
+				throw error("PDP returned 401 without a WWW-Authenticate response header. The API key is sent in the "
+						+ keyHeader.trim() + " header, for which no standard HTTP authentication scheme exists; a challenge "
+						+ "naming a scheme of the PDP's own, such as ApiKey, satisfies this check",
+					args("response_headers", headers, "api_key_header", keyHeader.trim()));
+			}
 			throw error("PDP returned 401 without a WWW-Authenticate response header",
 				args("response_headers", headers));
 		}
