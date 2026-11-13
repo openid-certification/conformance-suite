@@ -23,6 +23,15 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 
 public abstract class AbstractAuthzenPDPResourceSearchTest extends AbstractAuthzenPDPSearchTest {
 
+	/**
+	 * The record decision rule 9 adds to search requirement S2, alice can read record-2, from the
+	 * working group's answer to openid/authzen#776 (scenario PR openid/authzen#793).
+	 */
+	protected static final String DECISION_RULE_9_RECORDS = """
+		[ { "type": "record", "id": "record-2" } ]
+		""";
+
+
 	@Override
 	protected ConditionSequence createAuthzenApiRequestSequence() {
 		JsonObject request = parseRequest();

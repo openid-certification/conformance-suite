@@ -17,6 +17,7 @@ import net.openid.conformance.authzen.condition.EnsureSearchFixtureEntitiesMatch
 import net.openid.conformance.authzen.condition.WarnAuthzenDecisionNullMembers;
 import net.openid.conformance.authzen.condition.WarnSearchPageCapReached;
 import net.openid.conformance.authzen.condition.WarnSearchResultsIncludeDeniedFixtureEntities;
+import net.openid.conformance.authzen.condition.WarnSearchResultsMissingRevisedFixtureEntities;
 import net.openid.conformance.authzen.condition.EnsureSearchPageTokenNotRepeated;
 import net.openid.conformance.authzen.condition.EnsureSearchResultsMatchBaseSearch;
 import net.openid.conformance.authzen.condition.ExtractAuthzenSearchExpectedResponse;
@@ -95,6 +96,15 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	 * they need not override it.
 	 */
 	protected String getExpectedSearchResponseJson() {
+		return null;
+	}
+
+	/**
+	 * Override to name entities a revision of the certification fixture adds to this search's
+	 * expected results, which is not yet published (a JSON array): each one missing from the results
+	 * is a warning rather than a failure. Null, the default, names none.
+	 */
+	protected String getRevisedFixtureEntitiesJson() {
 		return null;
 	}
 
@@ -501,6 +511,11 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 				}
 				if (deniedJson != null) {
 					callAndContinueOnFailure(new WarnSearchResultsIncludeDeniedFixtureEntities(deniedJson), ConditionResult.WARNING, "AUTHZEN-8.1");
+				}
+				String revisedJson = getRevisedFixtureEntitiesJson();
+				if (revisedJson != null) {
+					// The entities come from the certification fixture, which has no requirement link prefix.
+					callAndContinueOnFailure(new WarnSearchResultsMissingRevisedFixtureEntities(revisedJson), ConditionResult.WARNING);
 				}
 			} finally {
 				env.unmapKey("authzen_search_endpoint_response");

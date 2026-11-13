@@ -6,7 +6,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-resource-search-request-with-page-limit",
 	displayName = "AuthZEN Resource Search API - Section 8.2.1: Request with page limit",
-	summary = "Section 8.2.1 request with a `page.limit` field (certification scenario 7.5.1). The PDP MUST accept the request. Pagination is optional (Section 8.2, certification scenario 7.5.4): a PDP that does not paginate returns all results in one response, and a PDP that paginates returns at most `limit` results per page. The harness follows `page.next_token` across pages, and the accumulated results MUST include record-1. Exceeding the limit while paginating fails, as Section 8.2.1 defines it as the maximum number of results to return in the response. The fixture guarantees only record-1 for this search (search requirement S2, certification scenario 4.5), so a PDP that paginates may still return it in one page, and no second page is then requested.\n" + AuthzenPDPResourceSearchRequestWithPageLimitTest.payload,
+	summary = "Section 8.2.1 request with a `page.limit` field (certification scenario 7.5.1). The PDP MUST accept the request. Pagination is optional (Section 8.2, certification scenario 7.5.4): a PDP that does not paginate returns all results in one response, and a PDP that paginates returns at most `limit` results per page. The harness follows `page.next_token` across pages, and the accumulated results MUST include record-1, and a missing record-2 is a warning until decision rule 9 (openid/authzen#776) is published. "
+		+ "Exceeding the limit while paginating fails, as Section 8.2.1 defines it as the maximum number of results to return in the response. The published fixture guarantees only record-1 for this search (search requirement S2, certification scenario 4.5), so a PDP that paginates may still return it in one page, and no second page is then requested; decision rule 9 (openid/authzen#776) adds record-2 once published.\n" + AuthzenPDPResourceSearchRequestWithPageLimitTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPResourceSearchRequestWithPageLimitTest extends AbstractAuthzenPDPResourceSearchTest {
@@ -25,6 +26,11 @@ public class AuthzenPDPResourceSearchRequestWithPageLimitTest extends AbstractAu
 	@Override
 	protected String getPayload() {
 		return payload;
+	}
+
+	@Override
+	protected String getRevisedFixtureEntitiesJson() {
+		return DECISION_RULE_9_RECORDS;
 	}
 
 	@Override

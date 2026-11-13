@@ -32,6 +32,11 @@ public class AuthzenPDPResourceSearchExtraResourceIdIgnoredTest extends Abstract
 	}
 
 	@Override
+	protected String getRevisedFixtureEntitiesJson() {
+		return DECISION_RULE_9_RECORDS;
+	}
+
+	@Override
 	protected String getExpectedSearchResponseJson() {
 		return """
 			{

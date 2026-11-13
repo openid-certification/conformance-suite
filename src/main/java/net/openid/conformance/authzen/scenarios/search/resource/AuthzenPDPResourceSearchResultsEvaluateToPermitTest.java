@@ -34,6 +34,11 @@ public class AuthzenPDPResourceSearchResultsEvaluateToPermitTest extends Abstrac
 	}
 
 	@Override
+	protected String getRevisedFixtureEntitiesJson() {
+		return DECISION_RULE_9_RECORDS;
+	}
+
+	@Override
 	protected String getExpectedSearchResponseJson() {
 		return """
 			{

@@ -30,6 +30,11 @@ public class AuthzenPDPResourceSearchXRequestIdEchoedTest extends AbstractAuthze
 	}
 
 	@Override
+	protected String getRevisedFixtureEntitiesJson() {
+		return DECISION_RULE_9_RECORDS;
+	}
+
+	@Override
 	protected String getExpectedSearchResponseJson() {
 		return """
 			{
