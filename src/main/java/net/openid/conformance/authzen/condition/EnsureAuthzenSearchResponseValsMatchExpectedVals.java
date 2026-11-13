@@ -17,12 +17,14 @@ public class EnsureAuthzenSearchResponseValsMatchExpectedVals extends AbstractCo
 		JsonArray expected = readResultsArray(env, "authzen_search_endpoint_expected_response", "expected");
 		JsonArray results = readResultsArray(env, "authzen_search_endpoint_response", "actual");
 
-		// An empty expected array means no entity matches the search, so any result is wrong.
+		// An empty expected array means the fixture requires no entity for this search. A PDP with
+		// policies beyond the fixture may still match one, so any results array passes
+		// (openid/authzen#765).
 		if (expected.isEmpty()) {
-			if (!results.isEmpty()) {
-				throw error("Search result is not empty, but no entity matches this search", args("results", results));
-			}
-			logSuccess("The search response has an empty results array, as expected");
+			logSuccess(results.isEmpty()
+				? "The search response has an empty results array; the fixture requires no entity for this search"
+				: "The search response has results, which a policy beyond the fixture may match; the fixture requires no entity for this search",
+				args("results", results));
 			return env;
 		}
 
