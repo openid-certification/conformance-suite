@@ -52,6 +52,7 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsBatchWithFullySpecifiedEvaluationsTest.class,
 		AuthzenPDPEvaluationsBatchWithContextInheritanceTest.class,
 		AuthzenPDPEvaluationsEvaluationLevelErrorsTest.class,
+		AuthzenPDPEvaluationsIncompleteEntityTest.class,
 		// evaluations_semantic option (Section 7.1.2.1), including the OPTIONAL
 		// short-circuiting semantics that AuthzenPDPEvaluationsTestPlan leaves out
 		AuthzenPDPEvaluationsDefaultSemanticContinuesAfterDenyTest.class,
@@ -63,7 +64,7 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsUnknownSemanticValueTest.class,
 		// Per-eval overrides top-level defaults (Section 7.1.1)
 		AuthzenPDPEvaluationsPerEvalOverridesDefaultTest.class,
-		// No subject or no action at any level: 400, or a decision-false evaluation (Section 7.1, 7.1.2.1)
+		// No subject or no action at any level: 400 (Section 7.1.1, openid/authzen#763)
 		AuthzenPDPEvaluationsMissingSubjectTest.class,
 		AuthzenPDPEvaluationsMissingActionTest.class,
 		// Error handling at every level (certification scenario 3.1 with 5.4.2 and 5.4.6)
