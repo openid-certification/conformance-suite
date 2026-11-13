@@ -86,8 +86,10 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 		@Override
 		public void evaluate() {
 			callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, ConditionResult.WARNING);
-			callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, ConditionResult.FAILURE);
-			callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, ConditionResult.FAILURE);
+			// Without a usable client certificate every API request would get a 401, which would
+			// read as a PDP failure rather than a configuration error.
+			callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
+			callAndStopOnFailure(ValidateMTLSCertificatesAsX509.class);
 		}
 	}
 
