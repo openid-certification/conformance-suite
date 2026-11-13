@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * RFC 7231 Section 6.5.5: "The origin server MUST generate an Allow header field in a 405
+ * RFC 9110 Section 15.5.6: "The origin server MUST generate an Allow header field in a 405
  * response containing a list of the target resource's currently supported methods". AuthZEN
  * endpoints support POST (Section 10.1), and the AuthZEN working group's guidance for a request
  * with another method is a 405 with Allow: POST. Checks only a 405 response. Method tokens are
