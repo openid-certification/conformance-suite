@@ -85,7 +85,7 @@ public abstract class AbstractVerifyJwsSignature extends AbstractLenientJwksCond
 						}
 
 						key = jwkKey;
-						if (verifySignature(jwt, new JWKSet(jwkKey))) {
+						if (verifySignatureWithSelectedKey(jwt, jwkKey)) {
 							// save key which is able to verify
 							jwkSetWithKeyValid = new JWKSet(jwkKey);
 							break;
@@ -110,7 +110,7 @@ public abstract class AbstractVerifyJwsSignature extends AbstractLenientJwksCond
 					}
 
 					key = jwkKey;
-					if (verifySignature(jwt, new JWKSet(jwkKey))) {
+					if (verifySignatureWithSelectedKey(jwt, jwkKey)) {
 						// save key which is able to verify
 						jwkSetWithKeyValid = new JWKSet(jwkKey);
 						validSignature = true;
@@ -152,22 +152,42 @@ public abstract class AbstractVerifyJwsSignature extends AbstractLenientJwksCond
 			return false;
 		}
 
-		// filter by 'x5t#S256' (if 'x5t#S256' present in JWS header)
-		if (headerX509CertSha256Thumbprint != null && !headerX509CertSha256Thumbprint.toString().equals(jwkKey.getX509CertSHA256Thumbprint().toString())) {
+		// filter by 'x5t#S256' (if 'x5t#S256' present in both the JWS header and the key)
+		Base64URL keyX509CertSha256Thumbprint = jwkKey.getX509CertSHA256Thumbprint();
+		if (headerX509CertSha256Thumbprint != null && keyX509CertSha256Thumbprint != null
+			&& !headerX509CertSha256Thumbprint.toString().equals(keyX509CertSha256Thumbprint.toString())) {
 			return false;
 		}
 
 		return true;
 	}
 
+	/**
+	 * Verifies the signature with a key {@link #isSelectedJWKKeyBaseOnJWSHeader} has already selected.
+	 * The Nimbus key matcher in {@link #verifySignature(SignedJWT, JWKSet, JWSHeader)} rejects a key
+	 * without x5t#S256 whenever the header carries one, so for such a key the header thumbprint is left
+	 * out of the matching; the signature is still verified over the JWT's own header.
+	 */
+	private boolean verifySignatureWithSelectedKey(SignedJWT jwt, JWK key) throws JOSEException {
+		JWSHeader keySelectionHeader = jwt.getHeader();
+		if (keySelectionHeader.getX509CertSHA256Thumbprint() != null && key.getX509CertSHA256Thumbprint() == null) {
+			keySelectionHeader = new JWSHeader.Builder(keySelectionHeader).x509CertSHA256Thumbprint(null).build();
+		}
+		return verifySignature(jwt, new JWKSet(key), keySelectionHeader);
+	}
+
 	protected boolean verifySignature(SignedJWT jwt, JWKSet jwkSet) throws JOSEException {
+		return verifySignature(jwt, jwkSet, jwt.getHeader());
+	}
+
+	private boolean verifySignature(SignedJWT jwt, JWKSet jwkSet, JWSHeader keySelectionHeader) throws JOSEException {
 		SecurityContext context = new SimpleSecurityContext();
 
 		JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(jwkSet);
 
 		AlternateJWSVerificationKeySelector<SecurityContext> selector = new AlternateJWSVerificationKeySelector<>(jwt.getHeader().getAlgorithm(), jwkSource);
 
-		List<JWK> jwkKeys = selector.selectJWSJwks(jwt.getHeader(), context);
+		List<JWK> jwkKeys = selector.selectJWSJwks(keySelectionHeader, context);
 		JWSVerifierFactory factory = new DefaultJWSVerifierFactory();
 
 		for(JWK jwkKey : jwkKeys) {

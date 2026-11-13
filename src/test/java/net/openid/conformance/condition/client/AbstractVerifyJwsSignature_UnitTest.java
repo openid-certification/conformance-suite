@@ -123,6 +123,50 @@ class AbstractVerifyJwsSignature_UnitTest {
 		assertThrows(ConditionError.class, () -> cond.verify(jwt.serialize(), jwkSet(otherKey.toPublicJWK())));
 	}
 
+	private static SignedJWT es256WithThumbprint(ECKey key, String kid, Base64URL x5tS256) throws Exception {
+		SignedJWT jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(kid).x509CertSHA256Thumbprint(x5tS256).build(),
+			new JWTClaimsSet.Builder().issuer("https://example.com").build());
+		jwt.sign(new ECDSASigner(key));
+		return jwt;
+	}
+
+	@Test
+	public void headerThumbprintWithKeyWithoutThumbprint_verifies() throws Exception {
+		// A key without x5t#S256 cannot be ruled out by the header's thumbprint; this used to
+		// dereference the key's missing thumbprint and fail with an internal NullPointerException.
+		ECKey key = new ECKeyGenerator(Curve.P_256).generate();
+		SignedJWT jwt = es256WithThumbprint(key, null, Base64URL.encode("thumbprint"));
+
+		cond.verify(jwt.serialize(), jwkSet(key.toPublicJWK()));
+	}
+
+	@Test
+	public void headerThumbprintWithKidAndKeyWithoutThumbprint_verifies() throws Exception {
+		ECKey key = new ECKeyGenerator(Curve.P_256).keyID("k1").generate();
+		SignedJWT jwt = es256WithThumbprint(key, "k1", Base64URL.encode("thumbprint"));
+
+		cond.verify(jwt.serialize(), jwkSet(key.toPublicJWK()));
+	}
+
+	@Test
+	public void headerThumbprintMatchingKeyThumbprint_verifies() throws Exception {
+		Base64URL thumbprint = Base64URL.encode("thumbprint");
+		ECKey key = new ECKeyGenerator(Curve.P_256).generate();
+		SignedJWT jwt = es256WithThumbprint(key, null, thumbprint);
+		ECKey publicKey = new ECKey.Builder(key.toPublicJWK()).x509CertSHA256Thumbprint(thumbprint).build();
+
+		cond.verify(jwt.serialize(), jwkSet(publicKey));
+	}
+
+	@Test
+	public void headerThumbprintDifferentFromKeyThumbprint_failsTheCondition() throws Exception {
+		ECKey key = new ECKeyGenerator(Curve.P_256).generate();
+		SignedJWT jwt = es256WithThumbprint(key, null, Base64URL.encode("thumbprint"));
+		ECKey publicKey = new ECKey.Builder(key.toPublicJWK()).x509CertSHA256Thumbprint(Base64URL.encode("other")).build();
+
+		assertThrows(ConditionError.class, () -> cond.verify(jwt.serialize(), jwkSet(publicKey)));
+	}
+
 	/**
 	 * {@code verifyJwsSignature} is protected and the abstract class has no other entry point, so a
 	 * concrete subclass is needed to reach it. {@code evaluate} is never called.
