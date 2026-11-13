@@ -23,13 +23,16 @@ import com.nimbusds.jose.proc.JWSVerifierFactory;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jose.proc.SimpleSecurityContext;
 import com.nimbusds.jose.util.Base64URL;
+import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractLenientJwksCondition;
 import net.openid.conformance.extensions.AlternateJWSVerificationKeySelector;
 import net.openid.conformance.util.JWAUtil;
 
 import java.security.KeyPair;
+import java.security.cert.X509Certificate;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AbstractVerifyJwsSignature extends AbstractLenientJwksCondition {
@@ -152,25 +155,44 @@ public abstract class AbstractVerifyJwsSignature extends AbstractLenientJwksCond
 			return false;
 		}
 
-		// filter by 'x5t#S256' (if 'x5t#S256' present in both the JWS header and the key)
-		Base64URL keyX509CertSha256Thumbprint = jwkKey.getX509CertSHA256Thumbprint();
-		if (headerX509CertSha256Thumbprint != null && keyX509CertSha256Thumbprint != null
-			&& !headerX509CertSha256Thumbprint.toString().equals(keyX509CertSha256Thumbprint.toString())) {
-			return false;
+		// filter by 'x5t#S256' (if present in the JWS header): every thumbprint the key carries must match
+		if (headerX509CertSha256Thumbprint != null) {
+			for (Base64URL keyX509CertSha256Thumbprint : x509CertSha256Thumbprints(jwkKey)) {
+				if (!headerX509CertSha256Thumbprint.equals(keyX509CertSha256Thumbprint)) {
+					return false;
+				}
+			}
 		}
 
 		return true;
 	}
 
 	/**
+	 * The certificate thumbprints a key carries: its 'x5t#S256', and the SHA-256 thumbprint of the first
+	 * certificate in its 'x5c'. Empty for a bare key, which an 'x5t#S256' JWS header cannot rule out.
+	 */
+	private static List<Base64URL> x509CertSha256Thumbprints(JWK jwkKey) {
+		List<Base64URL> thumbprints = new ArrayList<>();
+		if (jwkKey.getX509CertSHA256Thumbprint() != null) {
+			thumbprints.add(jwkKey.getX509CertSHA256Thumbprint());
+		}
+		List<X509Certificate> certChain = jwkKey.getParsedX509CertChain();
+		if (certChain != null && !certChain.isEmpty()) {
+			thumbprints.add(X509CertUtils.computeSHA256Thumbprint(certChain.get(0)));
+		}
+		return thumbprints;
+	}
+
+	/**
 	 * Verifies the signature with a key {@link #isSelectedJWKKeyBaseOnJWSHeader} has already selected.
 	 * The Nimbus key matcher in {@link #verifySignature(SignedJWT, JWKSet, JWSHeader)} rejects a key
-	 * without x5t#S256 whenever the header carries one, so for such a key the header thumbprint is left
-	 * out of the matching; the signature is still verified over the JWT's own header.
+	 * that carries no certificate thumbprint whenever the header has an x5t#S256, so for such a key the
+	 * header thumbprint is left out of the matching; the signature is still verified over the JWT's own
+	 * header.
 	 */
 	private boolean verifySignatureWithSelectedKey(SignedJWT jwt, JWK key) throws JOSEException {
 		JWSHeader keySelectionHeader = jwt.getHeader();
-		if (keySelectionHeader.getX509CertSHA256Thumbprint() != null && key.getX509CertSHA256Thumbprint() == null) {
+		if (keySelectionHeader.getX509CertSHA256Thumbprint() != null && x509CertSha256Thumbprints(key).isEmpty()) {
 			keySelectionHeader = new JWSHeader.Builder(keySelectionHeader).x509CertSHA256Thumbprint(null).build();
 		}
 		return verifySignature(jwt, new JWKSet(key), keySelectionHeader);
