@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-evaluations-unknown-semantic-value",
 	displayName = "AuthZEN Evaluations API - Section 7.1.2.1: Unknown evaluations_semantic value",
-	summary = "Section 7.1.2.1 lists the three values a PEP can send in `evaluations_semantic`: `execute_all`, `deny_on_first_deny` and `permit_on_first_permit`. It does not say how a PDP answers any other value. "
+	summary = "Section 7.1.2.1 lists the three values a PEP can send in `evaluations_semantic`: `execute_all`, `deny_on_first_deny` and `permit_on_first_permit`. The published text does not say how a PDP answers any other value; the AuthZEN working group answered openid/authzen#769 that a PDP MUST reject one. "
 		+ "This test sends an unrecognized value and expects HTTP 400, as for any invalid request. It is only in the comprehensive plan, not in certification, because a PDP that does not implement the evaluation semantics may ignore `options`.",
 	profile = "AuthZEN"
 )

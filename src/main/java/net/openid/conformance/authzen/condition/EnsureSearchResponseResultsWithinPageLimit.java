@@ -13,8 +13,8 @@ import net.openid.conformance.testmodule.OIDFJSON;
  * paginate returns the whole result set in one response and ignores the page object
  * (certification scenario 7.5.4). The limit is therefore only checked when the PDP is
  * paginating this search: the request carried a page token, or the response returns a
- * non-empty next_token. No sentence makes the limit a MUST; the suite reads "maximum" as binding
- * on a PDP that paginates, and an excess fails (openid/authzen#764 asks).
+ * non-empty next_token. A PDP that paginates MUST NOT return more results in a response than
+ * the limit (openid/authzen#764; the published text has no MUST), so an excess fails.
  */
 public class EnsureSearchResponseResultsWithinPageLimit extends AbstractCondition {
 
