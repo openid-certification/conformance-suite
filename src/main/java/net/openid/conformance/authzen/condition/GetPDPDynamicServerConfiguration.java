@@ -96,7 +96,7 @@ public class GetPDPDynamicServerConfiguration extends AbstractCondition {
 		try {
 			parsed = JsonParser.parseString(jsonString);
 		} catch (JsonSyntaxException e) {
-			throw error(e, args("json", jsonString));
+			throw error("The PDP metadata response body is not valid JSON", e, args("json", jsonString));
 		}
 		if (!parsed.isJsonObject()) {
 			throw error("The PDP metadata response body is not a JSON object", args("json", jsonString));
