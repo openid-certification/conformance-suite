@@ -1,7 +1,6 @@
 package net.openid.conformance.authzen;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifySuccessfulResponse;
@@ -26,6 +25,7 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.testmodule.TestFailureException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.UnaryOperator;
@@ -290,21 +290,36 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 			}
 			return;
 		}
-		JsonArray results = resultsElement.getAsJsonArray();
+		// Every page's results are checked to be objects, stopping the test otherwise, before they are
+		// aggregated. Results the module leaves out are set aside first, so they take none of the
+		// MAX_RESULTS_TO_EVALUATE places.
+		List<JsonObject> results = new ArrayList<>();
+		for (JsonElement element : resultsElement.getAsJsonArray()) {
+			JsonObject result = element.getAsJsonObject();
+			String notEvaluated = reasonResultIsNotEvaluated(result);
+			if (notEvaluated == null) {
+				results.add(result);
+			} else {
+				eventLog.startBlock("Evaluate the search results");
+				try {
+					eventLog.log(getName(), args("msg", "This result is not sent to the Access Evaluation API: " + notEvaluated, "result", result));
+				} finally {
+					eventLog.endBlock();
+				}
+			}
+		}
 		int count = Math.min(results.size(), MAX_RESULTS_TO_EVALUATE);
 		if (results.size() > count) {
 			eventLog.startBlock("Evaluate the search results");
 			try {
-				eventLog.log(getName(), "The search returned " + results.size() + " results; the first " + count
+				eventLog.log(getName(), "The search returned " + results.size() + " results to evaluate; the first " + count
 					+ " are sent to the Access Evaluation API");
 			} finally {
 				eventLog.endBlock();
 			}
 		}
 		for (int i = 0; i < count; i++) {
-			// Every page's results are checked to be objects, stopping the test otherwise, before
-			// they are aggregated.
-			JsonObject result = results.get(i).getAsJsonObject();
+			JsonObject result = results.get(i);
 			eventLog.startBlock("Evaluate search result " + (i + 1) + " of " + count);
 			try {
 				callAndStopOnFailure(new CreateAuthzenEvaluationRequestForSearchResult(searchRequest, searchedEntity, result), "AUTHZEN-8.1");
@@ -320,6 +335,15 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 				eventLog.endBlock();
 			}
 		}
+	}
+
+	/**
+	 * Why {@link #evaluateSearchResultsWithAccessEvaluationApi} does not send {@code result} to the
+	 * Access Evaluation API, for a result whose decision the request it builds cannot reproduce;
+	 * null, the default, sends it.
+	 */
+	protected String reasonResultIsNotEvaluated(JsonObject result) {
+		return null;
 	}
 
 	// processAuthApiEndpointResponse() stays abstract from AbstractAuthzenPDPTest;
