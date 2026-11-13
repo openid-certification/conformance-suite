@@ -249,7 +249,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 			// POST) is preferred, or 400; 404 only when the framework routes on method and path.
 			callAndContinueOnFailure(WarnUnsupportedMethodAccepted.class, ConditionResult.WARNING, "AUTHZEN-10.1");
 			callAndContinueOnFailure(WarnMethodRejectedWithNotFound.class, ConditionResult.WARNING, "AUTHZEN-10.1");
-			callAndContinueOnFailure(EnsureMethodNotAllowedResponseAllowsPost.class, ConditionResult.WARNING, "AUTHZEN-10.1", "RFC7231-6.5.5");
+			callAndContinueOnFailure(EnsureMethodNotAllowedResponseAllowsPost.class, ConditionResult.WARNING, "AUTHZEN-10.1", "RFC9110-15.5.6");
 		}
 		if (includeXRequestIdHeader() && !pdpRejectedAtTlsLayer()) {
 			callAndContinueOnFailure(EnsureAuthzenApiResponseXRequestIdMatches.class, ConditionResult.FAILURE, "AUTHZEN-10.1.3");
