@@ -277,6 +277,11 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 			JsonObject result = results.get(i).getAsJsonObject();
 			eventLog.startBlock("Evaluate search result " + (i + 1) + " of " + count);
 			try {
+				String notEvaluated = reasonResultIsNotEvaluated(result);
+				if (notEvaluated != null) {
+					eventLog.log(getName(), args("msg", "This result was not sent to the Access Evaluation API: " + notEvaluated, "result", result));
+					continue;
+				}
 				callAndStopOnFailure(new CreateAuthzenEvaluationRequestForSearchResult(searchRequest, searchedEntity, result), "AUTHZEN-8.1");
 				callAndStopOnFailure(SetAuthzenApiEndpointToAccessEvaluationEndpoint.class);
 				checkEndpointPathContainsV1();
@@ -290,6 +295,15 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 				eventLog.endBlock();
 			}
 		}
+	}
+
+	/**
+	 * Why {@link #evaluateSearchResultsWithAccessEvaluationApi} does not send {@code result} to the
+	 * Access Evaluation API, for a result whose decision the request it builds cannot reproduce;
+	 * null, the default, sends it.
+	 */
+	protected String reasonResultIsNotEvaluated(JsonObject result) {
+		return null;
 	}
 
 	// processAuthApiEndpointResponse() stays abstract from AbstractAuthzenPDPTest;
