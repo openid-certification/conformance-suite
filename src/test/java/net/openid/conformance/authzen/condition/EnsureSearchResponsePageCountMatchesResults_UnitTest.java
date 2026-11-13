@@ -95,4 +95,18 @@ class EnsureSearchResponsePageCountMatchesResults_UnitTest {
 		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
 		assertTrue(e.getMessage().contains("page.count is not a number"));
 	}
+
+	@Test
+	public void nullCount_succeeds() {
+		putResponse("""
+			{ "results": [ { "name": "read" } ], "page": { "next_token": "", "count": null } }""");
+		cond.execute(env);
+	}
+
+	@Test
+	public void nullPage_succeeds() {
+		putResponse("""
+			{ "results": [ { "name": "read" } ], "page": null }""");
+		cond.execute(env);
+	}
 }

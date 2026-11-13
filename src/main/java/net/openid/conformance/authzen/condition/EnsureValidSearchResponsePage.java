@@ -18,7 +18,10 @@ public class EnsureValidSearchResponsePage extends AbstractCondition {
 		JsonObject searchResponse = env.getObject("authzen_search_endpoint_response");
 		JsonElement pageElem = searchResponse.get("page");
 		env.removeNativeValue("authzen_search_endpoint_request_page_token");  // clear old page token
-		if (null == pageElem) {
+		// The OPTIONAL page, count, total and properties members are treated as absent when null;
+		// WarnAuthzenSearchResponseNullMembers reports the null. next_token is REQUIRED, so a null
+		// one fails as not a string.
+		if (null == pageElem || pageElem.isJsonNull()) {
 			logSuccess("Search results does not contain a page element");
 			return env;
 		}
@@ -40,8 +43,8 @@ public class EnsureValidSearchResponsePage extends AbstractCondition {
 
 		String[] keys = {"count", "total"};
 		for(String key : keys) {
-			if(pageObj.has(key)) {
-				JsonElement keyElem = pageObj.get(key);
+			JsonElement keyElem = pageObj.get(key);
+			if(keyElem != null && !keyElem.isJsonNull()) {
 				if(!keyElem.isJsonPrimitive() || !keyElem.getAsJsonPrimitive().isNumber()) {
 					throw error("An element in the Search results page object is not a number", args("authzen_search_endpoint_response", searchResponse, "element name", key));
 				}
@@ -54,10 +57,9 @@ public class EnsureValidSearchResponsePage extends AbstractCondition {
 				}
 			}
 		}
-		if(pageObj.has("properties")) {
-			if(!pageObj.get("properties").isJsonObject()) {
-				throw error("The properties in the Search results page object is not an object", args("authzen_search_endpoint_response", searchResponse));
-			}
+		JsonElement propertiesElem = pageObj.get("properties");
+		if(propertiesElem != null && !propertiesElem.isJsonNull() && !propertiesElem.isJsonObject()) {
+			throw error("The properties in the Search results page object is not an object", args("authzen_search_endpoint_response", searchResponse));
 		}
 		logSuccess("Search response page object is valid");
 		return env;

@@ -53,4 +53,10 @@ class EnsureSearchResponsePageIsFirstKey_UnitTest {
 		env.putObject("authzen_search_endpoint_response", json("{ \"results\": [], \"page\": { \"next_token\": \"\" } }"));
 		fails(new EnsureSearchResponsePageIsFirstKey());
 	}
+
+	@Test
+	public void nullPageNotFirst_succeeds() {
+		env.putObject("authzen_search_endpoint_response", json("{ \"results\": [], \"page\": null }"));
+		run(new EnsureSearchResponsePageIsFirstKey());
+	}
 }

@@ -10,7 +10,8 @@ import net.openid.conformance.testmodule.Environment;
  * for: the search request's subject, action, resource and context, with the searched-for entity
  * replaced by the result. Like the other request builders it starts without request headers,
  * so nothing set for the search requests, such as an X-Request-ID, carries over; the caller adds
- * the authentication again.
+ * the authentication again. A result member whose value is null, such as {@code "properties": null},
+ * is left out of the request, as it is treated as absent when the search response is validated.
  */
 public class CreateAuthzenEvaluationRequestForSearchResult extends AbstractCondition {
 
@@ -35,7 +36,9 @@ public class CreateAuthzenEvaluationRequestForSearchResult extends AbstractCondi
 				request.add(key, searchRequest.get(key).deepCopy());
 			}
 		}
-		request.add(searchedEntity, result.deepCopy());
+		JsonObject entity = result.deepCopy();
+		entity.entrySet().removeIf(member -> member.getValue().isJsonNull());
+		request.add(searchedEntity, entity);
 		env.putObject("authzen_api_endpoint_request", request);
 		env.removeObject("authzen_api_endpoint_request_headers");
 		logSuccess("Created an Access Evaluation request for the search result", args("request", request));

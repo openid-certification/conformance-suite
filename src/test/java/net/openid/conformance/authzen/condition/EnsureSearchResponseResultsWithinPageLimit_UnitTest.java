@@ -101,4 +101,14 @@ class EnsureSearchResponseResultsWithinPageLimit_UnitTest {
 			{ "results": [ { "type": "user", "id": "alice" }, { "type": "user", "id": "bob" } ] }""");
 		cond.execute(env);
 	}
+
+	@Test
+	public void nullPage_isNotPaginating() {
+		// A null page is treated as absent, so this is a single response the limit does not apply to.
+		put("""
+			{ "page": { "limit": 1 } }""",
+			"""
+			{ "page": null, "results": [ { "type": "user", "id": "alice" }, { "type": "user", "id": "bob" } ] }""");
+		cond.execute(env);
+	}
 }

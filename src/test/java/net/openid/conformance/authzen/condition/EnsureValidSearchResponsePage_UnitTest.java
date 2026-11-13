@@ -248,4 +248,30 @@ class EnsureValidSearchResponsePage_UnitTest {
 			}""");
 		cond.execute(env);
 	}
+
+	@Test
+	public void nullPage_succeedsAndDoesNotSetToken() {
+		env.putString("authzen_search_endpoint_request_page_token", "stale");
+		putResponse("""
+			{ "results": [], "page": null }""");
+
+		cond.execute(env);
+
+		assertNull(env.getString("authzen_search_endpoint_request_page_token"));
+	}
+
+	@Test
+	public void nullOptionalPageMembers_succeed() {
+		putResponse("""
+			{ "results": [], "page": { "next_token": "", "count": null, "total": null, "properties": null } }""");
+		cond.execute(env);
+	}
+
+	@Test
+	public void nullNextToken_throws() {
+		putResponse("""
+			{ "results": [], "page": { "next_token": null } }""");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("next_token"), e.getMessage());
+	}
 }
