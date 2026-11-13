@@ -14,17 +14,17 @@ import org.junit.jupiter.params.provider.ValueSource;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class WarnChangedPageRequestAccepted_UnitTest {
+class EnsureChangedPageRequestRejected_UnitTest {
 
 	private final Environment env = new Environment();
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
-	private WarnChangedPageRequestAccepted cond;
+	private EnsureChangedPageRequestRejected cond;
 
 	@BeforeEach
 	public void setUp() {
-		cond = new WarnChangedPageRequestAccepted("page.limit");
+		cond = new EnsureChangedPageRequestRejected("page.limit");
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
@@ -42,7 +42,7 @@ class WarnChangedPageRequestAccepted_UnitTest {
 	@Test
 	public void pageReturnedForChangedEntity_namesTheEntity() {
 		respond(200);
-		cond = new WarnChangedPageRequestAccepted("action");
+		cond = new EnsureChangedPageRequestRejected("action");
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
 		assertTrue(e.getMessage().contains("returned a page for a request whose action differs"), e.getMessage());

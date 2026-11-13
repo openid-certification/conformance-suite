@@ -21,7 +21,7 @@ import net.openid.conformance.authzen.condition.WarnSearchResultsIncludeDeniedFi
 import net.openid.conformance.authzen.condition.EnsureSearchPageTokenNotRepeated;
 import net.openid.conformance.authzen.condition.EnsureSearchResultsMatchBaseSearch;
 import net.openid.conformance.authzen.condition.ExtractAuthzenSearchExpectedResponse;
-import net.openid.conformance.authzen.condition.WarnChangedPageRequestAccepted;
+import net.openid.conformance.authzen.condition.EnsureChangedPageRequestRejected;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -38,8 +38,8 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 
 	/**
 	 * For the request that sends a page token with a changed page.limit: a 4xx is the error
-	 * Section 8.2 asks for, and a 200 is checked by WarnChangedPageRequestAccepted; any other
-	 * status fails the status check.
+	 * Section 8.2 asks for, and a 200 is failed by EnsureChangedPageRequestRejected, whose message
+	 * says what was changed; any other status fails the status check.
 	 */
 	private static final Set<Integer> CHANGED_PAGE_REQUEST_STATUSES = IntStream.concat(IntStream.of(200), IntStream.range(400, 500))
 		.boxed().collect(Collectors.toUnmodifiableSet());
@@ -52,9 +52,9 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	 * For a module that sends the first page's token back with one member of the request changed,
 	 * instead of following the pages: the condition that changes it, such as page.limit or an
 	 * entity. Section 8.2 says the entities and pagination parameters of a request with a token
-	 * MUST be identical to the preceding request's, and "PDPs SHOULD return an error when any
-	 * entity or parameter has been changed". Such a module's payload sets page.limit to 1. Null,
-	 * the default, follows the pages.
+	 * MUST be identical to the preceding request's, and the PDP MUST return an error when any
+	 * entity or parameter has been changed (openid/authzen#775). Such a module's payload sets
+	 * page.limit to 1. Null, the default, follows the pages.
 	 */
 	protected AbstractChangeAuthzenSearchRequest changeRequestWithPageToken() {
 		return null;
@@ -172,13 +172,7 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 			}
 			callAndStopOnFailure(change, "AUTHZEN-8.2", "AUTHZEN-8.2.1");
 			performSingleApiRequest();
-			callAndContinueOnFailure(new WarnChangedPageRequestAccepted(changed), ConditionResult.WARNING, "AUTHZEN-8.2", "AUTHZEN-8.2.1");
-			if (responseStatusIs200()) {
-				// The PDP SHOULD have refused the request, but a page it returns is still a search
-				// response. Section 8.2 does not say which search's results it holds, so only its
-				// structure is checked, not the fixture results.
-				processAuthApiEndpointResponse();
-			}
+			callAndContinueOnFailure(new EnsureChangedPageRequestRejected(changed), ConditionResult.FAILURE, "AUTHZEN-8.2", "AUTHZEN-8.2.1");
 		} finally {
 			sendingChangedPageRequest = false;
 			eventLog.endBlock();
@@ -190,17 +184,6 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	@Override
 	protected Set<Integer> getAcceptableHttpStatusCodes() {
 		return sendingChangedPageRequest ? CHANGED_PAGE_REQUEST_STATUSES : super.getAcceptableHttpStatusCodes();
-	}
-
-	/**
-	 * Section 8.2 has a paginated search end with a page object whose next_token is empty, so the
-	 * response to a request that continues a search with a token MUST carry one. A page returned
-	 * for a changed request is no such continuation: the PEP broke "MUST be identical to the
-	 * preceding request", and a PDP that answers it as a new search may leave out the page object
-	 * of a complete result set (Section 8.2.2). Its absence is then a warning.
-	 */
-	protected ConditionResult getPageAfterPageTokenSeverity() {
-		return sendingChangedPageRequest ? ConditionResult.WARNING : ConditionResult.FAILURE;
 	}
 
 	@Override
