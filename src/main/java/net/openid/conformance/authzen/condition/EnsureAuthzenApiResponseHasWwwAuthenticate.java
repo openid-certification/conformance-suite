@@ -1,9 +1,11 @@
 package net.openid.conformance.authzen.condition;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.Locale;
 
@@ -47,10 +49,36 @@ public class EnsureAuthzenApiResponseHasWwwAuthenticate extends AbstractConditio
 					args("response_headers", headers));
 				return env;
 			}
+			String keyHeader = customApiKeyHeader(env);
+			if (keyHeader != null) {
+				// No registered HTTP authentication scheme names a key in a header of its own, but the
+				// scheme in a challenge only has to be a token, so the PDP can name one.
+				throw error("PDP returned 401 without a WWW-Authenticate response header. The PDP API key is configured for the "
+						+ keyHeader + " header, for which no standard HTTP authentication scheme exists; a challenge "
+						+ "naming a scheme of the PDP's own, such as ApiKey, satisfies this check",
+					args("response_headers", headers, "api_key_header", keyHeader));
+			}
 			throw error("PDP returned 401 without a WWW-Authenticate response header",
 				args("response_headers", headers));
 		}
 		logSuccess("PDP returned a WWW-Authenticate response header on 401");
 		return env;
+	}
+
+	/**
+	 * The 'PDP API Key Header' under api_key when it names a header other than Authorization, or
+	 * null. The field is validated only where the key is added, which the missing-credentials modules
+	 * skip, so a value that is not a string counts as not entered here.
+	 */
+	private static String customApiKeyHeader(Environment env) {
+		if (!"api_key".equals(env.getString("client_auth_type"))) {
+			return null;
+		}
+		JsonElement value = env.getElementFromObject("client", "api_key_header");
+		if (!OIDFJSON.isString(value)) {
+			return null;
+		}
+		String name = OIDFJSON.getString(value).trim();
+		return name.isEmpty() || "authorization".equalsIgnoreCase(name) ? null : name;
 	}
 }

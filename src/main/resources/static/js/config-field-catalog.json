@@ -288,7 +288,13 @@
           "key": "client.api_key",
           "label": "PDP API Key",
           "type": "string",
-          "tooltip": "API key the suite presents to the AuthZEN PDP as a Bearer token in the Authorization header."
+          "tooltip": "API key the suite presents to the AuthZEN PDP, in the header 'PDP API Key Header' names."
+        },
+        {
+          "key": "client.api_key_header",
+          "label": "PDP API Key Header",
+          "type": "string",
+          "tooltip": "HTTP header the AuthZEN PDP expects the API key in. Leave empty, or enter Authorization, to send the key as a Bearer token in the Authorization header, which also suits a pre-obtained OAuth access token. Any other header name, such as X-API-Key, carries the key as its whole value."
         },
         {
           "key": "client.client_name",

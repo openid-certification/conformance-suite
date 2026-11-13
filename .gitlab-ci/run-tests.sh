@@ -908,7 +908,8 @@ makeAuthzenTests() {
     TESTS="${TESTS} authzen-pdp-evaluation-test-plan[pdp_auth_type=api_key][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-auth-proxy-api-key-config.json"
     # api_key with discovery: the metadata is fetched without credentials, the API calls with them
     TESTS="${TESTS} authzen-pdp-evaluations-test-plan[pdp_auth_type=api_key][pdp_server_metadata=discovery][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-auth-proxy-api-key-config.json"
-    TESTS="${TESTS} authzen-pdp-subject-search-test-plan[pdp_auth_type=api_key][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-auth-proxy-api-key-config.json"
+    # api_key in the header named by 'PDP API Key Header' instead of Authorization: Bearer
+    TESTS="${TESTS} authzen-pdp-subject-search-test-plan[pdp_auth_type=api_key][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-auth-proxy-api-key-header-config.json"
     TESTS="${TESTS} authzen-pdp-evaluation-test-plan[pdp_auth_type=client_secret_basic][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-auth-proxy-client-secret-basic-config.json"
     TESTS="${TESTS} authzen-pdp-resource-search-test-plan[pdp_auth_type=client_secret_basic][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-auth-proxy-client-secret-basic-config.json"
     TESTS="${TESTS} authzen-pdp-action-search-test-plan[pdp_auth_type=client_secret_basic][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-auth-proxy-client-secret-basic-config.json"
