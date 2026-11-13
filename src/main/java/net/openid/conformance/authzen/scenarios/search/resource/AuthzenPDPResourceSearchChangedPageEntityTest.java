@@ -11,7 +11,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	displayName = "AuthZEN Resource Search API - Section 8.2: Page token sent with a changed subject",
 	summary = "Section 8.2: when a request contains a page token, \"all entities (e.g., subject, resource, action, context) and pagination parameters (e.g., limit) MUST be identical to the preceding request\". The published text says PDPs SHOULD return an error when any entity or parameter has been changed; the AuthZEN working group made this a MUST in openid/authzen#775. "
 		+ "The harness requests the first page with `page.limit` 1, then sends the returned `next_token` with the subject changed from alice to bob. A PDP that answers with an HTTP 4xx error passes; one that returns a page fails, as does any other status, such as a 5xx. "
-		+ "Pagination is optional (Section 8.2), so the test is skipped when the PDP returns the whole result set in one response. The fixture guarantees only record-1 for this search (search requirement S2, certification scenario 4.5), so a PDP that paginates may still return it in one page.\n" + AuthzenPDPResourceSearchChangedPageEntityTest.payload,
+		+ "Pagination is optional (Section 8.2), so the test is skipped when the PDP returns the whole result set in one response. The fixture guarantees record-1 and record-2 for this search (search requirement S2, certification scenario 4.5, with decision rule 9 from openid/authzen#776), so a PDP that paginates returns a page token.\n" + AuthzenPDPResourceSearchChangedPageEntityTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPResourceSearchChangedPageEntityTest extends AbstractAuthzenPDPResourceSearchTest {

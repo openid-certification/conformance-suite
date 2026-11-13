@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-resource-search-request-with-page-limit",
 	displayName = "AuthZEN Resource Search API - Section 8.2.1: Request with page limit",
-	summary = "Section 8.2.1 request with a `page.limit` field (certification scenario 7.5.1). The PDP MUST accept the request. Pagination is optional (Section 8.2, certification scenario 7.5.4): a PDP that does not paginate returns all results in one response, and a PDP that paginates returns at most `limit` results per page. The harness follows `page.next_token` across pages, and the accumulated results MUST include record-1. Exceeding the limit while paginating fails, as Section 8.2.1 defines it as the maximum number of results to return in the response. The fixture guarantees only record-1 for this search (search requirement S2, certification scenario 4.5), so a PDP that paginates may still return it in one page, and no second page is then requested.\n" + AuthzenPDPResourceSearchRequestWithPageLimitTest.payload,
+	summary = "Section 8.2.1 request with a `page.limit` field (certification scenario 7.5.1). The PDP MUST accept the request. Pagination is optional (Section 8.2, certification scenario 7.5.4): a PDP that does not paginate returns all results in one response, and a PDP that paginates returns at most `limit` results per page. The harness follows `page.next_token` across pages, and the accumulated results MUST include record-1 and record-2. Exceeding the limit while paginating fails, as Section 8.2.1 defines it as the maximum number of results to return in the response. The fixture guarantees record-1 and record-2 for this search (search requirement S2, certification scenario 4.5, with decision rule 9 from openid/authzen#776), so a PDP that paginates with this limit returns more than one page.\n" + AuthzenPDPResourceSearchRequestWithPageLimitTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPResourceSearchRequestWithPageLimitTest extends AbstractAuthzenPDPResourceSearchTest {
@@ -32,7 +32,8 @@ public class AuthzenPDPResourceSearchRequestWithPageLimitTest extends AbstractAu
 		return """
 			{
 				"results": [
-					{ "type": "record", "id": "record-1" }
+					{ "type": "record", "id": "record-1" },
+					{ "type": "record", "id": "record-2" }
 				]
 			}
 			""";

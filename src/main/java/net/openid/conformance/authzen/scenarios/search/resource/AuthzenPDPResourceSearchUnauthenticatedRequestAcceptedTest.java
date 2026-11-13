@@ -34,7 +34,8 @@ public class AuthzenPDPResourceSearchUnauthenticatedRequestAcceptedTest extends 
 		return """
 			{
 				"results": [
-					{ "type": "record", "id": "record-1" }
+					{ "type": "record", "id": "record-1" },
+					{ "type": "record", "id": "record-2" }
 				]
 			}
 			""";

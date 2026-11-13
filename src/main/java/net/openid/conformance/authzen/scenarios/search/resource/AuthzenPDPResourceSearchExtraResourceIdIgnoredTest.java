@@ -36,7 +36,8 @@ public class AuthzenPDPResourceSearchExtraResourceIdIgnoredTest extends Abstract
 		return """
 			{
 				"results": [
-					{ "type": "record", "id": "record-1" }
+					{ "type": "record", "id": "record-1" },
+					{ "type": "record", "id": "record-2" }
 				]
 			}
 			""";

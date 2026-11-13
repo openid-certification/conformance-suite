@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-resource-search-valid-resource-search-request-with-non-empty-results",
 	displayName = "AuthZEN Resource Search API - Section 8.5.1: Valid resource search request with non-empty results",
-	summary = "Section 8.5.1 valid resource search. Records that alice can read MUST include at least record-1.\n" + AuthzenPDPResourceSearchValidResourceSearchRequestWithNonEmptyResultsTest.payload,
+	summary = "Section 8.5.1 valid resource search. Records that alice can read MUST include at least record-1 and record-2 (search requirement S2, from decision rules 1 and 9).\n" + AuthzenPDPResourceSearchValidResourceSearchRequestWithNonEmptyResultsTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPResourceSearchValidResourceSearchRequestWithNonEmptyResultsTest extends AbstractAuthzenPDPResourceSearchTest {
@@ -29,7 +29,8 @@ public class AuthzenPDPResourceSearchValidResourceSearchRequestWithNonEmptyResul
 		return """
 			{
 				"results": [
-					{ "type": "record", "id": "record-1" }
+					{ "type": "record", "id": "record-1" },
+					{ "type": "record", "id": "record-2" }
 				]
 			}
 			""";

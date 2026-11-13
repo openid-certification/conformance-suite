@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-resource-search-unknown-page-fields-ignored",
 	displayName = "AuthZEN Resource Search API - Section 10.1.1: Unknown page fields ignored",
-	summary = "Per Section 10.1.1, receivers MUST ignore unknown fields. `page` carries `customAttr`, a key no specification defines. Section 8.2.1 only allows additional page keys defined in a specification referenced in the Capabilities Registry, so this request breaks a rule for the sender on purpose: that rule does not tell the PDP to reject such a key, so the receiver rule of Section 10.1.1 applies. The PDP MUST return HTTP 200 with results that include record-1.\n" + AuthzenPDPResourceSearchUnknownPageFieldsTest.payload,
+	summary = "Per Section 10.1.1, receivers MUST ignore unknown fields. `page` carries `customAttr`, a key no specification defines. Section 8.2.1 only allows additional page keys defined in a specification referenced in the Capabilities Registry, so this request breaks a rule for the sender on purpose: that rule does not tell the PDP to reject such a key, so the receiver rule of Section 10.1.1 applies. The PDP MUST return HTTP 200 with results that include record-1 and record-2.\n" + AuthzenPDPResourceSearchUnknownPageFieldsTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPResourceSearchUnknownPageFieldsTest extends AbstractAuthzenPDPResourceSearchTest {
@@ -38,7 +38,8 @@ public class AuthzenPDPResourceSearchUnknownPageFieldsTest extends AbstractAuthz
 		return """
 			{
 				"results": [
-					{ "type": "record", "id": "record-1" }
+					{ "type": "record", "id": "record-1" },
+					{ "type": "record", "id": "record-2" }
 				]
 			}
 			""";
