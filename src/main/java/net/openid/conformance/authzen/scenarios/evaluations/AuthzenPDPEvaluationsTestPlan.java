@@ -23,6 +23,7 @@ import java.util.Map;
 		AuthzenPDPEvaluationsBatchWithFullySpecifiedEvaluationsTest.class,
 		AuthzenPDPEvaluationsBatchWithContextInheritanceTest.class,
 		AuthzenPDPEvaluationsEvaluationLevelErrorsTest.class,
+		AuthzenPDPEvaluationsIncompleteEntityTest.class,
 		// evaluations_semantic option (Section 7.1.2.1). The execute_all default must run every
 		// evaluation, which a batch with a deny before a permit shows; the second module asks for
 		// it explicitly. The short-circuiting semantics are OPTIONAL for a PDP to support, so requiring them
@@ -33,7 +34,7 @@ import java.util.Map;
 		AuthzenPDPEvaluationsExecuteAllExplicitTest.class,
 		// Per-eval overrides top-level defaults (Section 7.1.1)
 		AuthzenPDPEvaluationsPerEvalOverridesDefaultTest.class,
-		// No subject or no action at any level: 400, or a decision-false evaluation (Section 7.1, 7.1.2.1)
+		// No subject or no action at any level: 400 (Section 7.1.1, openid/authzen#763)
 		AuthzenPDPEvaluationsMissingSubjectTest.class,
 		AuthzenPDPEvaluationsMissingActionTest.class,
 		// Error handling at every level (certification scenario 3.1 with 5.4.2 and 5.4.6)

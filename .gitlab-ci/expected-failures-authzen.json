@@ -18,6 +18,51 @@
   "comment": "Cerbos PDP bug: it merges an evaluation's subject with the top-level default instead of replacing it, so alice inherits the default's role admin and is permitted, where Section 7.1.1 says the evaluation's key overrides the default and certification scenario 6.2.7 says there is no sub-field merging"
  },
  {
+  "test-name": "authzen-pdp-evaluations-evaluation-level-errors",
+  "variant": "*",
+  "configuration-filename": "*",
+  "current-block": "*",
+  "condition": "EnsureHttpStatusCodeMatchesExpected",
+  "expected-result": "failure",
+  "comment": "Cerbos PDP bug: it answers a batch in which an evaluation does not resolve to a complete subject, action and resource with HTTP 200 and decision false for that evaluation, where the request is malformed and the PDP MUST return HTTP 400 (Sections 7.1.1 and 10.1.1, openid/authzen#763)"
+ },
+ {
+  "test-name": "authzen-pdp-evaluations-incomplete-entity",
+  "variant": "*",
+  "configuration-filename": "*",
+  "current-block": "*",
+  "condition": "EnsureHttpStatusCodeMatchesExpected",
+  "expected-result": "failure",
+  "comment": "Cerbos PDP bug: it answers a batch in which an evaluation does not resolve to a complete subject, action and resource with HTTP 200 and decision false for that evaluation, where the request is malformed and the PDP MUST return HTTP 400 (Sections 7.1.1 and 10.1.1, openid/authzen#763)"
+ },
+ {
+  "test-name": "authzen-pdp-evaluations-missing-subject",
+  "variant": "*",
+  "configuration-filename": "*",
+  "current-block": "*",
+  "condition": "EnsureHttpStatusCodeMatchesExpected",
+  "expected-result": "failure",
+  "comment": "Cerbos PDP bug: it answers a batch in which an evaluation does not resolve to a complete subject, action and resource with HTTP 200 and decision false for that evaluation, where the request is malformed and the PDP MUST return HTTP 400 (Sections 7.1.1 and 10.1.1, openid/authzen#763)"
+ },
+ {
+  "test-name": "authzen-pdp-evaluations-missing-action",
+  "variant": "*",
+  "configuration-filename": "*",
+  "current-block": "*",
+  "condition": "EnsureHttpStatusCodeMatchesExpected",
+  "expected-result": "failure",
+  "comment": "Cerbos PDP bug: it answers a batch in which an evaluation does not resolve to a complete subject, action and resource with HTTP 200 and decision false for that evaluation, where the request is malformed and the PDP MUST return HTTP 400 (Sections 7.1.1 and 10.1.1, openid/authzen#763)"
+ },
+ {
+  "test-name": "authzen-pdp-evaluations-subject-missing-type",
+  "variant": "*",
+  "configuration-filename": "*",
+  "current-block": "*",
+  "condition": "EnsureHttpStatusCodeMatchesExpected",
+  "expected-result": "failure",
+  "comment": "Cerbos PDP bug: it answers a batch in which an evaluation does not resolve to a complete subject, action and resource with HTTP 200 and decision false for that evaluation, where the request is malformed and the PDP MUST return HTTP 400 (Sections 7.1.1 and 10.1.1, openid/authzen#763)"
+ },
+ {
   "test-name": "authzen-pdp-*-search-request-with-page-limit",
   "variant": "*",
   "configuration-filename": "*",
