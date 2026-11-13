@@ -107,7 +107,8 @@ class GetPDPDynamicServerConfiguration_UnitTest {
 
 	@Test
 	public void malformedBody_fails() {
-		assertThrows(ConditionError.class, () -> cond.parseServerConfiguration("{"));
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.parseServerConfiguration("{"));
+		assertTrue(e.getMessage().contains("The PDP metadata response body is not valid JSON"), e.getMessage());
 	}
 
 	@Test
