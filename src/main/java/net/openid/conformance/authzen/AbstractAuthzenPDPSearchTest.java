@@ -189,7 +189,12 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 
 	@Override
 	protected Set<Integer> getAcceptableHttpStatusCodes() {
-		return sendingChangedPageRequest ? CHANGED_PAGE_REQUEST_STATUSES : super.getAcceptableHttpStatusCodes();
+		if (sendingChangedPageRequest) {
+			return CHANGED_PAGE_REQUEST_STATUSES;
+		}
+		// The base search leaves out the member the module adds, so it is a valid search that the PDP
+		// must answer whatever the module itself accepts.
+		return sendingBaseSearch ? Set.of(200) : super.getAcceptableHttpStatusCodes();
 	}
 
 	/**
@@ -201,6 +206,14 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	 */
 	protected ConditionResult getPageAfterPageTokenSeverity() {
 		return sendingChangedPageRequest ? ConditionResult.WARNING : ConditionResult.FAILURE;
+	}
+
+	/**
+	 * Whether the request being sent is the base search, for a module that overrides
+	 * {@link #getAcceptableHttpStatusCodes()} and must keep the base search to HTTP 200.
+	 */
+	protected final boolean sendingBaseSearch() {
+		return sendingBaseSearch;
 	}
 
 	@Override

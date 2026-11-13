@@ -27,6 +27,7 @@ import net.openid.conformance.authzen.condition.GenerateUntrustedAuthzenMtlsClie
 import net.openid.conformance.authzen.condition.GetAuthzenClientConfiguration;
 import net.openid.conformance.authzen.condition.GetPDPStaticServerConfiguration;
 import net.openid.conformance.authzen.condition.ValidatePDPIdentifier;
+import net.openid.conformance.authzen.condition.WarnAuthzenRequestRejected;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
@@ -458,6 +459,10 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 				return;
 			}
 			call(new CallAuthzenApiEndpointAndVerifyExpectedStatus(expectedStatusRequirements(acceptable)));
+			String acceptanceExpected = acceptanceExpectedBecause();
+			if (acceptanceExpected != null && acceptable.contains(200) && !responseStatusIs200()) {
+				callAndContinueOnFailure(new WarnAuthzenRequestRejected(acceptanceExpected), ConditionResult.WARNING, additionalStatusRequirements());
+			}
 			if (acceptable.contains(200) && responseStatusIs200()) {
 				// A module that accepts success or an error checks a success like the success-only
 				// path does: "A successful response is an HTTPS response with a status code of 200
@@ -467,6 +472,15 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 				env.unmapKey("endpoint_response");
 			}
 		}
+	}
+
+	/**
+	 * For a module that accepts 200 or an error status because the requirement to accept its request
+	 * is not yet in the published specification text: why the PDP is expected to accept it, reported
+	 * as a warning when it does not. Null, the default, reports nothing.
+	 */
+	protected String acceptanceExpectedBecause() {
+		return null;
 	}
 
 	/**
