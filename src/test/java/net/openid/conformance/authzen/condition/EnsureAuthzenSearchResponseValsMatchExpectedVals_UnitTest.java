@@ -125,8 +125,8 @@ class EnsureAuthzenSearchResponseValsMatchExpectedVals_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_error_empty_expected_response_with_results() {
-		// An empty expectation means nothing matches, so extras are not permitted.
+	public void testEvaluate_empty_expected_response_with_results_noError() {
+		// An empty expectation requires no entity, and a policy beyond the fixture may match one.
 		String expectedJson = """
 		[
 		]""";
@@ -138,8 +138,7 @@ class EnsureAuthzenSearchResponseValsMatchExpectedVals_UnitTest {
 			}
 		]""";
 
-		Throwable e = assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
-		assertTrue(e.getMessage().contains("Search result is not empty"));
+		performTest(expectedJson, actualJson);
 	}
 
 	@Test
