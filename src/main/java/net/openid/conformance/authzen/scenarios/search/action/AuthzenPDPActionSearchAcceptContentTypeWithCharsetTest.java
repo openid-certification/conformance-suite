@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-action-search-accept-content-type-with-charset",
 	displayName = "AuthZEN Action Search API - Section 10.1: Accept Content-Type with charset",
-	summary = "Section 10.1 has the PEP send the Content-Type application/json; this request sends `application/json; charset=utf-8`. RFC 8259 Section 11 defines no charset parameter for application/json and says \"Adding one really has no effect on compliant recipients\", so the suite requires HTTP 200 and the expected response. Whether a PDP may reject the parameter is an open question for the working group.",
+	summary = "Section 10.1 has the PEP send the Content-Type application/json; this request sends `application/json; charset=utf-8`. RFC 8259 Section 11 defines no charset parameter for application/json and says \"Adding one really has no effect on compliant recipients\", so the suite requires HTTP 200 and the expected response. The AuthZEN working group answered openid/authzen#778 that a PDP MUST accept application/json when it carries parameters such as charset=utf-8.",
 	profile = "AuthZEN"
 )
 public class AuthzenPDPActionSearchAcceptContentTypeWithCharsetTest extends AbstractAuthzenPDPActionSearchTest {
