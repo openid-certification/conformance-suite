@@ -14,7 +14,8 @@ import java.util.Set;
 /**
  * Grants ROLE_USER to every IdP-authenticated principal, and ROLE_ADMIN to those
  * whose "roles" claim contains the configured admin role. A blank admin role grants
- * nobody admin.
+ * nobody admin. Applied to the IdP's access tokens on the API and to its ID tokens
+ * on a browser login.
  * <p>
  * The claim is read through the untyped {@code getClaim} rather than
  * {@code Jwt#getClaimAsStringList}: an IdP is free to send "roles" as something
@@ -25,6 +26,8 @@ import java.util.Set;
  */
 @Component
 public class RolesAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
+
+	public static final String ROLES_CLAIM = "roles";
 
 	private final String adminRole;
 
@@ -37,9 +40,17 @@ public class RolesAuthoritiesConverter implements Converter<Jwt, Collection<Gran
 
 	@Override
 	public Collection<GrantedAuthority> convert(Jwt jwt) {
+		return fromRolesClaim(jwt.getClaim(ROLES_CLAIM));
+	}
+
+	/**
+	 * @param rolesClaim the "roles" claim of a token the IdP issued, an access token
+	 *                   or an ID token; may be null or of any type
+	 */
+	public Collection<GrantedAuthority> fromRolesClaim(Object rolesClaim) {
 		Set<GrantedAuthority> authorities = new HashSet<>();
 		authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-		if (isAdmin(jwt.getClaim("roles"))) {
+		if (isAdmin(rolesClaim)) {
 			authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
 		}
 		return authorities;
