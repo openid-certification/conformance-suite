@@ -63,12 +63,34 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 	/**
 	 * Fetches the metadata from the well-known URL derived from the configured PDP Identifier into
 	 * the {@code pdp} environment object, validates the response and, when present, the
-	 * signed_metadata JWT, and applies its values over the plain ones.
+	 * signed_metadata JWT, and applies its values over the plain ones. An HTTP 404 fails the test.
 	 */
 	protected void fetchAndValidateDiscoveryMetadata() {
+		fetchAndValidateDiscoveryMetadata(false);
+	}
+
+	/**
+	 * As {@link #fetchAndValidateDiscoveryMetadata()}, but with {@code defaultPathsWhenNotFound} an
+	 * HTTP 404 leaves only the PDP Identifier in {@code pdp}, so the API endpoints are called at
+	 * their default paths (Section 10.1, certification scenario 9.6), and nothing is validated
+	 * beyond reporting signed metadata fields configured for metadata that does not exist.
+	 *
+	 * @return whether the PDP published metadata
+	 */
+	protected boolean fetchAndValidateDiscoveryMetadata(boolean defaultPathsWhenNotFound) {
 		eventLog.startBlock("Fetch the PDP metadata");
 		try {
-			callAndStopOnFailure(GetPDPDynamicServerConfiguration.class, "AUTHZEN-9.2", "AUTHZEN-9.2.2");
+			// Section 10.1 forms the URL from the default path when no metadata is available, the
+			// rule the fallback applies.
+			callAndStopOnFailure(new GetPDPDynamicServerConfiguration(defaultPathsWhenNotFound), defaultPathsWhenNotFound
+				? new String[] {"AUTHZEN-9.2", "AUTHZEN-9.2.2", "AUTHZEN-10.1"}
+				: new String[] {"AUTHZEN-9.2", "AUTHZEN-9.2.2"});
+			if (Boolean.TRUE.equals(env.getBoolean(GetPDPDynamicServerConfiguration.METADATA_NOT_FOUND))) {
+				// As without signed_metadata, configured signed metadata fields that cannot apply are
+				// reported. The check is on the test configuration, so it cites no requirement.
+				callAndContinueOnFailure(new WarnUnusedSignedMetadataConfiguration(true), ConditionResult.WARNING);
+				return false;
+			}
 			callAndContinueOnFailure(EnsureDiscoveryMetadataResponseValid.class, ConditionResult.FAILURE, "AUTHZEN-9.2.2");
 		} finally {
 			eventLog.endBlock();
@@ -102,7 +124,7 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 			eventLog.endBlock();
 		}
 		if (!hasSignedMetadata) {
-			return;
+			return true;
 		}
 		// Log blocks do not nest, and ValidateJwksSequence opens its own, so the configuration
 		// checks before it and the signature checks after it each get a block of their own.
@@ -146,6 +168,7 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 		} finally {
 			eventLog.endBlock();
 		}
+		return true;
 	}
 
 	/**

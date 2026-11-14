@@ -121,4 +121,22 @@ class WarnUnusedSignedMetadataConfiguration_UnitTest {
 		assertTrue(e.getMessage().contains("'Signed Metadata Issuer' and 'PDP JWK Set' are configured"), e.getMessage());
 		assertTrue(e.getMessage().contains("for them to apply to"), e.getMessage());
 	}
+
+	@Test
+	public void jwksWithNoMetadataAtAll_warnsNamingThe404() {
+		putConfig(null, JsonParser.parseString("{ \"keys\": [ { \"kty\": \"oct\", \"k\": \"AAAA\" } ] }"));
+		cond = new WarnUnusedSignedMetadataConfiguration(true);
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.WARNING);
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("the PDP publishes no metadata (HTTP 404)"), e.getMessage());
+		assertTrue(e.getMessage().contains("not publishing the metadata you expected"), e.getMessage());
+	}
+
+	@Test
+	public void notConfiguredWithNoMetadataAtAll_succeeds() {
+		putConfig(null, null);
+		cond = new WarnUnusedSignedMetadataConfiguration(true);
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.WARNING);
+		cond.execute(env);
+	}
 }

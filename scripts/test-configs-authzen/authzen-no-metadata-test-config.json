@@ -1,0 +1,7 @@
+{
+    "description": "Authzen Cerbos certification PDP behind a PDP Identifier with no metadata, so a discovery run calls the default paths (docker-compose-localtest.yml)",
+    "publish": "everything",
+    "pdp": {
+        "policy_decision_point": "https://authzen-auth-proxy:9446/no-metadata"
+    }
+}

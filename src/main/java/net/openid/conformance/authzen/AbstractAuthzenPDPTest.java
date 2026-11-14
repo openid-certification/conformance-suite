@@ -73,7 +73,6 @@ import net.openid.conformance.variant.VariantSetup;
 
 
 public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataTest {
-	protected boolean serverSupportsDiscovery;
 	protected Class<? extends ConditionSequence> profileCompleteClientConfiguration;
 	protected Class<? extends ConditionSequence> addPDPEndpointClientAuthentication;
 
@@ -141,24 +140,27 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 		if (!storeConfigurationUnlessSkipped(config, baseUrl, externalUrlOverride, baseMtlsUrl)) {
 			return;
 		}
-		serverSupportsDiscovery = getVariant(PDPServerMetadata.class) == PDPServerMetadata.DISCOVERY;
 
 		PDPAuthType pdpAuthType = getVariant(PDPAuthType.class);
 		env.putString("client_auth_type", pdpAuthType.toString());
 
 		callAndStopOnFailure(ValidatePDPIdentifier.class);
 
+		// Under discovery, a PDP that publishes no metadata (HTTP 404) is called at the default paths
+		// (Section 10.1, certification scenario 9.6), as under static metadata with no endpoints
+		// entered, so the metadata checks do not apply to it.
+		boolean metadataPublished = false;
 		switch (getVariant(PDPServerMetadata.class)) {
 			case DISCOVERY:
-				fetchAndValidateDiscoveryMetadata();
+				metadataPublished = fetchAndValidateDiscoveryMetadata(true);
 				break;
 			case STATIC:
 				callAndStopOnFailure(GetPDPStaticServerConfiguration.class);
 				break;
 		}
 
-		checkPDPServerConfiguration(serverSupportsDiscovery);
-		if (serverSupportsDiscovery) {
+		checkPDPServerConfiguration(metadataPublished);
+		if (metadataPublished) {
 			eventLog.startBlock("Check the PDP metadata advertises the API endpoints the test calls");
 			try {
 				callAndStopOnFailure(new EnsurePDPMetadataAdvertisesEndpoint(getEndpointMetadataParameter()), "AUTHZEN-9.1.1");
