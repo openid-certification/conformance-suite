@@ -923,13 +923,15 @@ makeAuthzenTests() {
     # The comprehensive plan is the batch evaluations plan plus the OPTIONAL evaluation semantics,
     # which the PDP implements; under core it also covers the batch plan's identifier-only rules
     TESTS="${TESTS} authzen-pdp-evaluations-comprehensive-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=core] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
-    # The other API plans, without authentication and with static metadata. The search plans run
-    # under core here; the authenticated runs above cover each of them under properties
+    # The other API plans, without authentication. The search plans run under core here; the
+    # authenticated runs above cover each of them under properties. Subject and Action Search run
+    # with discovery, so their endpoints come from the search_subject_endpoint and
+    # search_action_endpoint metadata parameters
     TESTS="${TESTS} authzen-pdp-evaluations-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
-    TESTS="${TESTS} authzen-pdp-subject-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=core] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
+    TESTS="${TESTS} authzen-pdp-subject-search-test-plan[pdp_auth_type=none][pdp_server_metadata=discovery][authzen_support=core] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
     TESTS="${TESTS} authzen-pdp-resource-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=core] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
-    TESTS="${TESTS} authzen-pdp-action-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=core] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
-    # A search plan with discovery: the endpoint comes from the PDP metadata
+    TESTS="${TESTS} authzen-pdp-action-search-test-plan[pdp_auth_type=none][pdp_server_metadata=discovery][authzen_support=core] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
+    # Resource Search with discovery: the endpoint comes from the PDP metadata
     TESTS="${TESTS} authzen-pdp-resource-search-test-plan[pdp_auth_type=none][pdp_server_metadata=discovery][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
 }
 
