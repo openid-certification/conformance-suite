@@ -86,4 +86,12 @@ class SearchResultMultiset_UnitTest {
 		assertEquals(0, SearchResultMultiset.countIdentifying(array("[ \"alice\" ]"), element("{\"type\":\"user\",\"id\":\"alice\"}")));
 		assertEquals(1, SearchResultMultiset.countIdentifying(array("[ \"alice\" ]"), element("\"alice\"")));
 	}
+
+	@Test
+	public void withoutIdentified_dropsEveryResultAnEntityIdentifies() {
+		JsonArray remaining = SearchResultMultiset.withoutIdentified(
+			array("[ {\"type\":\"user\",\"id\":\"alice\",\"properties\":{\"x\":1}}, {\"type\":\"user\",\"id\":\"carol\"}, {\"type\":\"user\",\"id\":\"alice\"} ]"),
+			array("[ {\"type\":\"user\",\"id\":\"alice\"}, {\"type\":\"user\",\"id\":\"bob\"} ]"));
+		assertEquals(array("[ {\"type\":\"user\",\"id\":\"carol\"} ]"), remaining);
+	}
 }

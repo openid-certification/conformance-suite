@@ -32,14 +32,21 @@ class EnsureSearchResultsMatchBaseSearch_UnitTest {
 		env.putString("authzen_search_base_change", "a context");
 	}
 
-	private void put(String baseJson, String resultsJson) {
+	private static final String USERS_FIXTURE = """
+		{ "results": [ { "type": "user", "id": "alice" }, { "type": "user", "id": "bob" } ] }""";
+
+	private static final String ACTIONS_FIXTURE = """
+		{ "results": [ { "name": "read" }, { "name": "write" } ] }""";
+
+	private void put(String fixtureJson, String baseJson, String resultsJson) {
+		env.putObject("authzen_search_endpoint_expected_response", JsonParser.parseString(fixtureJson).getAsJsonObject());
 		env.putObject("authzen_search_base_results", JsonParser.parseString(baseJson).getAsJsonObject());
 		env.putObject("authzen_search_endpoint_aggregated_results", JsonParser.parseString(resultsJson).getAsJsonObject());
 	}
 
 	@Test
 	public void sameResultsInAnotherOrder_succeeds() {
-		put("""
+		put(USERS_FIXTURE, """
 			{ "results": [ { "type": "user", "id": "alice" }, { "type": "user", "id": "bob" }, { "type": "user", "id": "carol" } ] }""", """
 			{ "results": [ { "type": "user", "id": "carol" }, { "type": "user", "id": "alice" }, { "type": "user", "id": "bob" } ] }""");
 		cond.execute(env);
@@ -47,41 +54,49 @@ class EnsureSearchResultsMatchBaseSearch_UnitTest {
 
 	@Test
 	public void sameEntitiesWithDifferentProperties_succeeds() {
-		put("""
-			{ "results": [ { "type": "record", "id": "record-1", "properties": { "status": "active" } } ] }""", """
-			{ "results": [ { "type": "record", "id": "record-1" } ] }""");
+		put(USERS_FIXTURE, """
+			{ "results": [ { "type": "user", "id": "carol", "properties": { "status": "active" } } ] }""", """
+			{ "results": [ { "type": "user", "id": "carol" } ] }""");
 		cond.execute(env);
 	}
 
 	@Test
-	public void droppedNonFixtureEntity_isReported() {
-		// The fixture check still passes (alice and bob are there); this is what it cannot see.
-		put("""
+	public void droppedEntityOutsideTheFixture_isReported() {
+		put(USERS_FIXTURE, """
 			{ "results": [ { "type": "user", "id": "alice" }, { "type": "user", "id": "bob" }, { "type": "user", "id": "carol" } ] }""", """
 			{ "results": [ { "type": "user", "id": "alice" }, { "type": "user", "id": "bob" } ] }""");
 		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("different results from the same search without a context"), e.getMessage());
+		assertTrue(e.getMessage().contains("The results outside the fixture differ from those of the same search without a context"), e.getMessage());
 	}
 
 	@Test
-	public void addedEntity_isReported() {
-		put("""
+	public void addedEntityOutsideTheFixture_isReported() {
+		put(ACTIONS_FIXTURE, """
 			{ "results": [ { "name": "read" }, { "name": "write" } ] }""", """
 			{ "results": [ { "name": "read" }, { "name": "write" }, { "name": "delete" } ] }""");
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
 	@Test
-	public void differentMultiplicity_isReported() {
-		put("""
-			{ "results": [ { "name": "read" }, { "name": "read" } ] }""", """
-			{ "results": [ { "name": "read" }, { "name": "write" } ] }""");
+	public void differentMultiplicityOutsideTheFixture_isReported() {
+		put(ACTIONS_FIXTURE, """
+			{ "results": [ { "name": "read" }, { "name": "delete" }, { "name": "delete" } ] }""", """
+			{ "results": [ { "name": "read" }, { "name": "delete" } ] }""");
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
 	@Test
+	public void differingFixtureEntity_isLeftToTheFixtureCheck() {
+		// EnsureSearchFixtureEntitiesMatchBaseSearch fails this at FAILURE; it is not reported twice.
+		put(USERS_FIXTURE, """
+			{ "results": [ { "type": "user", "id": "alice" }, { "type": "user", "id": "carol" } ] }""", """
+			{ "results": [ { "type": "user", "id": "alice" }, { "type": "user", "id": "bob" }, { "type": "user", "id": "carol" } ] }""");
+		cond.execute(env);
+	}
+
+	@Test
 	public void bothEmpty_succeeds() {
-		put("""
+		put(USERS_FIXTURE, """
 			{ "results": [] }""", """
 			{ "results": [] }""");
 		cond.execute(env);
@@ -89,7 +104,7 @@ class EnsureSearchResultsMatchBaseSearch_UnitTest {
 
 	@Test
 	public void missingResults_fails() {
-		put("""
+		put(USERS_FIXTURE, """
 			{ "results": [] }""", """
 			{ }""");
 		assertThrows(ConditionError.class, () -> cond.execute(env));
