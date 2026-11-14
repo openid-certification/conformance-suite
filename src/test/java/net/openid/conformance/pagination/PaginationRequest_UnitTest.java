@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * The paging contract every listing endpoint answers with. Guards the two ways a slice can
@@ -88,6 +89,14 @@ class PaginationRequest_UnitTest {
 		});
 
 		assertThat(searched).containsExactly("\"fapi ciba\"", null);
+	}
+
+	@Test
+	void unalignedStartMustNotSilentlyReturnAnEarlierPage() {
+		PaginationRequest page = request(0, 15, 10, null);
+		assertThatThrownBy(() -> page.getSliceResponse((search, pageable) ->
+			slice(pageable, false, "incorrect-offset")))
+			.isInstanceOf(IllegalArgumentException.class);
 	}
 
 	private static Sort sortAskedFor(String order) {
