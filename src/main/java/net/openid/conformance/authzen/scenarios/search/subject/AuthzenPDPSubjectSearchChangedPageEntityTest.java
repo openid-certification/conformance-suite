@@ -10,7 +10,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "authzen-pdp-subject-search-changed-page-entity",
 	displayName = "AuthZEN Subject Search API - Section 8.2: Page token sent with a changed action",
 	summary = "Section 8.2: when a request contains a page token, \"all entities (e.g., subject, resource, action, context) and pagination parameters (e.g., limit) MUST be identical to the preceding request. PDPs SHOULD return an error when any entity or parameter has been changed.\" "
-		+ "The harness requests the first page with `page.limit` 1, then sends the returned `next_token` with the action changed from read to write. A PDP that answers with an HTTP 4xx error passes; one that returns a page is reported as a warning, and that page must still be a well-formed search response. Any other status, such as a 5xx, fails. "
+		+ "The harness requests the first page with `page.limit` 1, then sends the returned `next_token` with the action changed from read to write. A PDP that answers with an HTTP 4xx error passes; one that returns a page is reported as a warning, and that page must still be a well-formed search response. The AuthZEN working group answered openid/authzen#775 that the error is a MUST, which openid/authzen PR 792 adds to Sections 8.2 and 8.2.1; until that text is published, a returned page stays a warning. Any other status, such as a 5xx, fails. "
 		+ "Pagination is optional (Section 8.2), so the test is skipped when the PDP returns the whole result set in one response.\n" + AuthzenPDPSubjectSearchChangedPageEntityTest.payload,
 	profile = "AuthZEN"
 )

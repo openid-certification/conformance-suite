@@ -9,7 +9,8 @@ import net.openid.conformance.testmodule.Environment;
  * preceding request's, a requirement on the request, and "PDPs SHOULD return an error when any
  * entity or parameter has been changed". A PDP that answers such a request with a page is flagged
  * rather than failed. Intended to be called at WARNING; any other status outside the acceptable
- * 4xx is a failure of the status check.
+ * 4xx is a failure of the status check. openid/authzen#775 makes the error a MUST once openid/authzen
+ * PR 792 is published, when the caller can fail instead.
  */
 public class WarnChangedPageRequestAccepted extends AbstractCondition {
 
