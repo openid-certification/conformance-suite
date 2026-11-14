@@ -25,7 +25,29 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
+/**
+ * Fetches the PDP metadata from the well-known URL derived from the 'PDP Identifier' (Section
+ * 9.2.1) into the {@code pdp} environment object.
+ *
+ * <p>Constructed with {@code defaultPathsWhenNotFound}, an HTTP 404 is not a failure: the PDP
+ * publishes no metadata, so Section 10.1 forms each endpoint URL from the default path, and
+ * certification scenario 9.6 has the harness do so for every level but Discovery. The {@code pdp}
+ * object then holds only the policy_decision_point, from which {@link AbstractSetAuthzenApiEndpoint}
+ * builds the default paths, and {@code pdp_metadata_not_found} is set.
+ */
 public class GetPDPDynamicServerConfiguration extends AbstractCondition {
+
+	public static final String METADATA_NOT_FOUND = "pdp_metadata_not_found";
+
+	private final boolean defaultPathsWhenNotFound;
+
+	public GetPDPDynamicServerConfiguration() {
+		this(false);
+	}
+
+	public GetPDPDynamicServerConfiguration(boolean defaultPathsWhenNotFound) {
+		this.defaultPathsWhenNotFound = defaultPathsWhenNotFound;
+	}
 
 	@Override
 	@PreEnvironment(required = "config")
@@ -68,6 +90,17 @@ public class GetPDPDynamicServerConfiguration extends AbstractCondition {
 		} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
 			throw error("Error creating HTTP client", e);
 		} catch (RestClientResponseException e) {
+			if (defaultPathsWhenNotFound && e.getStatusCode().value() == 404) {
+				JsonObject pdp = new JsonObject();
+				pdp.addProperty("policy_decision_point", pdpDecisionPoint);
+				env.putObject("pdp", pdp);
+				env.putBoolean(METADATA_NOT_FOUND, true);
+				logSuccess("The PDP has no metadata at " + discoveryUrl + " (HTTP 404), so the test calls the API endpoints at their "
+					+ "default paths under the 'PDP Identifier'. To call other endpoints, select 'static' for 'PDP server metadata "
+					+ "location' and enter them in the test configuration.",
+					args("status", 404, "policy_decision_point", pdpDecisionPoint));
+				return env;
+			}
 			// The PDP answered with an error status; the exception has no cause to report.
 			throw error("Unable to fetch server configuration from " + discoveryUrl + ": the PDP answered HTTP " + e.getStatusCode().value(),
 				e, args("status", e.getStatusCode().value(), "body", e.getResponseBodyAsString()));

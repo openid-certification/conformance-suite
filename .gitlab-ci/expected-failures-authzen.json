@@ -135,5 +135,16 @@
   "condition": "WarnSearchResultsIncludeDeniedFixtureEntities",
   "expected-result": "warning",
   "comment": "Cerbos PDP behavior: its searches return entities its own Access Evaluation API denies (bob among the users who can write record-1, record-1 among the records bob can write, write among bob's actions on record-1, though bob writing record-1 is denied), where Section 8.1 says each search result SHOULD evaluate to true"
+ },
+ {
+  "test-name": "authzen-pdp-*",
+  "variant": {
+   "pdp_server_metadata": "discovery"
+  },
+  "configuration-filename": "*/authzen-no-metadata-test-config.json",
+  "current-block": "*",
+  "condition": "WarnPDPPublishesNoMetadata",
+  "expected-result": "warning",
+  "comment": "The CI proxy publishes no metadata for the PDP Identifier https://authzen-auth-proxy:9446/no-metadata, to exercise the default-path fallback (certification scenario 9.6); Section 9 makes metadata RECOMMENDED"
  }
 ]

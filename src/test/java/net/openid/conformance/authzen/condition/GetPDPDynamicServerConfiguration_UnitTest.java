@@ -20,6 +20,7 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -118,6 +119,14 @@ class GetPDPDynamicServerConfiguration_UnitTest {
 
 	/** Uses the same HTTP client library as the suite, following no redirects as it does, without TLS set-up. */
 	private static final class LocalFetch extends GetPDPDynamicServerConfiguration {
+		LocalFetch() {
+			super();
+		}
+
+		LocalFetch(boolean defaultPathsWhenNotFound) {
+			super(defaultPathsWhenNotFound);
+		}
+
 		@Override
 		protected RestTemplate createRestTemplate(Environment env) {
 			return new RestTemplate(new HttpComponentsClientHttpRequestFactory(
@@ -135,6 +144,19 @@ class GetPDPDynamicServerConfiguration_UnitTest {
 	 * body (none when empty) and Location header (none when null).
 	 */
 	private ConditionError fetchFromServerAnswering(int status, String body, String location) throws IOException {
+		Environment env = new Environment();
+		GetPDPDynamicServerConfiguration fetch = new LocalFetch();
+		fetch.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		return assertThrows(ConditionError.class, () -> fetchFromServerAnswering(status, body, location, fetch, env));
+	}
+
+	/**
+	 * Runs {@code fetch} against a local server that answers every request with the given status,
+	 * body (none when empty) and Location header (none when null), with {@code env} holding a
+	 * test configuration whose PDP Identifier is that server.
+	 */
+	private void fetchFromServerAnswering(int status, String body, String location,
+		GetPDPDynamicServerConfiguration fetch, Environment env) throws IOException {
 		HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
 		server.createContext("/", exchange -> {
 			byte[] response = body.getBytes(StandardCharsets.UTF_8);
@@ -154,12 +176,9 @@ class GetPDPDynamicServerConfiguration_UnitTest {
 		});
 		server.start();
 		try {
-			Environment env = new Environment();
 			env.putObject("config", JsonParser.parseString("{\"pdp\": {\"policy_decision_point\": \"http://127.0.0.1:"
 				+ server.getAddress().getPort() + "\"}}").getAsJsonObject());
-			GetPDPDynamicServerConfiguration fetch = new LocalFetch();
-			fetch.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-			return assertThrows(ConditionError.class, () -> fetch.execute(env));
+			fetch.execute(env);
 		} finally {
 			server.stop(0);
 		}
@@ -169,6 +188,27 @@ class GetPDPDynamicServerConfiguration_UnitTest {
 	public void notFound_failsNamingTheStatus() throws IOException {
 		ConditionError e = fetchFromServerAnswering(404);
 		assertTrue(e.getMessage().contains("/.well-known/authzen-configuration: the PDP answered HTTP 404"), e.getMessage());
+	}
+
+	@Test
+	public void notFound_withDefaultPaths_keepsOnlyThePdpIdentifier() throws IOException {
+		Environment env = new Environment();
+		GetPDPDynamicServerConfiguration fetch = new LocalFetch(true);
+		fetch.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		fetchFromServerAnswering(404, "{\"error\":\"not here\"}", null, fetch, env);
+		assertEquals(env.getString("config", "pdp.policy_decision_point"), env.getString("pdp", "policy_decision_point"));
+		assertEquals(1, env.getObject("pdp").size());
+		assertTrue(env.getBoolean(GetPDPDynamicServerConfiguration.METADATA_NOT_FOUND));
+	}
+
+	@Test
+	public void serverError_withDefaultPaths_stillFails() throws IOException {
+		Environment env = new Environment();
+		GetPDPDynamicServerConfiguration fetch = new LocalFetch(true);
+		fetch.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		ConditionError e = assertThrows(ConditionError.class, () -> fetchFromServerAnswering(500, "{}", null, fetch, env));
+		assertTrue(e.getMessage().contains("the PDP answered HTTP 500"), e.getMessage());
+		assertNull(env.getObject("pdp"));
 	}
 
 	@Test
