@@ -69,6 +69,15 @@ class EnsureSearchPageTokenNotRepeated_UnitTest {
 	}
 
 	@Test
+	public void repeatedTokenWithReorderedResults_throws() {
+		pageReturned("t1", "alice", "bob");
+		cond.execute(env);
+		pageReturned("t1", "bob", "alice");
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("same next_token and the same results"), e.getMessage());
+	}
+
+	@Test
 	public void sameTokenAndResultsTwiceInARow_throws() {
 		pageReturned("t1", "alice");
 		cond.execute(env);
