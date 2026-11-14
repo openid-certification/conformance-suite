@@ -13,12 +13,11 @@ import net.openid.conformance.testmodule.Environment;
  * across all its pages, as in the base search captured in {@code authzen_search_base_results}: the
  * same request without the one member the module adds, named in {@code authzen_search_base_change}.
  *
- * <p>For a search with a context, certification scenario 4.6 says the fixture decisions "MUST hold
- * regardless of whether context is present or absent", and also lets a PDP have "additional
- * subjects, resources, actions, and policies beyond the fixture", which a context may legitimately
- * affect. So only the fixture entities are compared; other results may differ. The two searches
- * are separate requests whose results may change between them, for example under a time-dependent
- * policy, so the caller invokes this at WARNING.
+ * <p>The fixture decisions are fixed (certification scenario 4.6), so they cannot change between
+ * the two requests, and for a search with a context they "MUST hold regardless of whether context
+ * is present or absent". Certification scenarios 7.2.2, 7.3.2 and 7.4.2, as revised for
+ * openid/authzen#774, require the fixture entities to match. Intended to be called at FAILURE;
+ * results outside the fixture are left to {@link EnsureSearchResultsMatchBaseSearch}.
  */
 public class EnsureSearchFixtureEntitiesMatchBaseSearch extends AbstractCondition {
 
@@ -39,7 +38,7 @@ public class EnsureSearchFixtureEntitiesMatchBaseSearch extends AbstractConditio
 		}
 		if (!differing.isEmpty()) {
 			throw error("The fixture entities in the results differ from those of the same search without " + change
-				+ "; the fixture decisions must hold whether or not a context is present",
+				+ "; the fixture decisions are fixed, so both searches must return the same fixture entities",
 				args("change", change, "differing_fixture_entities", differing, "base_search_results", baseResults, "results", results));
 		}
 		logSuccess("The search returned the fixture entities as the same search without " + change

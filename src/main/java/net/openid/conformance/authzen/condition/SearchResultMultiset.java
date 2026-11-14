@@ -43,6 +43,24 @@ final class SearchResultMultiset {
 		return count;
 	}
 
+	/** The results that none of {@code entities} identifies, in their original order. */
+	static JsonArray withoutIdentified(JsonArray results, JsonArray entities) {
+		JsonArray remaining = new JsonArray();
+		for (JsonElement result : results) {
+			boolean identified = false;
+			for (JsonElement entity : entities) {
+				if (identifies(entity, result)) {
+					identified = true;
+					break;
+				}
+			}
+			if (!identified) {
+				remaining.add(result);
+			}
+		}
+		return remaining;
+	}
+
 	private static boolean identifies(JsonElement expectedEntity, JsonElement result) {
 		if (!expectedEntity.isJsonObject() || !result.isJsonObject()) {
 			return expectedEntity.equals(result);

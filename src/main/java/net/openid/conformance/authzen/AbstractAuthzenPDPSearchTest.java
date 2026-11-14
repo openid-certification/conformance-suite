@@ -67,7 +67,7 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	 * @param change the member the module's search adds, as named in messages
 	 * @param removeChange removes that member from a copy of the module's request
 	 * @param fixtureEntitiesOnly whether only the fixture entities, the expected results, are
-	 *        compared instead of the whole result sets
+	 *        compared (at FAILURE), or the results outside the fixture as well (at WARNING)
 	 * @param requirements the sections the comparison cites; the scenario has no requirement prefix
 	 */
 	public record BaseSearch(String change, UnaryOperator<JsonObject> removeChange, boolean fixtureEntitiesOnly,
@@ -363,10 +363,13 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 		eventLog.startBlock("Compare with the base search");
 		try {
 			env.putString("authzen_search_base_change", baseSearch.change());
-			callAndContinueOnFailure(baseSearch.fixtureEntitiesOnly()
-					? EnsureSearchFixtureEntitiesMatchBaseSearch.class
-					: EnsureSearchResultsMatchBaseSearch.class,
-				ConditionResult.WARNING, baseSearch.requirements().toArray(new String[0]));
+			String[] requirements = baseSearch.requirements().toArray(new String[0]);
+			// The fixture decisions are fixed, so the fixture entities cannot legitimately differ
+			// between the two requests; other results may.
+			callAndContinueOnFailure(EnsureSearchFixtureEntitiesMatchBaseSearch.class, ConditionResult.FAILURE, requirements);
+			if (!baseSearch.fixtureEntitiesOnly()) {
+				callAndContinueOnFailure(EnsureSearchResultsMatchBaseSearch.class, ConditionResult.WARNING, requirements);
+			}
 		} finally {
 			eventLog.endBlock();
 		}
