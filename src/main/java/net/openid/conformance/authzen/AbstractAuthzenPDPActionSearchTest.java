@@ -12,6 +12,7 @@ import net.openid.conformance.authzen.condition.ExtractAuthzenApiEndpointSearchR
 import net.openid.conformance.authzen.condition.SetAuthzenApiEndpointToActionSearchEndpoint;
 import net.openid.conformance.authzen.condition.WarnAuthzenActionSearchResponseUnknownMembers;
 import net.openid.conformance.authzen.condition.WarnAuthzenSearchResponseNullMembers;
+import net.openid.conformance.authzen.condition.WarnAuthzenSearchResultEmptyValues;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.variant.PDPServerMetadata;
@@ -54,5 +55,6 @@ public abstract class AbstractAuthzenPDPActionSearchTest extends AbstractAuthzen
 		callAndContinueOnFailure(EnsureSearchResponsePageIsFirstKey.class, ConditionResult.WARNING, "AUTHZEN-8.3");
 		callAndContinueOnFailure(WarnAuthzenActionSearchResponseUnknownMembers.class, ConditionResult.WARNING, "AUTHZEN-8.3", "AUTHZEN-8.2.2", "AUTHZEN-5.3");
 		callAndContinueOnFailure(WarnAuthzenSearchResponseNullMembers.class, ConditionResult.WARNING, "AUTHZEN-11.5");
+		callAndContinueOnFailure(WarnAuthzenSearchResultEmptyValues.class, ConditionResult.WARNING, "AUTHZEN-5.3");
 	}
 }
