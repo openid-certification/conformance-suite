@@ -12,11 +12,11 @@ import net.openid.conformance.testmodule.OIDFJSON;
 
 /**
  * Fails when a page of a paginated search returns a `next_token` that an earlier page of the
- * same search already returned, together with the same results as that page: the PEP sends the
- * same request with the same token again (Section 8.2), so it would go round the same pages
- * forever. Tokens are opaque, so a PDP that keeps the position on the server may return the same
- * token while the results move on; that passes, and the caller's page cap bounds the search.
- * Records each page's token and results under {@code authzen_search_seen_page_tokens}.
+ * same search already returned, together with the same results as that page in any order: the
+ * PEP sends the same request with the same token again (Section 8.2), so it would go round the
+ * same pages forever. Tokens are opaque, so a PDP that keeps the position on the server may
+ * return the same token while the results move on; that passes, and the caller's page cap bounds
+ * the search. Records each page's token and results under {@code authzen_search_seen_page_tokens}.
  */
 public class EnsureSearchPageTokenNotRepeated extends AbstractCondition {
 
@@ -44,7 +44,7 @@ public class EnsureSearchPageTokenNotRepeated extends AbstractCondition {
 				continue;
 			}
 			tokenSeen = true;
-			if (results.equals(page.get("results"))) {
+			if (sameResults(results, page.get("results"))) {
 				throw error("The PDP returned the same next_token and the same results as an earlier page of this search, so pagination would never end",
 					args("next_token", token, "results", results));
 			}
@@ -62,5 +62,16 @@ public class EnsureSearchPageTokenNotRepeated extends AbstractCondition {
 			logSuccess("next_token has not been returned by an earlier page of this search", args("next_token", token));
 		}
 		return env;
+	}
+
+	/**
+	 * Results compared in any order, as Section 10.1.1 rules out relying on member order and
+	 * Section 8.2 does not fix the order of results across requests.
+	 */
+	private static boolean sameResults(JsonElement a, JsonElement b) {
+		if (a != null && a.isJsonArray() && b != null && b.isJsonArray()) {
+			return SearchResultMultiset.sameResults(a.getAsJsonArray(), b.getAsJsonArray());
+		}
+		return a == null ? b == null : a.equals(b);
 	}
 }
