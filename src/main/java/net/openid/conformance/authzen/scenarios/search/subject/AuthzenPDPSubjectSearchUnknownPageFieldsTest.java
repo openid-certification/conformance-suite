@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-subject-search-unknown-page-fields-ignored",
 	displayName = "AuthZEN Subject Search API - Section 10.1.1: Unknown page fields ignored",
-	summary = "Per Section 10.1.1, receivers MUST ignore unknown fields. `page` carries an unknown `customAttr`; PDP MUST return HTTP 200 with valid results.\n" + AuthzenPDPSubjectSearchUnknownPageFieldsTest.payload,
+	summary = "Per Section 10.1.1, receivers MUST ignore unknown fields. `page` carries `customAttr`, a key no specification defines. Section 8.2.1 only allows additional page keys defined in a specification referenced in the Capabilities Registry, so this request breaks a rule for the sender on purpose: that rule does not tell the PDP to reject such a key, so the receiver rule of Section 10.1.1 applies. The PDP MUST return HTTP 200 with results that include alice and bob.\n" + AuthzenPDPSubjectSearchUnknownPageFieldsTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPSubjectSearchUnknownPageFieldsTest extends AbstractAuthzenPDPSubjectSearchTest {
@@ -43,5 +43,11 @@ public class AuthzenPDPSubjectSearchUnknownPageFieldsTest extends AbstractAuthze
 				]
 			}
 			""";
+	}
+
+	@Override
+	protected String[] additionalStatusRequirements() {
+		// Section 10.1.1: "receivers MUST ignore unknown fields present in request or response bodies".
+		return new String[] {"AUTHZEN-10.1.1"};
 	}
 }

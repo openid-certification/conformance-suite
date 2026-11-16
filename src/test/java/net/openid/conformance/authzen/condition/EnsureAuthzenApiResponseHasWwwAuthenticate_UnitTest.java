@@ -1,6 +1,7 @@
 package net.openid.conformance.authzen.condition;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
@@ -8,11 +9,14 @@ import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 class EnsureAuthzenApiResponseHasWwwAuthenticate_UnitTest {
@@ -62,6 +66,52 @@ class EnsureAuthzenApiResponseHasWwwAuthenticate_UnitTest {
 		headers.addProperty("Content-Type", "application/json");
 		putResponse(401, headers);
 		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void status401WithoutWwwAuthenticateUnderMtls_isOnlyLogged() {
+		// No HTTP authentication scheme exists for a TLS client certificate.
+		env.putString("client_auth_type", "mtls");
+		putResponse(401, new JsonObject());
+		cond.execute(env);
+	}
+
+	@Test
+	public void status401WithoutWwwAuthenticateUnderApiKey_fails() {
+		env.putString("client_auth_type", "api_key");
+		putResponse(401, new JsonObject());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void status401WithoutWwwAuthenticateUnderACustomApiKeyHeader_failsSuggestingASchemeOfItsOwn() {
+		env.putString("client_auth_type", "api_key");
+		env.putObject("client", JsonParser.parseString("{ \"api_key\": \"k\", \"api_key_header\": \"X-API-Key\" }").getAsJsonObject());
+		putResponse(401, new JsonObject());
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("configured for the X-API-Key header"), e.getMessage());
+		assertTrue(e.getMessage().contains("such as ApiKey"), e.getMessage());
+	}
+
+	@Test
+	public void status401WithoutWwwAuthenticateUnderTheAuthorizationHeader_failsWithoutTheSchemeNote() {
+		env.putString("client_auth_type", "api_key");
+		env.putObject("client", JsonParser.parseString("{ \"api_key\": \"k\", \"api_key_header\": \"authorization\" }").getAsJsonObject());
+		putResponse(401, new JsonObject());
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(!e.getMessage().contains("such as ApiKey"), e.getMessage());
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"null", "42", "{}", "\"\""})
+	public void status401UnderAnApiKeyHeaderThatIsNotAName_failsWithoutTheSchemeNote(String headerValue) {
+		// The field is not validated in the missing-credentials modules, so it must not throw here.
+		env.putString("client_auth_type", "api_key");
+		env.putObject("client", JsonParser.parseString("{ \"api_key\": \"k\", \"api_key_header\": " + headerValue + " }").getAsJsonObject());
+		putResponse(401, new JsonObject());
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("PDP returned 401 without a WWW-Authenticate response header"), e.getMessage());
+		assertTrue(!e.getMessage().contains("such as ApiKey"), e.getMessage());
 	}
 
 	@Test

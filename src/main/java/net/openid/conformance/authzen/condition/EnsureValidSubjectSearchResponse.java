@@ -21,8 +21,9 @@ public class EnsureValidSubjectSearchResponse extends EnsureValidSearchResponse 
 	private String getRequestSubjectType() {
 		if(subjectType == null) {
 			JsonElement subjectTypeElem = env.getElementFromObject("authzen_api_endpoint_request", "subject.type");
-			if(subjectTypeElem==null) {
-				throw error("No subject type in authzen_api_endpoint_request");
+			if (!OIDFJSON.isString(subjectTypeElem)) {
+				throw error("The search request the suite sent has no string subject type, so the type of each result cannot be checked",
+					args("subject", env.getElementFromObject("authzen_api_endpoint_request", "subject")));
 			}
 			subjectType = OIDFJSON.getString(subjectTypeElem);
 		}
@@ -31,17 +32,11 @@ public class EnsureValidSubjectSearchResponse extends EnsureValidSearchResponse 
 
 	@Override
 	protected void ensureValidResponseResultsObject(JsonObject resultsObj) {
-		// check result contains id and type and type value matches requested type
-		if(!resultsObj.has("id")) {
-			throw error("A subject object in the results array does not contain an id");
+		getRequiredStringMember(resultsObj, "id", "A subject object");
+		String type = getRequiredStringMember(resultsObj, "type", "A subject object");
+		if (!type.equals(getRequestSubjectType())) {
+			throw error("A subject object in the results array does not contain the requested subject type", args("expected", getRequestSubjectType(), "actual", type));
 		}
-		if(!resultsObj.has("type")) {
-			throw error("A subject object in the results array does not contain a type");
-		}
-		if(!OIDFJSON.getString(resultsObj.get("type")).equals(getRequestSubjectType())) {
-			throw error("A subject object in the results array does not contain the requested subject type", args("expected", getRequestSubjectType(), "actual", OIDFJSON.getString(resultsObj.get("type"))));
-		}
+		ensurePropertiesIsObject(resultsObj, "A subject object");
 	}
-
-
 }

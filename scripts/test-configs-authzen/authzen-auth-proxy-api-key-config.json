@@ -1,0 +1,21 @@
+{
+    "description": "Authzen Cerbos PDP behind the authenticating proxy: api_key (docker-compose-localtest.yml)",
+    "publish": "everything",
+    "pdp": {
+        "policy_decision_point": "https://authzen-auth-proxy:9443",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "oct",
+                    "alg": "HS256",
+                    "use": "sig",
+                    "k": "ZjU4N2M4NWEzOWUzZWNlMGViOGEzY2ZiZmEzNzFkMjRmYTQ2NzVkOWY1MGNkNjJmNjBkNGM5MmJhMzgxMDk1Yg"
+                }
+            ]
+        },
+        "metadata_issuer": "https://cerbos-authzen-pdp:8443"
+    },
+    "client": {
+        "api_key": "authzen-ci-api-key"
+    }
+}

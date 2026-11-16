@@ -1,13 +1,14 @@
 package net.openid.conformance.authzen;
 
-import net.openid.conformance.authzen.condition.CaptureAuthzenResponseBodyForIdempotencyCheck;
-import net.openid.conformance.authzen.condition.EnsureAuthzenResponseBodyMatchesIdempotencyCheck;
+import net.openid.conformance.authzen.condition.CaptureAuthzenSearchResultsForIdempotencyCheck;
+import net.openid.conformance.authzen.condition.EnsureAuthzenSearchResultsMatchIdempotencyCheck;
 
 /**
- * Sends the same Resource Search request multiple times consecutively and asserts
- * the PDP returns the same response body each time. The cert profile only defines idempotency for the single
- * Evaluation API (section 2.6); the same principle is exercised here for
- * Resource Search. The loop body is shared with the other idempotency families via
+ * Sends the same Resource Search request multiple times consecutively, follows every page of each
+ * response, and checks that the PDP returns the same results each time. Certification scenario
+ * 5.6 requires this of decision values only, so a difference in search results is reported as
+ * a warning.
+ * The loop body is shared with the other idempotency families via
  * {@link AbstractAuthzenPDPTest#runIdempotencyLoop}.
  */
 public abstract class AbstractAuthzenPDPResourceSearchIdempotencyTest extends AbstractAuthzenPDPResourceSearchTest {
@@ -15,7 +16,7 @@ public abstract class AbstractAuthzenPDPResourceSearchIdempotencyTest extends Ab
 	@Override
 	protected void performAuthzenApiFlow() {
 		runIdempotencyLoop("Resource Search",
-			CaptureAuthzenResponseBodyForIdempotencyCheck.class,
-			EnsureAuthzenResponseBodyMatchesIdempotencyCheck.class);
+			CaptureAuthzenSearchResultsForIdempotencyCheck.class,
+			EnsureAuthzenSearchResultsMatchIdempotencyCheck.class);
 	}
 }

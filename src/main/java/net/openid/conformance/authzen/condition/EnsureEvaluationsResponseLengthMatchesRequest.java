@@ -9,8 +9,10 @@ import net.openid.conformance.testmodule.Environment;
 
 /**
  * Section 7.2 requires the response `evaluations` array to have the same
- * length as the request `evaluations` array. When the request omits `evaluations`
- * or sends an empty array (backward-compat shape) this check is skipped.
+ * length as the request `evaluations` array. Requests without a non-empty
+ * `evaluations` array (the backward-compatibility shape of Section 7.1) are
+ * answered with a single decision and validated as such, so they never reach
+ * this check; one that does fails, as the length cannot be compared.
  */
 public class EnsureEvaluationsResponseLengthMatchesRequest extends AbstractCondition {
 
@@ -19,15 +21,11 @@ public class EnsureEvaluationsResponseLengthMatchesRequest extends AbstractCondi
 	public Environment evaluate(Environment env) {
 		JsonObject request = env.getObject("authzen_api_endpoint_request");
 		JsonElement requestEvalsElem = request.get("evaluations");
-		if (requestEvalsElem == null || !requestEvalsElem.isJsonArray()) {
-			log("Request has no `evaluations` array — skipping length-match check");
-			return env;
+		if (requestEvalsElem == null || !requestEvalsElem.isJsonArray() || requestEvalsElem.getAsJsonArray().isEmpty()) {
+			throw error("The batch request the suite sent has no non-empty `evaluations` array, so the length of the response's `evaluations` cannot be checked against it",
+				args("request", request));
 		}
 		JsonArray requestEvals = requestEvalsElem.getAsJsonArray();
-		if (requestEvals.isEmpty()) {
-			log("Request `evaluations` array is empty — skipping length-match check");
-			return env;
-		}
 
 		JsonObject response = env.getObject("authzen_evaluations_endpoint_response");
 		JsonElement responseEvalsElem = response.get("evaluations");

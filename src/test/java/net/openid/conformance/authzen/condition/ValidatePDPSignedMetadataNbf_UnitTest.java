@@ -18,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class ValidatePDPSignedMetadataNbf_UnitTest {
 
 	private static final long NOW = System.currentTimeMillis() / 1000L;
+	private static final long FIXED_NOW = 1_800_000_000L;
 
 	@Spy
 	private Environment env = new Environment();
@@ -64,9 +65,34 @@ class ValidatePDPSignedMetadataNbf_UnitTest {
 	}
 
 	@Test
-	public void implausiblyOldNbf_fails() {
-		// Before JWTUtil's minimum reasonable timestamp (likely a non-seconds value).
+	public void oldNbf_succeeds() {
+		// A JWT valid since 2001 is still valid; CheckPDPSignedMetadataTimeClaimsArePlausible warns about it.
 		putNbf(1_000_000_000L);
-		assertThrows(ConditionError.class, () -> cond.execute(env));
+		cond.execute(env);
+	}
+
+
+	/** The condition with its clock fixed at {@link #FIXED_NOW}. */
+	private ValidatePDPSignedMetadataNbf fixedClockCondition() {
+		ValidatePDPSignedMetadataNbf fixed = new ValidatePDPSignedMetadataNbf() {
+			@Override
+			protected long nowSeconds() {
+				return FIXED_NOW;
+			}
+		};
+		fixed.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		return fixed;
+	}
+
+	@Test
+	public void nbfAtTheClockSkewLimit_succeeds() {
+		putNbf(FIXED_NOW + AbstractValidatePDPSignedMetadataTimeClaim.CLOCK_SKEW_SECONDS);
+		fixedClockCondition().execute(env);
+	}
+
+	@Test
+	public void nbfOneSecondBeyondTheClockSkew_fails() {
+		putNbf(FIXED_NOW + AbstractValidatePDPSignedMetadataTimeClaim.CLOCK_SKEW_SECONDS + 1);
+		assertThrows(ConditionError.class, () -> fixedClockCondition().execute(env));
 	}
 }

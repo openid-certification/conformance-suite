@@ -2,39 +2,57 @@ package net.openid.conformance.authzen.scenarios.evaluations;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.variant.VariantSelection;
+
+import java.util.List;
+import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "authzen-pdp-evaluations-test-plan",
 	shortName = "Batch evaluations",
-	certifiable = false,
-	alpha = true,
-	displayName = "AuthZEN 1.0: PDP server test for batch evaluations (alpha version - not currently part of certification program)",
+	certifiable = true,
+	displayName = "AuthZEN 1.0: PDP server test for batch evaluations",
+	summary = "Tests a PDP's Access Evaluations API (Section 7) against the fixture in the [certification scenario](https://openid.github.io/authzen/authorization-api-1_0-certification-scenario.html): batch decisions, top-level defaults and per-evaluation overrides, the default execute_all evaluation semantic, backward compatibility with a single evaluation, request validation and error responses at every level, unknown fields, idempotency, the HTTP binding (Section 10.1) and authentication (Sections 11.2 and 11.3). The modules for property-based decisions run only when 'AuthZEN Specification Support' is 'properties'. Every POST module that accepts only an error status sends an X-Request-ID header, and fails if the error response does not echo it (Section 10.1.3), even when the status is right.",
 	profile = TestPlan.ProfileNames.authzenTest,
 	specFamily = TestPlan.SpecFamilyNames.authzen,
 	testModules = {
-		// Batch Evaluations API tests from https://github.com/openid/authzen/issues/433
+		// Batch Evaluations API tests, following the certification scenario (https://openid.github.io/authzen/authorization-api-1_0-certification-scenario.html)
 		// Batch Core
 		AuthzenPDPEvaluationsBatchRequestWithEvaluationsArrayTest.class,
 		AuthzenPDPEvaluationsBatchWithFixtureDecisionsValidatedTest.class,
 		AuthzenPDPEvaluationsBatchWithFullySpecifiedEvaluationsTest.class,
 		AuthzenPDPEvaluationsBatchWithContextInheritanceTest.class,
 		AuthzenPDPEvaluationsEvaluationLevelErrorsTest.class,
-		// evaluations_semantic option (Section 7.1.2.1). The execute_all default is what the
-		// fixture-decisions module above already relies on; this one asks for it explicitly.
-		// The short-circuiting semantics are OPTIONAL for a PDP to support, so requiring them
+		AuthzenPDPEvaluationsIncompleteEntityTest.class,
+		// evaluations_semantic option (Section 7.1.2.1). The execute_all default must run every
+		// evaluation, which a batch with a deny before a permit shows; the second module asks for
+		// it explicitly. The short-circuiting semantics are OPTIONAL for a PDP to support, so requiring them
 		// (or requiring an unknown value to be rejected, which presupposes the option is
 		// implemented) would fail conformant PDPs that omit the feature; they are covered by
 		// AuthzenPDPEvaluationsComprehensiveTestPlan instead.
+		AuthzenPDPEvaluationsDefaultSemanticContinuesAfterDenyTest.class,
 		AuthzenPDPEvaluationsExecuteAllExplicitTest.class,
-		// Per-eval overrides top-level defaults (Section 7.1.1.1)
+		// Per-eval overrides top-level defaults (Section 7.1.1)
 		AuthzenPDPEvaluationsPerEvalOverridesDefaultTest.class,
-		// Missing subject everywhere returns decision-false evaluation (Cert Profile 3.4.1)
-		AuthzenPDPEvaluationsMissingSubjectReturnsDecisionFalseTest.class,
+		// No subject or no action at any level: 400 (Section 7.1.1, openid/authzen#763)
+		AuthzenPDPEvaluationsMissingSubjectTest.class,
+		AuthzenPDPEvaluationsMissingActionTest.class,
+		// Error handling at every level (certification scenario 3.1 with 5.4.2 and 5.4.6)
+		AuthzenPDPEvaluationsSubjectMissingTypeTest.class,
+		AuthzenPDPEvaluationsSubjectIsStringTest.class,
+		AuthzenPDPEvaluationsActionIsStringTest.class,
+		AuthzenPDPEvaluationsResourceIsStringTest.class,
+		AuthzenPDPEvaluationsActionNameIsNumberTest.class,
+		AuthzenPDPEvaluationsContextIsStringTest.class,
+		AuthzenPDPEvaluationsEvaluationsIsObjectTest.class,
+		AuthzenPDPEvaluationsEvaluationIsStringTest.class,
 		// Backward compatibility (Section 7.1)
 		AuthzenPDPEvaluationsMissingEvaluationsArrayBackwardCompatTest.class,
 		AuthzenPDPEvaluationsEmptyEvaluationsArrayBackwardCompatTest.class,
-		// Forward-compat: unknown top-level fields ignored (Section 10.1.1)
+		// Forward-compat: unknown fields ignored at the top level, in an evaluation and in options (Section 10.1.1)
 		AuthzenPDPEvaluationsUnknownTopLevelFieldsTest.class,
+		AuthzenPDPEvaluationsUnknownEvaluationFieldsTest.class,
+		AuthzenPDPEvaluationsUnknownOptionTest.class,
 		// X-Request-ID handling (Section 10.1.3)
 		AuthzenPDPEvaluationsXRequestIdEchoedTest.class,
 		// Idempotency
@@ -44,14 +62,39 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsRejectPutMethodTest.class,
 		AuthzenPDPEvaluationsRejectTopLevelArrayTest.class,
 		AuthzenPDPEvaluationsRejectNonJsonContentTypeTest.class,
+		AuthzenPDPEvaluationsRejectMissingContentTypeTest.class,
 		AuthzenPDPEvaluationsAcceptContentTypeWithCharsetTest.class,
 		AuthzenPDPEvaluationsRejectMalformedJsonTest.class,
 		AuthzenPDPEvaluationsRejectEmptyBodyTest.class,
+		// Invalid field type: certification scenario 5.4.6 requires HTTP 400 "when a field has an
+		// invalid type". options is OPTIONAL for a PDP to act on, but every Batch Core PDP accepts
+		// it (execute-all-explicit above), so it is checked like context and properties.
+		AuthzenPDPEvaluationsOptionsIsStringTest.class,
 		// Batch Properties (Properties variant only)
 		AuthzenPDPEvaluationsBatchWithPropertiesValidatedTest.class,
 		AuthzenPDPEvaluationsBatchWithSubjectPropertiesValidatedTest.class,
-		AuthzenPDPEvaluationsBatchWithDefaultValueMergingTest.class,
+		AuthzenPDPEvaluationsBatchWithTopLevelDefaultInheritanceTest.class,
+		AuthzenPDPEvaluationsBatchOverrideReplacesDefaultEntityTest.class,
+		// Authentication (Sections 11.2 and 11.3)
+		AuthzenPDPEvaluationsMissingCredentialsReturns401Test.class,
+		AuthzenPDPEvaluationsUnauthenticatedRequestAcceptedTest.class,
+		AuthzenPDPEvaluationsInvalidCredentialsReturns401Test.class,
 	}
 )
 public class AuthzenPDPEvaluationsTestPlan implements TestPlan {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+
+		String certProfile = "AuthZEN Evaluations";
+		String suffix = "";
+
+		Map<String, String> v = variant.getVariant();
+		String authzenSupport = v.get("authzen_support");
+
+		if("properties".equalsIgnoreCase(authzenSupport)) {
+			suffix = " w/properties";
+		}
+
+		return List.of(certProfile + suffix);
+	}
 }

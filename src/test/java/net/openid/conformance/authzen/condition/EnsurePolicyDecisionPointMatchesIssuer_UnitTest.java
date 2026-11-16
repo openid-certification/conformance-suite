@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -64,6 +65,14 @@ class EnsurePolicyDecisionPointMatchesIssuer_UnitTest {
 	}
 
 	@Test
+	public void nonStringValue_fails() {
+		put("https://pdp.example.com", null);
+		env.getObject("server").addProperty("policy_decision_point", 42);
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("is not a string"), e.getMessage());
+	}
+
+	@Test
 	public void caseMismatch_fails() {
 		put("https://PDP.example.com", "https://pdp.example.com");
 		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
@@ -93,5 +102,48 @@ class EnsurePolicyDecisionPointMatchesIssuer_UnitTest {
 	public void missingReturnedUrl_fails() {
 		put("https://pdp.example.com/", null);
 		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void mismatch_namesTheDiscoveryDocumentByDefault() {
+		put("https://pdp.example.com", "https://other.example.com");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("in the PDP's discovery document is not identical"), e.getMessage());
+	}
+
+	@Test
+	public void mismatchInSignedMetadata_namesTheSignedMetadata() {
+		cond = new EnsurePolicyDecisionPointMatchesIssuer(EnsurePolicyDecisionPointMatchesIssuer.SIGNED_METADATA);
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		put("https://pdp.example.com", "https://other.example.com");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("in the PDP's signed_metadata is not identical"), e.getMessage());
+		assertTrue(!e.getMessage().contains("discovery document"), e.getMessage());
+	}
+
+	@Test
+	public void missingReturnedUrl_namesTheDocument() {
+		put("https://pdp.example.com/", null);
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("The PDP's discovery document contains no `policy_decision_point`"), e.getMessage());
+		assertFalse(e.getMessage().contains("signed_metadata"), e.getMessage());
+	}
+
+	@Test
+	public void missingReturnedUrlWithSignedMetadata_explainsThePublishedDocumentMustCarryIt() {
+		put("https://pdp.example.com/", null);
+		env.getObject("server").addProperty("signed_metadata", "eyJhbGciOiJIUzI1NiJ9.e30.sig");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("If its signed_metadata carries `policy_decision_point`, that is not enough: a PEP may ignore signed metadata"), e.getMessage());
+	}
+
+	@Test
+	public void missingInSignedMetadataValues_doesNotMentionThePublishedDocument() {
+		cond = new EnsurePolicyDecisionPointMatchesIssuer(EnsurePolicyDecisionPointMatchesIssuer.SIGNED_METADATA);
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		put("https://pdp.example.com/", null);
+		env.getObject("server").addProperty("signed_metadata", "eyJhbGciOiJIUzI1NiJ9.e30.sig");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFalse(e.getMessage().contains("published document"), e.getMessage());
 	}
 }

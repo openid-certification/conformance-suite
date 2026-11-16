@@ -35,7 +35,7 @@ public class ValidatePDPSignedMetadataIss extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		String actualIssuer = env.getString("pdp_signed_metadata", "claims.iss");
 		if(Strings.isNullOrEmpty(actualIssuer)) {
-			throw error("PDP `signed_metadata` MUST contain an `iss` (issuer) claim", args("issuer", actualIssuer));
+			throw error("PDP `signed_metadata` has no `iss` (issuer) claim, or it is empty", args("issuer", actualIssuer));
 		}
 
 		String configuredIssuer = SignedMetadataIssuerConfig.value(env);
@@ -53,7 +53,12 @@ public class ValidatePDPSignedMetadataIss extends AbstractCondition {
 		}
 
 		if (!expectedIssuer.equals(actualIssuer)) {
-			throw error("PDP issuer mismatch in signed_metadata",
+			throw error(usingConfiguredIssuer
+					? "The `iss` claim of the discovery metadata `signed_metadata` JWT does not match the 'Signed Metadata Issuer' "
+						+ "field in the 'AuthZEN' section of the test configuration"
+					: "The `iss` claim of the discovery metadata `signed_metadata` JWT does not match the 'PDP Identifier'. If a "
+						+ "party other than the PDP signs the metadata, enter its issuer in the 'Signed Metadata Issuer' field in "
+						+ "the 'AuthZEN' section of the test configuration",
 				args("expected", expectedIssuer, "actual", actualIssuer, "compared_against", expectedIssuerField));
 		}
 

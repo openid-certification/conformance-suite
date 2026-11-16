@@ -1,8 +1,10 @@
 package net.openid.conformance.authzen.condition;
 
+import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 /**
  * Section 9.2.3 — the `policy_decision_point` value returned in the metadata
@@ -17,6 +19,24 @@ import net.openid.conformance.testmodule.Environment;
  */
 public class EnsurePolicyDecisionPointMatchesIssuer extends AbstractCondition {
 
+	public static final String PUBLISHED_DOCUMENT = "the PDP's discovery document";
+
+	public static final String SIGNED_METADATA = "the PDP's signed_metadata";
+
+	private final String document;
+
+	public EnsurePolicyDecisionPointMatchesIssuer() {
+		this(PUBLISHED_DOCUMENT);
+	}
+
+	/**
+	 * @param document names the metadata in {@code server} in the messages, such as
+	 *                 {@link #PUBLISHED_DOCUMENT} or {@link #SIGNED_METADATA}
+	 */
+	public EnsurePolicyDecisionPointMatchesIssuer(String document) {
+		this.document = document;
+	}
+
 	@Override
 	@PreEnvironment(required = {"config", "server"})
 	public Environment evaluate(Environment env) {
@@ -24,28 +44,47 @@ public class EnsurePolicyDecisionPointMatchesIssuer extends AbstractCondition {
 		if (configured == null) {
 			throw error("'PDP Identifier' field is missing from the 'AuthZEN' section in the test configuration");
 		}
-		String returned = env.getString("server", "policy_decision_point");
+		JsonElement returnedElement = env.getElementFromObject("server", "policy_decision_point");
+		if (returnedElement != null && !OIDFJSON.isString(returnedElement)) {
+			throw error("The `policy_decision_point` in " + document + " is not a string, so it cannot be identical to the "
+				+ "'PDP Identifier' the metadata was fetched from, and the data in the response must not be used, so the "
+				+ "test stops here.",
+				args("returned_policy_decision_point", returnedElement));
+		}
+		String returned = returnedElement == null ? null : OIDFJSON.getString(returnedElement);
 		if (returned == null) {
-			throw error("The PDP's discovery document contains no `policy_decision_point`, so it cannot be checked "
-				+ "against the 'PDP Identifier' the metadata was fetched from. AuthZEN 9.2.3 requires the two to be "
-				+ "identical and says the data in the response MUST NOT be used otherwise, so the test stops here.");
+			// A published document that carries the identifier only in signed_metadata still fails: a PEP
+			// may ignore signed metadata, and one that does has no value to compare. The signed values are
+			// not verified yet, so the message cannot say whether signed_metadata carries it.
+			JsonElement signedMetadata = env.getElementFromObject("server", "signed_metadata");
+			boolean hasSignedMetadata = PUBLISHED_DOCUMENT.equals(document)
+				&& signedMetadata != null && !signedMetadata.isJsonNull();
+			throw error(capitalize(document) + " contains no `policy_decision_point`, so it cannot be checked "
+				+ "against the 'PDP Identifier' the metadata was fetched from. The two must be identical, and the data in "
+				+ "the response must not be used otherwise, so the test stops here."
+				+ (hasSignedMetadata
+					? " If its signed_metadata carries `policy_decision_point`, that is not enough: a PEP may ignore signed "
+						+ "metadata, and one that does could not validate this response, so the published document must carry "
+						+ "`policy_decision_point` too."
+					: ""));
 		}
 		if (!configured.equals(returned)) {
 			// The difference goes in the message, not only in args: this failure ends the run, so the
 			// one line the tester reads first has to say what to change.
-			throw error("The `policy_decision_point` in the PDP's discovery document is not identical to the "
+			throw error("The `policy_decision_point` in " + document + " is not identical to the "
 					+ "'PDP Identifier' the metadata was fetched from - " + describeDifference(configured, returned)
-					+ ". AuthZEN 9.2.3: \"The policy_decision_point value returned MUST be identical to the Policy "
-					+ "Decision Point identifier value into which the well-known URI string was inserted to create "
-					+ "the URL used to retrieve the metadata. If these values are not identical, the data contained "
-					+ "in the response MUST NOT be used.\" The test stops here, because every endpoint it would use "
-					+ "next comes from this response. Make the two values identical - either correct the PDP's "
+					+ ". The two must be identical, and the data in a response where they differ must not be used. "
+					+ "The test stops here, because every endpoint it would use next comes from this response. Make the two values identical - either correct the PDP's "
 					+ "metadata, or correct the 'PDP Identifier' in the test configuration.",
 				args("configured_pdp_identifier", configured, "returned_policy_decision_point", returned));
 		}
-		logSuccess("Discovery document policy_decision_point matches the discovery URL",
+		logSuccess("The policy_decision_point in " + document + " matches the 'PDP Identifier' the metadata was fetched from",
 			args("policy_decision_point", returned));
 		return env;
+	}
+
+	private static String capitalize(String text) {
+		return Character.toUpperCase(text.charAt(0)) + text.substring(1);
 	}
 
 	/**

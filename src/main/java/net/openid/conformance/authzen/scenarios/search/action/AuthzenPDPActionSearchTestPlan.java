@@ -2,21 +2,31 @@ package net.openid.conformance.authzen.scenarios.search.action;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.variant.VariantSelection;
+
+import java.util.List;
+import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "authzen-pdp-action-search-test-plan",
 	shortName = "Action search",
-	certifiable = false,
-	alpha = true,
-	displayName = "AuthZEN 1.0: PDP server test for Action Search (alpha version - not currently part of certification program)",
+	certifiable = true,
+	displayName = "AuthZEN 1.0: PDP server test for Action Search",
+	summary = "Tests a PDP's Action Search API (Section 8.6) against the fixture in the [certification scenario](https://openid.github.io/authzen/authorization-api-1_0-certification-scenario.html): search results and the decisions they evaluate to, pagination, unknown entities, a request that includes an action, idempotency, request validation and error responses, unknown fields, the HTTP binding (Section 10.1) and authentication (Sections 11.2 and 11.3). The modules for property-based decisions run only when 'AuthZEN Specification Support' is 'properties'. Every POST module that accepts only an error status sends an X-Request-ID header, and fails if the error response does not echo it (Section 10.1.3), even when the status is right.",
 	profile = TestPlan.ProfileNames.authzenTest,
 	specFamily = TestPlan.SpecFamilyNames.authzen,
 	testModules = {
-		// Action Search API tests from https://github.com/openid/authzen/issues/433
+		// Action Search API tests, following the certification scenario (https://openid.github.io/authzen/authorization-api-1_0-certification-scenario.html)
 		// Search Core
 		AuthzenPDPActionSearchValidActionSearchRequestWithNonEmptyResultsTest.class,
+		AuthzenPDPActionSearchDeniedActionExcludedTest.class,
 		AuthzenPDPActionSearchActionSearchWithContextTest.class,
+		AuthzenPDPActionSearchResultsEvaluateToPermitTest.class,
+		AuthzenPDPActionSearchRequestWithPageLimitTest.class,
+		AuthzenPDPActionSearchChangedPageParametersTest.class,
+		AuthzenPDPActionSearchChangedPageEntityTest.class,
 		AuthzenPDPActionSearchUnknownEntityIdentifierTest.class,
+		AuthzenPDPActionSearchUnknownEntityTypeTest.class,
 		// X-Request-ID handling (Section 10.1.3)
 		AuthzenPDPActionSearchXRequestIdEchoedTest.class,
 		// Idempotency
@@ -26,6 +36,7 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPActionSearchRejectPutMethodTest.class,
 		AuthzenPDPActionSearchRejectTopLevelArrayTest.class,
 		AuthzenPDPActionSearchRejectNonJsonContentTypeTest.class,
+		AuthzenPDPActionSearchRejectMissingContentTypeTest.class,
 		AuthzenPDPActionSearchAcceptContentTypeWithCharsetTest.class,
 		AuthzenPDPActionSearchRejectMalformedJsonTest.class,
 		AuthzenPDPActionSearchRejectEmptyBodyTest.class,
@@ -36,14 +47,37 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPActionSearchMissingSubjectTest.class,
 		AuthzenPDPActionSearchSubjectMissingIdTest.class,
 		AuthzenPDPActionSearchSubjectMissingTypeTest.class,
+		AuthzenPDPActionSearchSubjectIdIsNumberTest.class,
 		AuthzenPDPActionSearchSubjectIsStringTest.class,
-		// Forward-compat: unknown top-level fields ignored (Section 10.1.1)
+		AuthzenPDPActionSearchResourceIsStringTest.class,
+		AuthzenPDPActionSearchContextIsStringTest.class,
+		// Forward-compat: unknown fields ignored (Section 10.1.1)
 		AuthzenPDPActionSearchUnknownTopLevelFieldsTest.class,
-		// Extra action ignored (Section 10.1.1 forward compatibility)
+		AuthzenPDPActionSearchUnknownPageFieldsTest.class,
+		// An action in an Action Search request, which Section 8.6.1 omits: ignored (Section 10.1.1)
 		AuthzenPDPActionSearchExtraActionIgnoredTest.class,
 		// Search Properties (Properties variant only)
 		AuthzenPDPActionSearchActionSearchWithPropertiesTest.class,
+		// Authentication (Sections 11.2 and 11.3)
+		AuthzenPDPActionSearchMissingCredentialsReturns401Test.class,
+		AuthzenPDPActionSearchUnauthenticatedRequestAcceptedTest.class,
+		AuthzenPDPActionSearchInvalidCredentialsReturns401Test.class,
 	}
 )
 public class AuthzenPDPActionSearchTestPlan implements TestPlan {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+
+		String certProfile = "AuthZEN Action Search";
+		String suffix = "";
+
+		Map<String, String> v = variant.getVariant();
+		String authzenSupport = v.get("authzen_support");
+
+		if("properties".equalsIgnoreCase(authzenSupport)) {
+			suffix = " w/properties";
+		}
+
+		return List.of(certProfile + suffix);
+	}
 }

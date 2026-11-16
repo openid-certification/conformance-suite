@@ -9,9 +9,9 @@ import net.openid.conformance.testmodule.Environment;
 
 /**
  * Captures the JSON body of the current AuthZEN API response under the env key
- * {@code authzen_idempotency_first_response_body} if not already set. Subsequent
- * iterations should call {@link EnsureAuthzenResponseBodyMatchesIdempotencyCheck}
- * to assert the body did not change.
+ * {@code authzen_idempotency_first_response_body}. The idempotency loop calls it on the
+ * first iteration only; later iterations call {@link EnsureAuthzenEvaluationsDecisionsMatchIdempotencyCheck} to assert
+ * the batch decisions did not change.
  */
 public class CaptureAuthzenResponseBodyForIdempotencyCheck extends AbstractCondition {
 
@@ -19,10 +19,6 @@ public class CaptureAuthzenResponseBodyForIdempotencyCheck extends AbstractCondi
 	@PreEnvironment(required = "authzen_api_endpoint_response")
 	@PostEnvironment(strings = "authzen_idempotency_first_response_body")
 	public Environment evaluate(Environment env) {
-		if (env.getString("authzen_idempotency_first_response_body") != null) {
-			log("First-iteration response body already captured; skipping");
-			return env;
-		}
 		JsonElement bodyElem = env.getElementFromObject("authzen_api_endpoint_response", "body_json");
 		if (bodyElem == null) {
 			throw error("No JSON response body available to capture for idempotency check");

@@ -2,17 +2,21 @@ package net.openid.conformance.authzen.scenarios.evaluation;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.variant.VariantSelection;
+
+import java.util.List;
+import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "authzen-pdp-evaluation-test-plan",
 	shortName = "Evaluation",
-	certifiable = false,
-	alpha = true,
-	displayName = "AuthZEN 1.0: PDP server test for evaluation (alpha version - not currently part of certification program)",
+	certifiable = true,
+	displayName = "AuthZEN 1.0: PDP server test for evaluation",
+	summary = "Tests a PDP's Access Evaluation API (Section 6) against the fixture in the [certification scenario](https://openid.github.io/authzen/authorization-api-1_0-certification-scenario.html): fixture decisions, idempotency, request validation and error responses, unknown fields, the HTTP binding (Section 10.1) and authentication (Sections 11.2 and 11.3). The modules for property-based decisions run only when 'AuthZEN Specification Support' is 'properties'. Every POST module that accepts only an error status sends an X-Request-ID header, and fails if the error response does not echo it (Section 10.1.3), even when the status is right.",
 	profile = TestPlan.ProfileNames.authzenTest,
 	specFamily = TestPlan.SpecFamilyNames.authzen,
 	testModules = {
-		// Evaluation API tests from https://github.com/openid/authzen/issues/433
+		// Evaluation API tests, following the certification scenario (https://openid.github.io/authzen/authorization-api-1_0-certification-scenario.html)
 		// Basic Core
 		AuthzenPDPEvaluationFixtureRequestPermitDecisionTest.class,
 		AuthzenPDPEvaluationFixtureRequestDenyDecisionTest.class,
@@ -33,28 +37,53 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationResourceMissingTypeTest.class,
 		AuthzenPDPEvaluationResourceMissingIdTest.class,
 		AuthzenPDPEvaluationSubjectIsStringTest.class,
+		AuthzenPDPEvaluationActionIsStringTest.class,
+		AuthzenPDPEvaluationResourceIsStringTest.class,
 		AuthzenPDPEvaluationActionNameIsNumberTest.class,
+		AuthzenPDPEvaluationContextIsStringTest.class,
+		AuthzenPDPEvaluationSubjectPropertiesIsStringTest.class,
 		// X-Request-ID handling (Section 10.1.3)
 		AuthzenPDPEvaluationXRequestIdEchoedTest.class,
-		// Idempotency (Section 10.1.3)
+		// Idempotency (certification scenario 5.6)
 		AuthzenPDPEvaluationIdempotencyTest.class,
 		// Forward-compat: unknown fields ignored (Section 10.1.1)
 		AuthzenPDPEvaluationUnknownTopLevelFieldsTest.class,
 		AuthzenPDPEvaluationUnknownSubjectFieldsTest.class,
 		AuthzenPDPEvaluationUnknownResourceFieldsTest.class,
 		AuthzenPDPEvaluationUnknownActionFieldsTest.class,
+		// Property values of every JSON type (Section 5.1.1), a null value (Section 11.5) and member order (Section 10.1.1)
+		AuthzenPDPEvaluationPropertyValueTypesTest.class,
+		AuthzenPDPEvaluationNullPropertyValueTest.class,
+		AuthzenPDPEvaluationMemberOrderTest.class,
 		// Transport binding negative tests (Section 10.1.1 / 10.1.2)
 		AuthzenPDPEvaluationRejectGetMethodTest.class,
 		AuthzenPDPEvaluationRejectPutMethodTest.class,
 		AuthzenPDPEvaluationRejectTopLevelArrayTest.class,
 		AuthzenPDPEvaluationRejectNonJsonContentTypeTest.class,
+		AuthzenPDPEvaluationRejectMissingContentTypeTest.class,
 		AuthzenPDPEvaluationAcceptContentTypeWithCharsetTest.class,
 		AuthzenPDPEvaluationRejectMalformedJsonTest.class,
 		AuthzenPDPEvaluationRejectEmptyBodyTest.class,
-		// Authentication (Section 11.3)
+		// Authentication (Sections 11.2 and 11.3)
 		AuthzenPDPEvaluationMissingCredentialsReturns401Test.class,
+		AuthzenPDPEvaluationUnauthenticatedRequestAcceptedTest.class,
 		AuthzenPDPEvaluationInvalidCredentialsReturns401Test.class,
 	}
 )
 public class AuthzenPDPEvaluationTestPlan implements TestPlan {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+
+		String certProfile = "AuthZEN Evaluation";
+		String suffix = "";
+
+		Map<String, String> v = variant.getVariant();
+		String authzenSupport = v.get("authzen_support");
+
+		if("properties".equalsIgnoreCase(authzenSupport)) {
+			suffix = " w/properties";
+		}
+
+		return List.of(certProfile + suffix);
+	}
 }

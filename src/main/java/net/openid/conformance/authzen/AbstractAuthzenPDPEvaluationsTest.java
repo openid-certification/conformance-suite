@@ -11,11 +11,16 @@ import net.openid.conformance.authzen.condition.EnsureValidEvaluationsResponse;
 import net.openid.conformance.authzen.condition.ExtractAuthzenApiEndpointEvaluationsResponse;
 import net.openid.conformance.authzen.condition.ExtractAuthzenEvaluationsExpectedResponse;
 import net.openid.conformance.authzen.condition.SetAuthzenApiEndpointToAccessEvaluationsEndpoint;
+import net.openid.conformance.authzen.condition.WarnAuthzenEvaluationsResponseNullMembers;
+import net.openid.conformance.authzen.condition.WarnAuthzenEvaluationsResponseUnknownMembers;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.PDPServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
+
+import java.util.Arrays;
 
 @VariantConfigurationFields(parameter = PDPServerMetadata.class, value = "static", configurationFields = {
 	"pdp.access_evaluations_endpoint"
@@ -42,13 +47,26 @@ public abstract class AbstractAuthzenPDPEvaluationsTest extends AbstractAuthzenP
 		callAndStopOnFailure(SetAuthzenApiEndpointToAccessEvaluationsEndpoint.class);
 	}
 
-	protected abstract String getExpectedEvaluationsResponseJson();
+	@Override
+	protected String getEndpointMetadataParameter() {
+		return "access_evaluations_endpoint";
+	}
+
+	/**
+	 * Override to supply the expected evaluations response JSON (e.g. {"evaluations": [ ... ]}),
+	 * which the decisions in a 200 response are compared against. Modules that expect only an
+	 * error status never validate a response body, so they need not override it.
+	 */
+	protected String getExpectedEvaluationsResponseJson() {
+		return null;
+	}
 
 	/**
 	 * Returns the `evaluations_semantic` value carried in the request payload, or
-	 * `execute_all` when no value is set. Short-circuit semantics
-	 * (`deny_on_first_deny`, `permit_on_first_permit`) MAY cause the PDP to
-	 * truncate the response, which changes how the response is validated.
+	 * `execute_all` when no value is set. Under a short-circuit semantic
+	 * (`deny_on_first_deny`, `permit_on_first_permit`) the response is validated
+	 * as truncated at the first trigger, see
+	 * {@link EnsureAuthzenEvaluationsResponseValsMatchExpectedValsAsPrefix}.
 	 *
 	 * <p>Cached after first call so idempotency loops do not re-parse the
 	 * payload on every iteration.
@@ -57,10 +75,12 @@ public abstract class AbstractAuthzenPDPEvaluationsTest extends AbstractAuthzenP
 		if (cachedEvaluationsSemantic != null) {
 			return cachedEvaluationsSemantic;
 		}
-		JsonObject options = parseRequest().getAsJsonObject("options");
+		// A module that sends a malformed options member expects the PDP to reject it, and the
+		// status check judges that; here it means no semantic was selected.
+		JsonElement options = parseRequest().get("options");
 		String semantic = "execute_all";
-		if (options != null && options.has("evaluations_semantic")) {
-			JsonElement value = options.get("evaluations_semantic");
+		if (options != null && options.isJsonObject() && options.getAsJsonObject().has("evaluations_semantic")) {
+			JsonElement value = options.getAsJsonObject().get("evaluations_semantic");
 			if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isString()) {
 				semantic = OIDFJSON.getString(value);
 			}
@@ -76,22 +96,47 @@ public abstract class AbstractAuthzenPDPEvaluationsTest extends AbstractAuthzenP
 
 	@Override
 	protected void validateAuthApiEndpointResponse() {
-		callAndContinueOnFailure(new ExtractAuthzenEvaluationsExpectedResponse(getExpectedEvaluationsResponseJson()), ConditionResult.FAILURE);
-		if (isShortCircuitSemantic()) {
-			callAndContinueOnFailure(EnsureAuthzenEvaluationsResponseValsMatchExpectedValsAsPrefix.class, ConditionResult.FAILURE, "AUTHZEN-7.2");
-		} else {
-			callAndContinueOnFailure(EnsureAuthzenEvaluationsResponseValsMatchExpectedVals.class, ConditionResult.FAILURE, "AUTHZEN-7.2");
+		String expectedJson = getExpectedEvaluationsResponseJson();
+		if (expectedJson == null) {
+			throw new TestFailureException(getId(), getName() + " accepts HTTP 200 but defines no expected evaluations");
 		}
+		callAndContinueOnFailure(new ExtractAuthzenEvaluationsExpectedResponse(expectedJson), ConditionResult.FAILURE);
+		if (isShortCircuitSemantic()) {
+			callAndContinueOnFailure(EnsureAuthzenEvaluationsResponseValsMatchExpectedValsAsPrefix.class, ConditionResult.FAILURE, "AUTHZEN-7.1.2.1", "AUTHZEN-7.2");
+		} else {
+			callAndContinueOnFailure(EnsureAuthzenEvaluationsResponseValsMatchExpectedVals.class, ConditionResult.FAILURE, decisionsRequirements());
+		}
+	}
+
+	/**
+	 * The sections the decisions comparison cites: those of {@link #additionalDecisionsRequirements()},
+	 * then Section 7.2, which requires the decisions in request order.
+	 */
+	private String[] decisionsRequirements() {
+		String[] additional = additionalDecisionsRequirements();
+		String[] requirements = Arrays.copyOf(additional, additional.length + 1);
+		requirements[additional.length] = "AUTHZEN-7.2";
+		return requirements;
+	}
+
+	/**
+	 * Sections of the specification that set an expected decision, beyond Section 7.2; they are
+	 * listed first on the decisions comparison.
+	 */
+	protected String[] additionalDecisionsRequirements() {
+		return new String[0];
 	}
 
 	@Override
 	protected void processAuthApiEndpointResponse() {
 		callAndStopOnFailure(ExtractAuthzenApiEndpointEvaluationsResponse.class, "AUTHZEN-7.2");
-		callAndStopOnFailure(EnsureValidEvaluationsResponse.class, "AUTHZEN-7.2");
+		callAndStopOnFailure(EnsureValidEvaluationsResponse.class, "AUTHZEN-7.2", "AUTHZEN-5.5");
 		if (!isShortCircuitSemantic()) {
 			callAndContinueOnFailure(EnsureEvaluationsResponseLengthMatchesRequest.class, ConditionResult.FAILURE, "AUTHZEN-7.2");
 		}
 		callAndContinueOnFailure(EnsureNoTopLevelDecisionWhenEvaluationsPresent.class, ConditionResult.WARNING, "AUTHZEN-7.2");
+		callAndContinueOnFailure(WarnAuthzenEvaluationsResponseUnknownMembers.class, ConditionResult.WARNING, "AUTHZEN-7.2", "AUTHZEN-5.5");
+		callAndContinueOnFailure(WarnAuthzenEvaluationsResponseNullMembers.class, ConditionResult.WARNING, "AUTHZEN-11.5");
 	}
 
 }

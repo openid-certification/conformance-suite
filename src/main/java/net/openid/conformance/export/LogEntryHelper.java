@@ -87,6 +87,7 @@ public class LogEntryHelper {
 		specLinks.put("RFC8485-", "https://tools.ietf.org/html/rfc8485#section-");
 		specLinks.put("RFC8935-", "https://tools.ietf.org/html/rfc8935#section-");
 		specLinks.put("RFC8936-", "https://tools.ietf.org/html/rfc8936#section-");
+		specLinks.put("RFC9110-", "https://tools.ietf.org/html/rfc9110#section-");
 		specLinks.put("RFC9325-", "https://tools.ietf.org/html/rfc9325.html#section-");
 		specLinks.put("RFC9325A-", "https://tools.ietf.org/html/rfc9325.html#appendix-");
 		specLinks.put("RFC9493-", "https://tools.ietf.org/html/rfc9493#section-");
@@ -139,7 +140,7 @@ public class LogEntryHelper {
 		specLinks.put("CID-CIBA-", "https://cdn.connectid.com.au/specifications/connectid-fapi-ciba-profile-02.html#section-");
 		specLinks.put("OIDFED-", "https://openid.net/specs/openid-federation-1_0-final.html#section-");
 		specLinks.put("CBUAE", "https://openfinanceuae.atlassian.net/wiki/spaces/standardsv1final/pages/151846988/Security+Profile+-+FAPI");
-		specLinks.put("AUTHZEN-", "https://openid.net/specs/authorization-api-1_0.html#section-");
+		specLinks.put("AUTHZEN-", "https://openid.net/specs/authorization-api-1_0-final.html#section-");
 		specLinks.put("FAPI-ISSUES-", "https://bitbucket.org/openid/fapi/issues/");
 
 		// Confluence heading fragments include the heading text, not only its section number. Keep

@@ -20,28 +20,23 @@ public class EnsureValidResourceSearchResponse extends EnsureValidSearchResponse
 
 	private String getRequestResourceType() {
 		if(resourceType == null) {
-			JsonElement subjectTypeElem = env.getElementFromObject("authzen_api_endpoint_request", "resource.type");
-			if(subjectTypeElem==null) {
-				throw error("No resource type in authzen_api_endpoint_request");
+			JsonElement resourceTypeElem = env.getElementFromObject("authzen_api_endpoint_request", "resource.type");
+			if (!OIDFJSON.isString(resourceTypeElem)) {
+				throw error("The search request the suite sent has no string resource type, so the type of each result cannot be checked",
+					args("resource", env.getElementFromObject("authzen_api_endpoint_request", "resource")));
 			}
-			resourceType = OIDFJSON.getString(subjectTypeElem);
+			resourceType = OIDFJSON.getString(resourceTypeElem);
 		}
 		return resourceType;
 	}
 
 	@Override
 	protected void ensureValidResponseResultsObject(JsonObject resultsObj) {
-		// check result contains id and type and type value matches requested type
-		if(!resultsObj.has("id")) {
-			throw error("A resource object in the results array does not contain an id");
+		getRequiredStringMember(resultsObj, "id", "A resource object");
+		String type = getRequiredStringMember(resultsObj, "type", "A resource object");
+		if (!type.equals(getRequestResourceType())) {
+			throw error("A resource object in the results array does not contain the requested resource type", args("expected", getRequestResourceType(), "actual", type));
 		}
-		if(!resultsObj.has("type")) {
-			throw error("A resource object in the results array does not contain a type");
-		}
-		if(!OIDFJSON.getString(resultsObj.get("type")).equals(getRequestResourceType())) {
-			throw error("A resource object in the results array does not contain the requested resource type", args("expected", getRequestResourceType(), "actual", OIDFJSON.getString(resultsObj.get("type"))));
-		}
+		ensurePropertiesIsObject(resultsObj, "A resource object");
 	}
-
-
 }

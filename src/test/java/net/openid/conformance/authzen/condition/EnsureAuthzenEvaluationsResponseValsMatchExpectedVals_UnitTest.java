@@ -68,6 +68,16 @@ class EnsureAuthzenEvaluationsResponseValsMatchExpectedVals_UnitTest {
 	}
 
 	@Test
+	public void nonBooleanDecision_throws() {
+		put("""
+			{ "evaluations": [ { "decision": true } ] }""",
+			"""
+			{ "evaluations": [ { "decision": "true" } ] }""");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("not a boolean"));
+	}
+
+	@Test
 	public void decisionMismatch_throws() {
 		put("""
 			{ "evaluations": [ { "decision": true } ] }""",
@@ -78,9 +88,43 @@ class EnsureAuthzenEvaluationsResponseValsMatchExpectedVals_UnitTest {
 	}
 
 	@Test
-	public void expectedElementMissingDecision_throws() {
+	public void expectedElementWithoutDecision_acceptsEitherDecision() {
+		put("""
+			{ "evaluations": [ { "decision": true }, { } ] }""",
+			"""
+			{ "evaluations": [ { "decision": true }, { "decision": false } ] }""");
+		cond.execute(env);
+		put("""
+			{ "evaluations": [ { "decision": true }, { } ] }""",
+			"""
+			{ "evaluations": [ { "decision": true }, { "decision": true } ] }""");
+		cond.execute(env);
+	}
+
+	@Test
+	public void expectedElementWithoutDecision_stillChecksOtherPositions() {
+		put("""
+			{ "evaluations": [ { "decision": true }, { } ] }""",
+			"""
+			{ "evaluations": [ { "decision": false }, { "decision": true } ] }""");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("does not match expected"));
+	}
+
+	@Test
+	public void expectedElementWithoutDecision_stillRequiresActualDecision() {
 		put("""
 			{ "evaluations": [ { } ] }""",
+			"""
+			{ "evaluations": [ { } ] }""");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("actual evaluations response element"));
+	}
+
+	@Test
+	public void expectedElementNotAnObject_throws() {
+		put("""
+			{ "evaluations": [ true ] }""",
 			"""
 			{ "evaluations": [ { "decision": true } ] }""");
 		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));

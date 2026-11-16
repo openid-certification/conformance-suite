@@ -1,13 +1,13 @@
 package net.openid.conformance.authzen;
 
 import net.openid.conformance.authzen.condition.CaptureAuthzenResponseBodyForIdempotencyCheck;
-import net.openid.conformance.authzen.condition.EnsureAuthzenResponseBodyMatchesIdempotencyCheck;
+import net.openid.conformance.authzen.condition.EnsureAuthzenEvaluationsDecisionsMatchIdempotencyCheck;
 
 /**
  * Sends the same Evaluations request multiple times consecutively and asserts
- * the PDP returns the same response body each time. The cert profile only defines idempotency for the single
- * Evaluation API (section 2.6); the same principle is exercised here for
- * batch Evaluations API. The loop body is shared with the other idempotency families via
+ * the PDP returns the same decisions, in the same order, each time. Certification scenario 5.6 requires the
+ * same decision for repeated requests, and scenario 3.1 applies it to every certification level.
+ * The loop body is shared with the other idempotency families via
  * {@link AbstractAuthzenPDPTest#runIdempotencyLoop}.
  */
 public abstract class AbstractAuthzenPDPEvaluationsIdempotencyTest extends AbstractAuthzenPDPEvaluationsTest {
@@ -16,6 +16,6 @@ public abstract class AbstractAuthzenPDPEvaluationsIdempotencyTest extends Abstr
 	protected void performAuthzenApiFlow() {
 		runIdempotencyLoop("Evaluations",
 			CaptureAuthzenResponseBodyForIdempotencyCheck.class,
-			EnsureAuthzenResponseBodyMatchesIdempotencyCheck.class);
+			EnsureAuthzenEvaluationsDecisionsMatchIdempotencyCheck.class);
 	}
 }

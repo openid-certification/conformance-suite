@@ -2,20 +2,31 @@ package net.openid.conformance.authzen.scenarios.search.resource;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.variant.VariantSelection;
+
+import java.util.List;
+import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "authzen-pdp-resource-search-test-plan",
 	shortName = "Resource search",
-	certifiable = false,
-	alpha = true,
-	displayName = "AuthZEN 1.0: PDP server test for Resource Search (alpha version - not currently part of certification program)",
+	certifiable = true,
+	displayName = "AuthZEN 1.0: PDP server test for Resource Search",
+	summary = "Tests a PDP's Resource Search API (Section 8.5) against the fixture in the [certification scenario](https://openid.github.io/authzen/authorization-api-1_0-certification-scenario.html): search results and the decisions they evaluate to, pagination, unknown entities, an ignored resource.id, idempotency, request validation and error responses, unknown fields, the HTTP binding (Section 10.1) and authentication (Sections 11.2 and 11.3). The modules for property-based decisions run only when 'AuthZEN Specification Support' is 'properties'. Every POST module that accepts only an error status sends an X-Request-ID header, and fails if the error response does not echo it (Section 10.1.3), even when the status is right.",
 	profile = TestPlan.ProfileNames.authzenTest,
 	specFamily = TestPlan.SpecFamilyNames.authzen,
 	testModules = {
-		// Resource Search API tests from https://github.com/openid/authzen/issues/433
+		// Resource Search API tests, following the certification scenario (https://openid.github.io/authzen/authorization-api-1_0-certification-scenario.html)
 		// Search Core
 		AuthzenPDPResourceSearchValidResourceSearchRequestWithNonEmptyResultsTest.class,
-		AuthzenPDPResourceSearchResourceSearchWithResourceIdOmittedTest.class,
+		AuthzenPDPResourceSearchDeniedResourceExcludedTest.class,
+		AuthzenPDPResourceSearchResourceSearchWithContextTest.class,
+		AuthzenPDPResourceSearchResultsEvaluateToPermitTest.class,
+		AuthzenPDPResourceSearchUnknownEntityIdentifierTest.class,
+		AuthzenPDPResourceSearchUnknownEntityTypeTest.class,
+		AuthzenPDPResourceSearchRequestWithPageLimitTest.class,
+		AuthzenPDPResourceSearchChangedPageParametersTest.class,
+		AuthzenPDPResourceSearchChangedPageEntityTest.class,
 		// X-Request-ID handling (Section 10.1.3)
 		AuthzenPDPResourceSearchXRequestIdEchoedTest.class,
 		// Idempotency
@@ -25,23 +36,50 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPResourceSearchRejectPutMethodTest.class,
 		AuthzenPDPResourceSearchRejectTopLevelArrayTest.class,
 		AuthzenPDPResourceSearchRejectNonJsonContentTypeTest.class,
+		AuthzenPDPResourceSearchRejectMissingContentTypeTest.class,
 		AuthzenPDPResourceSearchAcceptContentTypeWithCharsetTest.class,
 		AuthzenPDPResourceSearchRejectMalformedJsonTest.class,
 		AuthzenPDPResourceSearchRejectEmptyBodyTest.class,
 		// Error handling: HTTP 400 negative tests (Section 10.1)
 		AuthzenPDPResourceSearchMissingSubjectTest.class,
 		AuthzenPDPResourceSearchSubjectMissingIdTest.class,
+		AuthzenPDPResourceSearchSubjectMissingTypeTest.class,
 		AuthzenPDPResourceSearchMissingResourceTest.class,
 		AuthzenPDPResourceSearchResourceMissingTypeTest.class,
 		AuthzenPDPResourceSearchMissingActionTest.class,
 		AuthzenPDPResourceSearchActionMissingNameTest.class,
+		AuthzenPDPResourceSearchSubjectIsStringTest.class,
+		AuthzenPDPResourceSearchActionIsStringTest.class,
+		AuthzenPDPResourceSearchResourceIsStringTest.class,
+		AuthzenPDPResourceSearchContextIsStringTest.class,
+		AuthzenPDPResourceSearchActionNameIsNumberTest.class,
 		// Extra resource.id ignored (Section 8.5.1)
 		AuthzenPDPResourceSearchExtraResourceIdIgnoredTest.class,
-		// Forward-compat: unknown top-level fields ignored (Section 10.1.1)
+		// Forward-compat: unknown fields ignored (Section 10.1.1)
 		AuthzenPDPResourceSearchUnknownTopLevelFieldsTest.class,
+		AuthzenPDPResourceSearchUnknownPageFieldsTest.class,
 		// Search Properties (Properties variant only)
 		AuthzenPDPResourceSearchResourceSearchWithSubjectPropertiesTest.class,
+		// Authentication (Sections 11.2 and 11.3)
+		AuthzenPDPResourceSearchMissingCredentialsReturns401Test.class,
+		AuthzenPDPResourceSearchUnauthenticatedRequestAcceptedTest.class,
+		AuthzenPDPResourceSearchInvalidCredentialsReturns401Test.class,
 	}
 )
 public class AuthzenPDPResourceSearchTestPlan implements TestPlan {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+
+		String certProfile = "AuthZEN Resource Search";
+		String suffix = "";
+
+		Map<String, String> v = variant.getVariant();
+		String authzenSupport = v.get("authzen_support");
+
+		if("properties".equalsIgnoreCase(authzenSupport)) {
+			suffix = " w/properties";
+		}
+
+		return List.of(certProfile + suffix);
+	}
 }

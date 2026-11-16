@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-action-search-reject-non-json-content-type",
 	displayName = "AuthZEN Action Search API - Section 10.1: Reject non-JSON Content-Type",
-	summary = "Per Section 10.1, requests MUST include `Content-Type: application/json`. The PDP MUST reject a request with `Content-Type: text/plain` with HTTP 4xx (typically 415 Unsupported Media Type, sometimes 400).",
+	summary = "Per Section 10.1, requests MUST include `Content-Type: application/json`. The PDP MUST reject a request with `Content-Type: text/plain` with HTTP 400 or 415 Unsupported Media Type (certification scenario 5.4.3). Any other status fails, including 404: an unsupported media type is a problem with the content, not a missing route.",
 	profile = "AuthZEN"
 )
 public class AuthzenPDPActionSearchRejectNonJsonContentTypeTest extends AbstractAuthzenPDPActionSearchTest {
@@ -21,11 +21,6 @@ public class AuthzenPDPActionSearchRejectNonJsonContentTypeTest extends Abstract
 	@Override
 	protected String getPayload() {
 		return payload;
-	}
-
-	@Override
-	protected String getExpectedSearchResponseJson() {
-		return "{}";
 	}
 
 	@Override

@@ -1,6 +1,5 @@
 package net.openid.conformance.authzen.condition;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
@@ -13,7 +12,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
  * against the PDP public key(s) supplied in the test configuration
  * ({@code pdp.jwks}, the "PDP JWK Set" field).
  *
- * <p>Certification profile (https://github.com/openid/authzen/issues/433 §6.5):
+ * <p>Certification scenario 9.5:
  * "If {@code signed_metadata} is present, it is a valid JWT string with a
  * verifiable signature ...". AuthZEN metadata defines no {@code jwks_uri}, so the
  * trusted verification key is provided out of band via the test configuration.
@@ -21,8 +20,9 @@ import net.openid.conformance.testmodule.OIDFJSON;
  * <p>Metadata carrying {@code signed_metadata} can only be checked against a key, so a
  * missing or empty PDP JWK Set fails rather than silently skipping verification — an
  * unverified signature is not evidence of a valid one. {@link EnsurePDPJwksConfigured}
- * fails first for the same reason in {@link net.openid.conformance.authzen.AbstractAuthzenPDPTest},
- * which is the only caller; the check here keeps the condition safe on its own.
+ * fails first for the same reason in
+ * {@link net.openid.conformance.authzen.AbstractAuthzenPDPMetadataTest}, which runs these checks
+ * for every module that reads PDP metadata; the check here keeps the condition safe on its own.
  *
  * <p>For the same reason the condition never reports success without having verified something:
  * it runs only inside {@link ValidateDiscoverySignedMetadata}, behind a gate that fires only when
@@ -54,23 +54,16 @@ public class VerifyAuthzenSignedMetadataSignature extends AbstractVerifyJwsSigna
 				+ "be verified. Supply the PDP's public signing key(s) there.");
 		}
 
-		JsonObject jwks = normalizeToJwkSet(jwksElem.getAsJsonObject());
+		JsonObject jwks = jwksElem.getAsJsonObject();
+		JsonElement keys = jwks.get("keys");
+		if (keys == null || !keys.isJsonArray()) {
+			// The field is documented, validated and used as a JWK Set; a single JWK is a
+			// configuration error, not a second accepted format.
+			throw error("'PDP JWK Set' in the 'AuthZEN' section of the test configuration must be a JWK Set, "
+				+ "{\"keys\": [ ... ]}, not a single JWK. Put the key inside a \"keys\" array.",
+				args("pdp_jwks", jwks));
+		}
 		verifyJwsSignature(signedMetadata, jwks, "signed_metadata", false, "PDP JWK Set");
 		return env;
-	}
-
-	/**
-	 * Accept either a JWK Set ({@code {"keys": [...]}}) or a bare single JWK,
-	 * wrapping the latter so the shared verifier always receives a JWK Set.
-	 */
-	private JsonObject normalizeToJwkSet(JsonObject configured) {
-		if (configured.has("keys")) {
-			return configured;
-		}
-		JsonObject jwks = new JsonObject();
-		JsonArray keys = new JsonArray();
-		keys.add(configured);
-		jwks.add("keys", keys);
-		return jwks;
 	}
 }

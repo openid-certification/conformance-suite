@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-resource-search-unknown-top-level-fields-ignored",
 	displayName = "AuthZEN Resource Search API - Section 10.1.1: Unknown top-level fields ignored",
-	summary = "Per Section 10.1.1, receivers MUST ignore unknown fields in the request body. Adds `foo` and `futureField` at the top level alongside a valid resource search (records alice can read); PDP MUST return HTTP 200 with the results still including record-1.\n" + AuthzenPDPResourceSearchUnknownTopLevelFieldsTest.payload,
+	summary = "Per Section 10.1.1, receivers MUST ignore unknown fields in the request body. Adds `foo` and `futureField` at the top level alongside a valid resource search (records alice can read); PDP MUST return HTTP 200 with the results still including record-1, and a missing record-2 is a warning until decision rule 9 (openid/authzen#776) is published.\n" + AuthzenPDPResourceSearchUnknownTopLevelFieldsTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPResourceSearchUnknownTopLevelFieldsTest extends AbstractAuthzenPDPResourceSearchTest {
@@ -32,6 +32,11 @@ public class AuthzenPDPResourceSearchUnknownTopLevelFieldsTest extends AbstractA
 	}
 
 	@Override
+	protected String getRevisedFixtureEntitiesJson() {
+		return DECISION_RULE_9_RECORDS;
+	}
+
+	@Override
 	protected String getExpectedSearchResponseJson() {
 		return """
 			{
@@ -40,5 +45,11 @@ public class AuthzenPDPResourceSearchUnknownTopLevelFieldsTest extends AbstractA
 				]
 			}
 			""";
+	}
+
+	@Override
+	protected String[] additionalStatusRequirements() {
+		// Section 10.1.1: "receivers MUST ignore unknown fields present in request or response bodies".
+		return new String[] {"AUTHZEN-10.1.1"};
 	}
 }

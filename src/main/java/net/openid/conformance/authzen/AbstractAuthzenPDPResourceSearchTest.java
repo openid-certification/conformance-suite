@@ -4,9 +4,15 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.authzen.condition.CreateAuthzenResourceSearchApiRequestSteps;
 import net.openid.conformance.authzen.condition.EnsureSearchResponsePageIsFirstKey;
 import net.openid.conformance.authzen.condition.EnsureValidResourceSearchResponse;
+import net.openid.conformance.authzen.condition.EnsureSearchResponsePageCountMatchesResults;
+import net.openid.conformance.authzen.condition.EnsureSearchResponseResultsWithinPageLimit;
+import net.openid.conformance.authzen.condition.EnsureSearchResponseHasPageAfterPageToken;
 import net.openid.conformance.authzen.condition.EnsureValidSearchResponsePage;
 import net.openid.conformance.authzen.condition.ExtractAuthzenApiEndpointSearchResponse;
 import net.openid.conformance.authzen.condition.SetAuthzenApiEndpointToResourceSearchEndpoint;
+import net.openid.conformance.authzen.condition.WarnAuthzenEntitySearchResponseUnknownMembers;
+import net.openid.conformance.authzen.condition.WarnAuthzenSearchResponseNullMembers;
+import net.openid.conformance.authzen.condition.WarnAuthzenSearchResultEmptyValues;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.variant.PDPServerMetadata;
@@ -17,6 +23,15 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 })
 
 public abstract class AbstractAuthzenPDPResourceSearchTest extends AbstractAuthzenPDPSearchTest {
+
+	/**
+	 * The record decision rule 9 adds to search requirement S2, alice can read record-2, from the
+	 * working group's answer to openid/authzen#776 (scenario PR openid/authzen#793).
+	 */
+	protected static final String DECISION_RULE_9_RECORDS = """
+		[ { "type": "record", "id": "record-2" } ]
+		""";
+
 
 	@Override
 	protected ConditionSequence createAuthzenApiRequestSequence() {
@@ -35,10 +50,21 @@ public abstract class AbstractAuthzenPDPResourceSearchTest extends AbstractAuthz
 	}
 
 	@Override
+	protected String getEndpointMetadataParameter() {
+		return "search_resource_endpoint";
+	}
+
+	@Override
 	protected void processAuthApiEndpointResponse() {
 		callAndStopOnFailure(ExtractAuthzenApiEndpointSearchResponse.class, "AUTHZEN-8.3");
-		callAndStopOnFailure(EnsureValidResourceSearchResponse.class, "AUTHZEN-8.3", "AUTHZEN-8.5");
+		callAndStopOnFailure(EnsureValidResourceSearchResponse.class, "AUTHZEN-8.3", "AUTHZEN-8.5", "AUTHZEN-5.2");
 		callAndStopOnFailure(EnsureValidSearchResponsePage.class, "AUTHZEN-8.2.2", "AUTHZEN-8.3");
+		callAndContinueOnFailure(EnsureSearchResponseHasPageAfterPageToken.class, getPageAfterPageTokenSeverity(), "AUTHZEN-8.2", "AUTHZEN-8.2.2");
+		callAndContinueOnFailure(EnsureSearchResponsePageCountMatchesResults.class, ConditionResult.FAILURE, "AUTHZEN-8.2.2");
+		callAndContinueOnFailure(EnsureSearchResponseResultsWithinPageLimit.class, ConditionResult.FAILURE, "AUTHZEN-8.2.1");
 		callAndContinueOnFailure(EnsureSearchResponsePageIsFirstKey.class, ConditionResult.WARNING, "AUTHZEN-8.3");
+		callAndContinueOnFailure(WarnAuthzenEntitySearchResponseUnknownMembers.class, ConditionResult.WARNING, "AUTHZEN-8.3", "AUTHZEN-8.2.2", "AUTHZEN-5.2");
+		callAndContinueOnFailure(WarnAuthzenSearchResponseNullMembers.class, ConditionResult.WARNING, "AUTHZEN-11.5");
+		callAndContinueOnFailure(WarnAuthzenSearchResultEmptyValues.class, ConditionResult.WARNING, "AUTHZEN-5.2");
 	}
 }

@@ -70,7 +70,41 @@ class EnsureValidSubjectSearchResponse_UnitTest {
 				]
 			}""");
 		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("No subject type"));
+		assertTrue(e.getMessage().contains("no string subject type"));
+	}
+
+	@Test
+	public void requestWithNonStringType_throws() {
+		putRequest("""
+			{
+				"subject": {"type": 42}
+			}""");
+
+		putResponse("""
+			{
+				"results": [
+					{ "type": "user", "id":"alice" }
+				]
+			}""");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("no string subject type"));
+	}
+
+	@Test
+	public void requestWithNullType_throws() {
+		putRequest("""
+			{
+				"subject": {"type": null}
+			}""");
+
+		putResponse("""
+			{
+				"results": [
+					{ "type": "user", "id":"alice" }
+				]
+			}""");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("no string subject type"));
 	}
 
 	@Test
@@ -123,7 +157,7 @@ class EnsureValidSubjectSearchResponse_UnitTest {
 				]
 			}""");
 		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("does not contain a type"));
+		assertTrue(e.getMessage().contains("does not contain `type`"));
 	}
 
 	@Test
@@ -141,6 +175,98 @@ class EnsureValidSubjectSearchResponse_UnitTest {
 				]
 			}""");
 		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("does not contain an id"));
+		assertTrue(e.getMessage().contains("does not contain `id`"));
+	}
+
+	@Test
+	public void resultsWithNonStringType_throws() {
+		putRequest("""
+			{
+				"subject": {"type":"user"}
+			}""");
+
+		putResponse("""
+			{
+				"results": [
+					{ "type": { "name": "user" }, "id":"alice" }
+				]
+			}""");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("`type` that is not a string"));
+	}
+
+	@Test
+	public void resultsWithNonStringId_throws() {
+		putRequest("""
+			{
+				"subject": {"type":"user"}
+			}""");
+
+		putResponse("""
+			{
+				"results": [
+					{ "type": "user", "id": 42 }
+				]
+			}""");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("`id` that is not a string"));
+	}
+
+	@Test
+	public void resultsWithEmptyId_succeeds() {
+		putRequest("""
+			{
+				"subject": {"type":"user"}
+			}""");
+
+		putResponse("""
+			{
+				"results": [
+					{ "type": "user", "id": "" }
+				]
+			}""");
+		cond.execute(env);
+	}
+
+	@Test
+	public void resultsWithNonObjectProperties_throws() {
+		putRequest("""
+			{
+				"subject": {"type":"user"}
+			}""");
+
+		putResponse("""
+			{
+				"results": [
+					{ "type": "user", "id": "alice", "properties": "admin" }
+				]
+			}""");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("`properties` that is not an object"));
+	}
+
+	@Test
+	public void resultsWithObjectProperties_succeeds() {
+		putRequest("""
+			{
+				"subject": {"type":"user"}
+			}""");
+
+		putResponse("""
+			{
+				"results": [
+					{ "type": "user", "id": "alice", "properties": { "role": "admin" } }
+				]
+			}""");
+		cond.execute(env);
+	}
+
+	@Test
+	public void resultWithNullProperties_succeeds() {
+		putRequest("""
+			{ "subject": { "type": "user" } }""");
+		putResponse("""
+			{ "results": [ { "type": "user", "id": "alice", "properties": null } ] }""");
+		cond.execute(env);
 	}
 }

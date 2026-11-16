@@ -3,10 +3,15 @@ package net.openid.conformance.authzen.scenarios.search.action;
 import net.openid.conformance.authzen.AbstractAuthzenPDPActionSearchTest;
 import net.openid.conformance.testmodule.PublishTestModule;
 
+import java.util.List;
+import java.util.Set;
+
 @PublishTestModule(
 	testName = "authzen-pdp-action-search-extra-action-ignored",
-	displayName = "AuthZEN Action Search API - Section 10.1.1: Extra action parameter ignored",
-	summary = "Section 10.1.1 forward compatibility: receivers MUST ignore unknown fields in request bodies. Section 8.6.1 does not list `action` in the Action Search request schema, so an `action` field sent alongside the required `subject` and `resource` MUST be treated as an unknown field and ignored; the PDP MUST return the same list of actions it would return without it.\n" + AuthzenPDPActionSearchExtraActionIgnoredTest.payload,
+	displayName = "AuthZEN Action Search API - Sections 8.6.1 and 10.1.1: Action in an Action Search request is ignored",
+	summary = "Section 8.6.1 omits `action` from the Action Search request, and this request carries one alongside the required `subject` and `resource`. "
+		+ "Section 10.1.1 says receivers MUST ignore fields that are not defined for the request in question, and the AuthZEN working group confirmed in openid/authzen#766 that this covers an `action` member here: the PDP MUST ignore it, return HTTP 200 and give the same results as without it, which MUST include read and write. openid/authzen PR 792 makes the Section 10.1.1 wording say so; until that text is published, a PDP that rejects the request with HTTP 400 gets a warning, as the published text can also be read as allowing it. A 200 response that treats `action` as a filter and leaves out write fails. "
+		+ "The harness first sends the same search without `action`, following every page, and compares the two result sets. A difference in the fixture entities fails, as the fixture decisions cannot change between the requests. A difference in other results is a warning: the two searches are separate requests, so such results may have changed between them, for example under a time-dependent policy, rather than because the PDP used `action`.\n" + AuthzenPDPActionSearchExtraActionIgnoredTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPActionSearchExtraActionIgnoredTest extends AbstractAuthzenPDPActionSearchTest {
@@ -30,6 +35,30 @@ public class AuthzenPDPActionSearchExtraActionIgnoredTest extends AbstractAuthze
 	}
 
 	@Override
+	protected Set<Integer> getAcceptableHttpStatusCodes() {
+		// The base search carries no action, so it must get 200 as any valid search does.
+		return sendingBaseSearch() ? super.getAcceptableHttpStatusCodes() : Set.of(200, 400);
+	}
+
+	@Override
+	protected String acceptanceExpectedBecause() {
+		if (sendingBaseSearch()) {
+			// The base search carries no action and must get 200, so there is no rejection to explain.
+			return null;
+		}
+		return "The working group answered that a PDP ignores an action member in an Action Search request and returns HTTP 200 "
+			+ "with the same results as without it. Until the errata saying so are published, a rejection is "
+			+ "reported rather than failed";
+	}
+
+	@Override
+	protected String[] additionalStatusRequirements() {
+		// Section 8.6.1: an Action Search request carries subject and resource, not action;
+		// Section 10.1.1: receivers MUST ignore fields not defined for the request.
+		return new String[] {"AUTHZEN-8.6.1", "AUTHZEN-10.1.1"};
+	}
+
+	@Override
 	protected String getExpectedSearchResponseJson() {
 		return """
 			{
@@ -39,5 +68,14 @@ public class AuthzenPDPActionSearchExtraActionIgnoredTest extends AbstractAuthze
 				]
 			}
 			""";
+	}
+
+	@Override
+	protected BaseSearch getBaseSearch() {
+		// Section 10.1.1: a field not defined for the request is ignored.
+		return new BaseSearch("action", request -> {
+			request.remove("action");
+			return request;
+		}, false, List.of("AUTHZEN-10.1.1"));
 	}
 }

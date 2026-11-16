@@ -6,7 +6,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class EnsureAuthzenSearchResponseValsMatchExpectedVals extends AbstractCondition {
@@ -17,21 +17,39 @@ public class EnsureAuthzenSearchResponseValsMatchExpectedVals extends AbstractCo
 		JsonArray expected = readResultsArray(env, "authzen_search_endpoint_expected_response", "expected");
 		JsonArray results = readResultsArray(env, "authzen_search_endpoint_response", "actual");
 
-		// Per the certification spec, the harness validates that the expected entities appear in the
-		// results but does not reject additional results. Use a subset check: expected MUST be a
-		// subset of actual.
-		Set<JsonElement> expectedSet = new HashSet<>(expected.asList());
-		Set<JsonElement> resultsSet = new HashSet<>(results.asList());
+		// An empty expected array means the fixture requires no entity for this search. A PDP with
+		// policies beyond the fixture may still match one, so any results array passes
+		// (openid/authzen#765).
+		if (expected.isEmpty()) {
+			logSuccess(results.isEmpty()
+				? "The search response has an empty results array; the fixture requires no entity for this search"
+				: "The search response has results, which a policy beyond the fixture may match; the fixture requires no entity for this search",
+				args("results", results));
+			return env;
+		}
 
-		expectedSet.removeAll(resultsSet);
-		// expectedSet now contains missing elements not returned
+		// The certification scenario validates that the expected entities appear in the results but
+		// does not reject additional results, so expected must be a subset of actual. An entity is
+		// identified by the members the expected entity gives (type and id, or an action's name);
+		// properties are OPTIONAL (Sections 5.1-5.3) and other members are unknown, which receivers
+		// MUST ignore (Section 10.1.1), so neither takes part in the comparison.
+		Set<JsonElement> missing = new LinkedHashSet<>();
+		for (JsonElement expectedEntity : expected) {
+			if (!containsEntity(results, expectedEntity)) {
+				missing.add(expectedEntity);
+			}
+		}
 
-		if(!expectedSet.isEmpty()){
-			throw error("Search result is missing expected elements", args("missing expected elements", expectedSet));
+		if (!missing.isEmpty()) {
+			throw error("Search result is missing expected elements", args("missing expected elements", missing));
 		}
 
 		logSuccess("The search response contains all expected values");
 		return env;
+	}
+
+	private static boolean containsEntity(JsonArray results, JsonElement expectedEntity) {
+		return SearchResultMultiset.countIdentifying(results, expectedEntity) > 0;
 	}
 
 	private JsonArray readResultsArray(Environment env, String objectKey, String role) {

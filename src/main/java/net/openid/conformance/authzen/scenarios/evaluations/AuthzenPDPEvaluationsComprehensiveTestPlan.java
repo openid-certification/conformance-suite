@@ -9,7 +9,7 @@ import net.openid.conformance.plan.TestPlan;
  *
  * <p>Section 7.1.2.1 defines three evaluation semantics, but {@code options} — and with it
  * {@code evaluations_semantic} — is an OPTIONAL request member, so a conformant PDP may
- * implement only the {@code execute_all} default. The three short-circuiting modules below
+ * implement only the {@code execute_all} default. The modules below
  * therefore cannot sit in a plan a PDP is expected to pass in full:
  *
  * <ul>
@@ -17,13 +17,20 @@ import net.openid.conformance.plan.TestPlan;
  *       {@link AuthzenPDPEvaluationsPermitOnFirstPermitTest} require the short circuit to be
  *       observable on the wire (a truncated {@code evaluations} array), which a PDP that does
  *       not implement the option cannot produce;</li>
+ *   <li>{@link AuthzenPDPEvaluationsDenyOnFirstDenyWithoutDenialTest} and
+ *       {@link AuthzenPDPEvaluationsPermitOnFirstPermitWithoutPermitTest} send a batch that never
+ *       reaches the trigger, so every decision must come back. A PDP that ignores the option
+ *       passes them too; they catch one that implements it but drops results it should
+ *       return;</li>
  *   <li>{@link AuthzenPDPEvaluationsUnknownSemanticValueTest} requires HTTP 400 for an
- *       unrecognized value, which presupposes the option is implemented at all — a PDP that
- *       ignores {@code options} answers 200.</li>
+ *       unrecognized {@code evaluations_semantic} value, which presupposes the option is
+ *       implemented at all — a PDP that ignores {@code options} answers 200.</li>
  * </ul>
  *
  * <p>Run this plan to check a PDP that does claim support for the short-circuiting semantics;
- * run {@link AuthzenPDPEvaluationsTestPlan} for the certification-track subset.
+ * run {@link AuthzenPDPEvaluationsTestPlan} for the certification-track subset. Because the
+ * plan requires OPTIONAL features, it returns no certification profile name, so the suite
+ * does not build a certification package for it.
  *
  * <p>The module list is a superset of {@link AuthzenPDPEvaluationsTestPlan}'s and must stay
  * one — {@code AuthzenPDPEvaluationsComprehensiveTestPlan_UnitTest} fails the build if a
@@ -33,32 +40,49 @@ import net.openid.conformance.plan.TestPlan;
 	testPlanName = "authzen-pdp-evaluations-comprehensive-test-plan",
 	shortName = "Comprehensive",
 	certifiable = false,
-	displayName = "Comprehensive AuthZEN PDP server test (Not part of certification program)",
+	displayName = "AuthZEN 1.0: PDP server test for batch evaluations, including optional evaluation semantics (not part of certification program - use the batch evaluations plan to certify)",
+	summary = "Runs every module of the batch evaluations plan, which follows the [certification scenario](https://openid.github.io/authzen/authorization-api-1_0-certification-scenario.html), and also tests the OPTIONAL deny_on_first_deny and permit_on_first_permit evaluation semantics and the rejection of an unknown semantic (Section 7.1.2.1). A PDP that does not implement those semantics should use the batch evaluations plan. The modules for property-based decisions run only when 'AuthZEN Specification Support' is 'properties'. Every POST module that accepts only an error status sends an X-Request-ID header, and fails if the error response does not echo it (Section 10.1.3), even when the status is right.",
 	profile = TestPlan.ProfileNames.authzenTest,
 	specFamily = TestPlan.SpecFamilyNames.authzen,
 	testModules = {
-		// Batch Evaluations API tests from https://github.com/openid/authzen/issues/433
+		// Batch Evaluations API tests, following the certification scenario (https://openid.github.io/authzen/authorization-api-1_0-certification-scenario.html)
 		// Batch Core
 		AuthzenPDPEvaluationsBatchRequestWithEvaluationsArrayTest.class,
 		AuthzenPDPEvaluationsBatchWithFixtureDecisionsValidatedTest.class,
 		AuthzenPDPEvaluationsBatchWithFullySpecifiedEvaluationsTest.class,
 		AuthzenPDPEvaluationsBatchWithContextInheritanceTest.class,
 		AuthzenPDPEvaluationsEvaluationLevelErrorsTest.class,
+		AuthzenPDPEvaluationsIncompleteEntityTest.class,
 		// evaluations_semantic option (Section 7.1.2.1), including the OPTIONAL
 		// short-circuiting semantics that AuthzenPDPEvaluationsTestPlan leaves out
+		AuthzenPDPEvaluationsDefaultSemanticContinuesAfterDenyTest.class,
 		AuthzenPDPEvaluationsExecuteAllExplicitTest.class,
 		AuthzenPDPEvaluationsDenyOnFirstDenyTest.class,
 		AuthzenPDPEvaluationsPermitOnFirstPermitTest.class,
+		AuthzenPDPEvaluationsDenyOnFirstDenyWithoutDenialTest.class,
+		AuthzenPDPEvaluationsPermitOnFirstPermitWithoutPermitTest.class,
 		AuthzenPDPEvaluationsUnknownSemanticValueTest.class,
-		// Per-eval overrides top-level defaults (Section 7.1.1.1)
+		// Per-eval overrides top-level defaults (Section 7.1.1)
 		AuthzenPDPEvaluationsPerEvalOverridesDefaultTest.class,
-		// Missing subject everywhere returns decision-false evaluation (Cert Profile 3.4.1)
-		AuthzenPDPEvaluationsMissingSubjectReturnsDecisionFalseTest.class,
+		// No subject or no action at any level: 400 (Section 7.1.1, openid/authzen#763)
+		AuthzenPDPEvaluationsMissingSubjectTest.class,
+		AuthzenPDPEvaluationsMissingActionTest.class,
+		// Error handling at every level (certification scenario 3.1 with 5.4.2 and 5.4.6)
+		AuthzenPDPEvaluationsSubjectMissingTypeTest.class,
+		AuthzenPDPEvaluationsSubjectIsStringTest.class,
+		AuthzenPDPEvaluationsActionIsStringTest.class,
+		AuthzenPDPEvaluationsResourceIsStringTest.class,
+		AuthzenPDPEvaluationsActionNameIsNumberTest.class,
+		AuthzenPDPEvaluationsContextIsStringTest.class,
+		AuthzenPDPEvaluationsEvaluationsIsObjectTest.class,
+		AuthzenPDPEvaluationsEvaluationIsStringTest.class,
 		// Backward compatibility (Section 7.1)
 		AuthzenPDPEvaluationsMissingEvaluationsArrayBackwardCompatTest.class,
 		AuthzenPDPEvaluationsEmptyEvaluationsArrayBackwardCompatTest.class,
-		// Forward-compat: unknown top-level fields ignored (Section 10.1.1)
+		// Forward-compat: unknown fields ignored at the top level, in an evaluation and in options (Section 10.1.1)
 		AuthzenPDPEvaluationsUnknownTopLevelFieldsTest.class,
+		AuthzenPDPEvaluationsUnknownEvaluationFieldsTest.class,
+		AuthzenPDPEvaluationsUnknownOptionTest.class,
 		// X-Request-ID handling (Section 10.1.3)
 		AuthzenPDPEvaluationsXRequestIdEchoedTest.class,
 		// Idempotency
@@ -68,13 +92,23 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsRejectPutMethodTest.class,
 		AuthzenPDPEvaluationsRejectTopLevelArrayTest.class,
 		AuthzenPDPEvaluationsRejectNonJsonContentTypeTest.class,
+		AuthzenPDPEvaluationsRejectMissingContentTypeTest.class,
 		AuthzenPDPEvaluationsAcceptContentTypeWithCharsetTest.class,
 		AuthzenPDPEvaluationsRejectMalformedJsonTest.class,
 		AuthzenPDPEvaluationsRejectEmptyBodyTest.class,
+		// Invalid field type: certification scenario 5.4.6 requires HTTP 400 "when a field has an
+		// invalid type". options is OPTIONAL for a PDP to act on, but every Batch Core PDP accepts
+		// it (execute-all-explicit above), so it is checked like context and properties.
+		AuthzenPDPEvaluationsOptionsIsStringTest.class,
 		// Batch Properties (Properties variant only)
 		AuthzenPDPEvaluationsBatchWithPropertiesValidatedTest.class,
 		AuthzenPDPEvaluationsBatchWithSubjectPropertiesValidatedTest.class,
-		AuthzenPDPEvaluationsBatchWithDefaultValueMergingTest.class,
+		AuthzenPDPEvaluationsBatchWithTopLevelDefaultInheritanceTest.class,
+		AuthzenPDPEvaluationsBatchOverrideReplacesDefaultEntityTest.class,
+		// Authentication (Sections 11.2 and 11.3)
+		AuthzenPDPEvaluationsMissingCredentialsReturns401Test.class,
+		AuthzenPDPEvaluationsUnauthenticatedRequestAcceptedTest.class,
+		AuthzenPDPEvaluationsInvalidCredentialsReturns401Test.class,
 	}
 )
 public class AuthzenPDPEvaluationsComprehensiveTestPlan implements TestPlan {

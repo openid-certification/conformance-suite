@@ -19,11 +19,6 @@ public class AuthzenPDPResourceSearchRejectTopLevelArrayTest extends AbstractAut
 	}
 
 	@Override
-	protected String getExpectedSearchResponseJson() {
-		return "{}";
-	}
-
-	@Override
 	protected boolean sendRawRequest() {
 		return true;
 	}
