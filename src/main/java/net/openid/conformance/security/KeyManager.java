@@ -130,7 +130,7 @@ public class KeyManager {
 			// Decode the Base64 encoded private link signing key.
 			privateLinkJWK = decodeKey(privateLinkSigningKey);
 
-			if (jwk == null) {
+			if (privateLinkJWK == null) {
 				throw new IllegalStateException("Couldn't decode private link signing key");
 			}
 
