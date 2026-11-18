@@ -29,7 +29,8 @@ resources:
 # showing the external IP address uses an external server to retrieve
 # the external API; this is useful on the cloud production
 # environments but you may want to disable it if deploying internally
-javaArgs: "-Xmx724M -Djdk.tls.maxHandshakeMessageSize=65536 -Dfintechlabs.show_external_ip_address=true -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/dump/"
+# Use -XX:UseAVX=2 to disable -XX:UseAVX=3 to mitigate https://calif.io/java4shell, see: https://news.ycombinator.com/item?id=50538240
+javaArgs: "-XX:UseAVX=2 -Xmx724M -Djdk.tls.maxHandshakeMessageSize=65536 -Dfintechlabs.show_external_ip_address=true -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/dump/"
 mongodb:
   image:
     # this is currently the latest 6.0.x according to https://hub.docker.com/r/bitnami/mongodb/tags and https://www.mongodb.com/docs/manual/release-notes/6.0/
