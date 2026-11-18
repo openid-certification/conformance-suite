@@ -34,12 +34,12 @@ services:
     # the AuthZEN plans' authentication variants and 401 modules run against a PDP that enforces
     # them, and 9446, which checks no credentials. Every AuthZEN CI configuration goes through
     # the proxy. See scripts/test-configs-authzen/authzen-auth-proxy/nginx.conf. Pinned by
-    # digest, as the PDP is: nginx:1.27.3.
+    # digest, as the PDP is: nginx:1.31.9.
     # To run the AuthZEN tests against a suite running on the host:
     #   docker compose -f docker-compose-localtest.yml up --detach authzen-auth-proxy
     # (this also starts cerbos-authzen-pdp), add '127.0.0.1 authzen-auth-proxy' to /etc/hosts,
     # then run ./scripts/run-integration-tests.sh --authzen-tests.
-    image: nginx@sha256:bc2f6a7c8ddbccf55bdb19659ce3b0a92ca6559e86d42677a5a02ef6bda2fcef
+    image: nginx@sha256:08f354a3b44c422021a5c0f5efb3e27f8f90236b5447d3bac4053f5f50ab6760
     ports:
       - "9443-9446:9443-9446"
     volumes:
