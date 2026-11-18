@@ -23,7 +23,7 @@ test.describe("login.html — Login page", () => {
     );
   }
 
-  test("renders cts-login-page with both OAuth buttons", async ({ page }) => {
+  test("renders cts-login-page with all three sign-in buttons", async ({ page }) => {
     await setupFailFast(page);
     await setupLoginRoutes(page);
 
@@ -40,9 +40,13 @@ test.describe("login.html — Login page", () => {
 
     await expect(gitlabBtn).toBeVisible();
     await expect(gitlabBtn).toContainText("Proceed with GitLab");
+
+    const idpBtn = loginPage.locator('a[href="/oauth2/authorization/idp"]');
+    await expect(idpBtn).toBeVisible();
+    await expect(idpBtn).toContainText("Sign in with OpenID");
   });
 
-  test("both OAuth buttons render at size=lg (anchor has oidf-btn-lg)", async ({ page }) => {
+  test("all sign-in buttons render at size=lg (anchor has oidf-btn-lg)", async ({ page }) => {
     await setupFailFast(page);
     await setupLoginRoutes(page);
 
@@ -53,6 +57,9 @@ test.describe("login.html — Login page", () => {
 
     await expect(googleAnchor).toHaveClass(/\boidf-btn-lg\b/);
     await expect(gitlabAnchor).toHaveClass(/\boidf-btn-lg\b/);
+    await expect(page.locator('a[href="/oauth2/authorization/idp"]')).toHaveClass(
+      /\boidf-btn-lg\b/,
+    );
   });
 
   test("Google button uses variant=secondary (anchor has oidf-btn-secondary)", async ({ page }) => {
@@ -160,6 +167,10 @@ test.describe("login.html — Login page", () => {
     await expect(loginPage.locator("a.oidf-btn").nth(1)).toHaveAttribute(
       "href",
       `/oauth2/authorization/gitlab?returnTo=${encodeURIComponent(returnTo)}`,
+    );
+    await expect(loginPage.locator("a.oidf-btn").nth(2)).toHaveAttribute(
+      "href",
+      `/oauth2/authorization/idp?returnTo=${encodeURIComponent(returnTo)}`,
     );
     // On the login page itself, Sign in needs no way back.
     await expect(page.locator("cts-navbar a.cts-nav-action")).toHaveAttribute("href", "login.html");

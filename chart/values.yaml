@@ -11,6 +11,12 @@ application:
   tier: web
   env_slug: ""
   path_slug: ""
+# Issuer URL of the OpenID Provider offered as a login option, rendered into the
+# deployment as OIDC_IDP_ISS. This default matches the application's own default
+# (`oidc.idp.iss` in application.properties) and is the OpenID Foundation's IdP —
+# self-hosted instances must override it with `--set idpIss=`, along with the
+# oidc-idp-credentials secret holding the matching clientid and secret.
+idpIss: https://openid.net/auth
 nodeSelector: {}
 tolerations: {}
 service:

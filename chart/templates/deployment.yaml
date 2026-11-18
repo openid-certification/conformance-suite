@@ -45,6 +45,8 @@ spec:
           value: {{ .Values.service.url | quote }}
         - name: BASE_MTLS_URL
           value: {{ .Values.service.mtls | quote }}
+        - name: OIDC_IDP_ISS
+          value: {{ .Values.idpIss | quote }}
         - name: MONGODB_HOST
           value: {{ template "appname" . }}-mongodb
         - name: JAVA_EXTRA_ARGS
@@ -86,6 +88,18 @@ spec:
           valueFrom:
             secretKeyRef:
               name: oidc-gitlab-credentials
+              key: secret
+        - name: OIDC_IDP_CLIENTID
+          valueFrom:
+            secretKeyRef:
+              name: oidc-idp-credentials
+              key: clientid
+        - name: OIDC_IDP_AUTHENTICATION
+          value: "client_secret_post"
+        - name: OIDC_IDP_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: oidc-idp-credentials
               key: secret
         volumeMounts:
             - name: dump-volume

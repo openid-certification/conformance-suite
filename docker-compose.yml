@@ -26,6 +26,8 @@ services:
       --fintechlabs.base_http_url=http://localhost.emobix.co.uk:8080
       --fintechlabs.devmode=true
       --fintechlabs.startredir=true
+      --oidc.idp.iss=https://openid.net/auth
+      --oidc.idp.clientid=conformance-suite-local
     links:
      - mongodb:mongodb
     depends_on:

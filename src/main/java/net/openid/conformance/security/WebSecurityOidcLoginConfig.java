@@ -35,6 +35,7 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.client.oidc.authentication.OidcIdTokenDecoderFactory;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -47,6 +48,8 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
+import org.springframework.security.oauth2.jwt.JwtDecoderFactory;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -69,6 +72,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +85,9 @@ import java.util.regex.Pattern;
 @Order(2)
 @EnableConfigurationProperties({OAuth2ClientProperties.class})
 class WebSecurityOidcLoginConfig {
+
+	/** Matches the spring.security.oauth2.client.registration.idp.* namespace. */
+	static final String IDP_REGISTRATION_ID = "idp";
 
 	private static final Logger logger = LoggerFactory.getLogger(WebSecurityOidcLoginConfig.class);
 
@@ -114,6 +121,19 @@ class WebSecurityOidcLoginConfig {
 	@Value("#{${oidc.gitlab.admin-group-indicator-claims}}")
 	private Map<String, Set<String>> gitlabAdminGroupIndicatorClaims;
 
+	// The OpenID Provider registered as "idp". Admin rights for its logins come
+	// from its "roles" claim containing oidc.idp.admin-role.
+	@Value("${oidc.idp.iss}")
+	private String idpIss;
+
+	@Value("${oidc.idp.admin-role:}")
+	private String idpAdminRole;
+
+	// The algorithm the IdP signs ID tokens with (the RP's registered
+	// id_token_signed_response_alg). Exactly one value.
+	@Value("${oidc.idp.id-token-signed-response-alg:ES256}")
+	private String idTokenSignedResponseAlg;
+
 	@Autowired
 	private DummyUserFilter dummyUserFilter;
 
@@ -141,6 +161,65 @@ class WebSecurityOidcLoginConfig {
 	@Bean
 	public LoginUrlAuthenticationEntryPoint authenticationEntryPoint() {
 		return new LoginUrlAuthenticationEntryPoint(baseURL + "/login.html");
+	}
+
+	/**
+	 * Resolves the ID token signing algorithm per registration. Spring's default
+	 * answers RS256 for every registration, which is right for Google and GitLab but
+	 * not for the IdP, which signs with the algorithm configured in
+	 * oidc.idp.id-token-signed-response-alg (ES256 by default).
+	 */
+	@Bean
+	public JwtDecoderFactory<ClientRegistration> idTokenDecoderFactory() {
+		SignatureAlgorithm idpAlgorithm = SignatureAlgorithm.from(idTokenSignedResponseAlg.trim());
+		if (idpAlgorithm == null) {
+			throw new IllegalStateException("oidc.idp.id-token-signed-response-alg must name one JWS signature algorithm,"
+				+ " such as ES256 or RS256, but is '" + idTokenSignedResponseAlg + "'");
+		}
+
+		OidcIdTokenDecoderFactory idTokenDecoderFactory = new OidcIdTokenDecoderFactory();
+		idTokenDecoderFactory.setJwsAlgorithmResolver(
+			clientRegistration -> idTokenSigningAlgorithm(clientRegistration, idpAlgorithm));
+		return idTokenDecoderFactory;
+	}
+
+	static SignatureAlgorithm idTokenSigningAlgorithm(ClientRegistration clientRegistration, SignatureAlgorithm idpAlgorithm) {
+		if (!IDP_REGISTRATION_ID.equals(clientRegistration.getRegistrationId())) {
+			return SignatureAlgorithm.RS256;
+		}
+		// A mismatch here fails every IdP login with only a signature error to go
+		// on, so say so up front. Warn rather than fail: the discovery document
+		// lists what the IdP can do, and an IdP may sign with an algorithm it omits.
+		Object advertised = clientRegistration.getProviderDetails().getConfigurationMetadata()
+			.get("id_token_signing_alg_values_supported");
+		if (advertised instanceof Collection<?> algorithms && !algorithms.contains(idpAlgorithm.getName())) {
+			logger.warn("Configured id_token_signed_response_alg {} is not advertised by {}, which lists {}."
+					+ " Set oidc.idp.id-token-signed-response-alg to one of those if logins fail to verify.",
+				idpAlgorithm.getName(), clientRegistration.getRegistrationId(), algorithms);
+		}
+		return idpAlgorithm;
+	}
+
+	/**
+	 * Authorities for an ID token the IdP issued: ROLE_USER, plus ROLE_ADMIN when its
+	 * "roles" claim contains adminRole. None for any other provider's ID token, whose
+	 * "roles" claim means nothing here.
+	 * <p>
+	 * The claim is read raw and checked for type: an IdP sending "roles" as anything
+	 * but an array grants no admin rather than failing the login.
+	 */
+	static Set<GrantedAuthority> idpRoleAuthorities(OidcIdToken idToken, String idpIss, String adminRole) {
+		if (idToken.getIssuer() == null || !idToken.getIssuer().toString().equals(idpIss)) {
+			return Set.of();
+		}
+		Set<GrantedAuthority> authorities = new HashSet<>();
+		authorities.add(OIDCAuthenticationFacade.ROLE_USER);
+		if (!Strings.isNullOrEmpty(adminRole)
+			&& idToken.getClaims().get("roles") instanceof Collection<?> roles
+			&& roles.contains(adminRole)) {
+			authorities.add(OIDCAuthenticationFacade.ROLE_ADMIN);
+		}
+		return authorities;
 	}
 
 	@Bean
@@ -334,6 +413,9 @@ class WebSecurityOidcLoginConfig {
 
 							OidcIdToken idToken = oidcUserAuthority.getIdToken();
 							OidcUserInfo userInfo = oidcUserAuthority.getUserInfo();
+
+							// Logins through the IdP take their admin rights from its "roles" claim.
+							extendedAuthorities.addAll(idpRoleAuthorities(idToken, idpIss, idpAdminRole));
 
 							if (adminIss.equals(googleIss) && !Strings.isNullOrEmpty(adminDomains)) {
 								// Create an OIDCAuthoritiesMapper that uses the 'hd' field of a

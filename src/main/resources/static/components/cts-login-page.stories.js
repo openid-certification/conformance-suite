@@ -89,6 +89,21 @@ export const Default = {
       expect(gitlabAnchor.querySelector('svg[data-brand="gitlab"]')).toBeTruthy();
     });
 
+    await step("IdP sign-in button renders alongside the provider buttons", async () => {
+      const idpAnchor = /** @type {HTMLAnchorElement} */ (
+        canvas.getByText("Sign in with OpenID").closest("a")
+      );
+      expect(idpAnchor).toBeTruthy();
+      expect(idpAnchor.getAttribute("href")).toBe("/oauth2/authorization/idp");
+      expect(idpAnchor.classList.contains("oidf-btn")).toBe(true);
+      expect(idpAnchor.classList.contains("oidf-btn-secondary")).toBe(true);
+      // oidf-btn-secondary is styled around a leading icon; the IdP has no
+      // brand mark, so a cts-icon takes that slot.
+      expect(idpAnchor.querySelector("cts-icon")?.getAttribute("name")).toBe("user-01");
+      expect([...idpAnchor.classList].some((c) => /^btn(-|$)/.test(c))).toBe(false);
+      expect(getComputedStyle(idpAnchor).height).toBe("44px");
+    });
+
     await step("public links have correct hrefs and live in rich-list anchors", async () => {
       expect(canvas.getByText("View published logs")).toBeInTheDocument();
       expect(canvas.getByText("View published plans")).toBeInTheDocument();
@@ -154,6 +169,7 @@ export const WithError = {
     await step("OAuth buttons still render", async () => {
       expect(canvas.getByText("Proceed with Google")).toBeInTheDocument();
       expect(canvas.getByText("Proceed with GitLab")).toBeInTheDocument();
+      expect(canvas.getByText("Sign in with OpenID")).toBeInTheDocument();
     });
   },
 };
@@ -187,6 +203,7 @@ export const PostLogout = {
     await step("OAuth buttons still render", async () => {
       expect(canvas.getByText("Proceed with Google")).toBeInTheDocument();
       expect(canvas.getByText("Proceed with GitLab")).toBeInTheDocument();
+      expect(canvas.getByText("Sign in with OpenID")).toBeInTheDocument();
     });
   },
 };
@@ -251,6 +268,7 @@ export const ErrorAndLogout = {
     await step("OAuth buttons still render", async () => {
       expect(canvas.getByText("Proceed with Google")).toBeInTheDocument();
       expect(canvas.getByText("Proceed with GitLab")).toBeInTheDocument();
+      expect(canvas.getByText("Sign in with OpenID")).toBeInTheDocument();
     });
 
     await step("public links still present", async () => {

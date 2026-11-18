@@ -38,6 +38,8 @@ services:
       OIDC_GOOGLE_SECRET: ${OIDC_GOOGLE_SECRET:-google-secret}
       OIDC_GITLAB_CLIENTID: ${OIDC_GITLAB_CLIENTID:-gitlab-client}
       OIDC_GITLAB_SECRET: ${OIDC_GITLAB_SECRET:-gitlab-secret}
+      OIDC_IDP_CLIENTID: ${OIDC_IDP_CLIENTID:-conformance-suite-local}
+      OIDC_IDP_ISS: ${OIDC_IDP_ISS:-https://openid.net/auth}
     depends_on:
      - mongodb
     logging:

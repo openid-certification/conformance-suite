@@ -83,6 +83,7 @@ public class OidcLogoutRedirect_UnitTest {
 		// the same shapes application.properties uses.
 		context.getEnvironment().getPropertySources().addFirst(new MapPropertySource("test", Map.of(
 			"fintechlabs.base_url", "https://localhost.emobix.co.uk:8443",
+			"oidc.idp.iss", "https://openid.example.com/auth",
 			"oidc.admin.issuer", "https://gitlab.com",
 			"oidc.gitlab.admin-group-indicator-claims",
 			"{'https://gitlab.org/claims/groups/maintainer':{'openid'}}")));
@@ -272,6 +273,5 @@ public class OidcLogoutRedirect_UnitTest {
 				return registrations.findByRegistrationId(registrationId);
 			};
 		}
-
 	}
 }

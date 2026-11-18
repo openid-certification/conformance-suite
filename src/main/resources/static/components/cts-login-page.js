@@ -356,7 +356,9 @@ function injectStyles() {
 
 /**
  * Login/register landing page. Offers Google/GitLab OAuth buttons (each with
- * its vendor mark) and rich-list links to the public logs and plans listings.
+ * its vendor mark), a button for the OpenID Provider that brokers those
+ * accounts (with a cts-icon in the leading slot), and rich-list links to the
+ * public logs and plans listings.
  *
  * Layout is a single rounded shell containing two panels: a warm-ink brand
  * band (OIDF wordmark + capability pillars) on the left and a focused form
@@ -488,8 +490,8 @@ class CtsLoginPage extends LitElement {
             <header class="oidf-login-form__head">
               <h1 class="oidf-login-title">Sign in to continue</h1>
               <p class="oidf-login-subtitle">
-                Use your Google or GitLab account. New users are registered automatically on first
-                sign in.
+                Use your Google or GitLab account, or your OpenID Foundation account. New users are
+                registered automatically on first sign in.
               </p>
             </header>
             ${this._renderError()}${this._renderLogout()}
@@ -506,6 +508,14 @@ class CtsLoginPage extends LitElement {
                 role="button"
                 >${GITLAB_BRAND_SVG} Proceed with GitLab</a
               >
+              <a
+                class="oidf-btn oidf-btn-secondary oidf-btn-lg"
+                href=${this._providerHref("idp")}
+                role="button"
+              >
+                <cts-icon name="user-01" aria-hidden="true"></cts-icon>
+                Sign in with OpenID
+              </a>
             </div>
             <div class="oidf-login-divider" role="separator">
               <span>Or browse without signing in</span>
