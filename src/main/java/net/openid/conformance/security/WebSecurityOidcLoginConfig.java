@@ -32,6 +32,7 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.client.oidc.authentication.OidcIdTokenDecoderFactory;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -43,6 +44,8 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
+import org.springframework.security.oauth2.jwt.JwtDecoderFactory;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -132,6 +135,24 @@ class WebSecurityOidcLoginConfig {
 		Map<String, Supplier<ClientRegistration>> registrations = loginProviders.configured().stream()
 			.collect(Collectors.toMap(LoginProviders.Provider::id, provider -> provider::toClientRegistration));
 		return new LazyClientRegistrationRepository(registrations, devmode);
+	}
+
+	/**
+	 * Verifies each login provider's ID tokens with the algorithm configured for it
+	 * (see LoginProviders). Spring's default answers RS256 for every registration.
+	 */
+	@Bean
+	public JwtDecoderFactory<ClientRegistration> idTokenDecoderFactory(LoginProviders loginProviders) {
+		return idTokenDecoderFactoryFor(loginProviders);
+	}
+
+	static JwtDecoderFactory<ClientRegistration> idTokenDecoderFactoryFor(LoginProviders loginProviders) {
+		Map<String, SignatureAlgorithm> algorithms = loginProviders.configured().stream()
+			.collect(Collectors.toMap(LoginProviders.Provider::id, LoginProviders.Provider::idTokenSigningAlgorithm));
+		OidcIdTokenDecoderFactory factory = new OidcIdTokenDecoderFactory();
+		factory.setJwsAlgorithmResolver(registration ->
+			algorithms.getOrDefault(registration.getRegistrationId(), SignatureAlgorithm.RS256));
+		return factory;
 	}
 
 	@Bean

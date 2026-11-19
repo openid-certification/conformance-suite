@@ -213,7 +213,7 @@ public class OidcListingPageAccess_UnitTest {
 
 	@Configuration
 	@EnableWebSecurity
-	@Import(WebSecurityOidcLoginConfig.class)
+	@Import({WebSecurityOidcLoginConfig.class, LoginProviders.class})
 	static class TestSecurityConfig {
 
 		@Bean

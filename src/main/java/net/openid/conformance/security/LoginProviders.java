@@ -5,6 +5,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ClientRegistrations;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -17,6 +18,12 @@ import java.util.Objects;
  * both {@code oidc.<id>.clientid} and {@code oidc.<id>.secret} are set, so an
  * installation that has not registered a client with a provider shows no button
  * for it rather than one that fails at the provider.
+ * <p>
+ * {@code oidc.<id>.id-token-signed-response-alg} names the one JWS algorithm the
+ * provider signs the suite's ID tokens with (the client's registered
+ * {@code id_token_signed_response_alg}); RS256 when unset. It is configuration
+ * because a provider's discovery document lists every algorithm it can sign with,
+ * not the one it uses for this client.
  */
 @Component
 public class LoginProviders {
@@ -49,9 +56,10 @@ public class LoginProviders {
 	 * @param clientId          the suite's client id at the provider
 	 * @param clientSecret      the suite's client secret at the provider
 	 * @param userNameAttribute the claim Spring uses as the principal's name
+	 * @param idTokenSigningAlgorithm the algorithm the provider signs ID tokens with
 	 */
 	public record Provider(String id, String displayName, String issuer, String clientId, String clientSecret,
-		String userNameAttribute) {
+		String userNameAttribute, SignatureAlgorithm idTokenSigningAlgorithm) {
 
 		/**
 		 * Builds the client registration, fetching the issuer's discovery document.
@@ -99,6 +107,21 @@ public class LoginProviders {
 			issuer = known.defaultIssuer();
 		}
 		return new Provider(known.id(), known.displayName(), issuer.trim(), clientId.trim(), clientSecret.trim(),
-			known.userNameAttribute());
+			known.userNameAttribute(), idTokenSigningAlgorithm(environment, prefix + "id-token-signed-response-alg"));
+	}
+
+	private static SignatureAlgorithm idTokenSigningAlgorithm(Environment environment, String property) {
+		String name = environment.getProperty(property);
+		if (name == null || name.isBlank()) {
+			return SignatureAlgorithm.RS256;
+		}
+		// SignatureAlgorithm covers only the RS*, ES* and PS* signature algorithms, so
+		// "none" and the HS* MAC algorithms are rejected here.
+		SignatureAlgorithm algorithm = SignatureAlgorithm.from(name.trim());
+		if (algorithm == null) {
+			throw new IllegalStateException(property + " must name one JWS signature algorithm, such as RS256 or"
+				+ " ES256, but is '" + name + "'");
+		}
+		return algorithm;
 	}
 }
