@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
 import { MOCK_SERVER_INFO } from "./fixtures/mock-server.js";
+import { MOCK_LOGIN_PROVIDERS } from "./fixtures/mock-login-providers.js";
 
 test.describe("login.html — Login page", () => {
   test.afterEach(async ({ page }) => {
@@ -10,8 +11,9 @@ test.describe("login.html — Login page", () => {
   // The login page is unauthenticated — the embedded cts-navbar still calls
   // /api/currentuser on load, so we stub it with a 401 to simulate the
   // unauthenticated state. The cts-footer (added suite-wide in U4) fetches
-  // /api/server for its server-info line, so we stub that too. No other API
-  // calls are expected.
+  // /api/server for its server-info line, and the login form fetches the
+  // configured login providers, so we stub those too. No other API calls are
+  // expected.
   async function setupLoginRoutes(page) {
     await page.route("**/api/currentuser", (route) => route.fulfill({ status: 401, body: "" }));
     await page.route("**/api/server", (route) =>
@@ -19,6 +21,21 @@ test.describe("login.html — Login page", () => {
         status: 200,
         contentType: "application/json",
         body: JSON.stringify(MOCK_SERVER_INFO),
+      }),
+    );
+    await routeLoginProviders(page, MOCK_LOGIN_PROVIDERS);
+  }
+
+  /**
+   * @param {import('@playwright/test').Page} page
+   * @param {Array<{ id: string, name: string }>} providers
+   */
+  async function routeLoginProviders(page, providers) {
+    await page.route("**/api/ui/login_providers*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(providers),
       }),
     );
   }
@@ -40,6 +57,33 @@ test.describe("login.html — Login page", () => {
 
     await expect(gitlabBtn).toBeVisible();
     await expect(gitlabBtn).toContainText("Proceed with GitLab");
+  });
+
+  test("only the login providers the server lists get a button", async ({ page }) => {
+    await setupFailFast(page);
+    await setupLoginRoutes(page);
+    await routeLoginProviders(page, [{ id: "gitlab", name: "GitLab" }]);
+
+    await page.goto("/login.html");
+
+    const loginPage = page.locator("cts-login-page");
+    await expect(loginPage.locator('a[href="/oauth2/authorization/gitlab"]')).toBeVisible();
+    await expect(loginPage.locator('a[href="/oauth2/authorization/google"]')).toHaveCount(0);
+    await expect(loginPage).toContainText("Use your GitLab account.");
+  });
+
+  test("a server with no login provider says so instead of showing buttons", async ({ page }) => {
+    await setupFailFast(page);
+    await setupLoginRoutes(page);
+    await routeLoginProviders(page, []);
+
+    await page.goto("/login.html");
+
+    const loginPage = page.locator("cts-login-page");
+    await expect(loginPage.locator(".oidf-alert-info")).toContainText(
+      "No sign-in methods are configured on this server.",
+    );
+    await expect(loginPage.locator(".oidf-login-providers a")).toHaveCount(0);
   });
 
   test("both OAuth buttons render at size=lg (anchor has oidf-btn-lg)", async ({ page }) => {

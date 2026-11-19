@@ -1,5 +1,7 @@
 import { html } from "lit";
 import { expect, within, waitFor } from "storybook/test";
+import { http, HttpResponse } from "msw";
+import { MOCK_LOGIN_PROVIDERS } from "@fixtures/mock-test-data.js";
 import "./cts-login-page.js";
 import "./cts-link-button.js";
 import "./cts-alert.js";
@@ -11,6 +13,12 @@ export default {
     // Page-level story: opt in to Chromatic snapshots. Component stories are
     // excluded by default in frontend/.storybook/preview.js.
     chromatic: { disableSnapshot: false },
+    // The page asks the server which login providers are configured.
+    msw: {
+      handlers: [
+        http.get("/api/ui/login_providers", () => HttpResponse.json(MOCK_LOGIN_PROVIDERS)),
+      ],
+    },
   },
   argTypes: {
     error: { control: "text" },
@@ -56,7 +64,7 @@ export const Default = {
       "Google OAuth button renders with correct href via cts-link-button -> <a>",
       async () => {
         const googleAnchor = /** @type {HTMLAnchorElement} */ (
-          canvas.getByText("Proceed with Google").closest("a")
+          (await canvas.findByText("Proceed with Google")).closest("a")
         );
         expect(googleAnchor).toBeTruthy();
         expect(googleAnchor.getAttribute("href")).toBe("/oauth2/authorization/google");
@@ -87,6 +95,10 @@ export const Default = {
       expect(gitlabAnchor.classList.contains("oidf-btn-secondary")).toBe(true);
       expect(gitlabAnchor.classList.contains("btn-primary")).toBe(false);
       expect(gitlabAnchor.querySelector('svg[data-brand="gitlab"]')).toBeTruthy();
+    });
+
+    await step("the subtitle names the configured providers", async () => {
+      expect(canvas.getByText(/Use your Google or GitLab account\./)).toBeInTheDocument();
     });
 
     await step("public links have correct hrefs and live in rich-list anchors", async () => {
@@ -152,7 +164,7 @@ export const WithError = {
     });
 
     await step("OAuth buttons still render", async () => {
-      expect(canvas.getByText("Proceed with Google")).toBeInTheDocument();
+      expect(await canvas.findByText("Proceed with Google")).toBeInTheDocument();
       expect(canvas.getByText("Proceed with GitLab")).toBeInTheDocument();
     });
   },
@@ -185,7 +197,7 @@ export const PostLogout = {
     });
 
     await step("OAuth buttons still render", async () => {
-      expect(canvas.getByText("Proceed with Google")).toBeInTheDocument();
+      expect(await canvas.findByText("Proceed with Google")).toBeInTheDocument();
       expect(canvas.getByText("Proceed with GitLab")).toBeInTheDocument();
     });
   },
@@ -249,13 +261,90 @@ export const ErrorAndLogout = {
     });
 
     await step("OAuth buttons still render", async () => {
-      expect(canvas.getByText("Proceed with Google")).toBeInTheDocument();
+      expect(await canvas.findByText("Proceed with Google")).toBeInTheDocument();
       expect(canvas.getByText("Proceed with GitLab")).toBeInTheDocument();
     });
 
     await step("public links still present", async () => {
       expect(canvas.getByText("View published logs")).toBeInTheDocument();
       expect(canvas.getByText("View published plans")).toBeInTheDocument();
+    });
+  },
+};
+
+// Only the providers the server lists get a button.
+export const OnlyGitLabConfigured = {
+  render: () => html`<cts-login-page></cts-login-page>`,
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/ui/login_providers", () =>
+          HttpResponse.json([{ id: "gitlab", name: "GitLab" }]),
+        ),
+      ],
+    },
+  },
+
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+
+    await step("only the GitLab button renders", async () => {
+      expect(await canvas.findByText("Proceed with GitLab")).toBeInTheDocument();
+      expect(canvas.queryByText("Proceed with Google")).toBeNull();
+      expect(canvasElement.querySelectorAll(".oidf-login-providers a").length).toBe(1);
+    });
+
+    await step("the subtitle names only GitLab", async () => {
+      expect(canvas.getByText(/Use your GitLab account\./)).toBeInTheDocument();
+    });
+  },
+};
+
+// A server with no provider configured says so instead of showing dead buttons.
+export const NoProvidersConfigured = {
+  render: () => html`<cts-login-page></cts-login-page>`,
+  parameters: {
+    msw: {
+      handlers: [http.get("/api/ui/login_providers", () => HttpResponse.json([]))],
+    },
+  },
+
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+
+    await step("an info alert explains there is no way to sign in", async () => {
+      expect(
+        await canvas.findByText(/No sign-in methods are configured on this server\./),
+      ).toBeInTheDocument();
+      expect(canvasElement.querySelector(".oidf-login-providers")).toBeNull();
+      expect(canvasElement.querySelector(".oidf-login-subtitle")).toBeNull();
+    });
+
+    await step("public links are still offered", async () => {
+      expect(canvas.getByText("View published logs")).toBeInTheDocument();
+    });
+  },
+};
+
+// If the providers cannot be fetched, the page says so and asks for a reload.
+export const ProvidersUnavailable = {
+  render: () => html`<cts-login-page></cts-login-page>`,
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/ui/login_providers", () => new HttpResponse(null, { status: 500 })),
+      ],
+    },
+  },
+
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+
+    await step("a danger alert asks the user to reload", async () => {
+      expect(
+        await canvas.findByText(/The sign-in options could not be loaded\./),
+      ).toBeInTheDocument();
+      expect(canvasElement.querySelector(".oidf-login-providers")).toBeNull();
     });
   },
 };

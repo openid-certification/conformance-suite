@@ -410,6 +410,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/ui/login_providers": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get the configured login providers
+     * @description The login providers this server offers, in the order the login page shows them. 'id' is the registration id, so a login starts at /oauth2/authorization/{id}; 'name' is shown on the button.
+     */
+    get: operations["getLoginProviders"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/statistics/overview": {
     parameters: {
       query?: never;
@@ -2652,6 +2672,33 @@ export interface operations {
         };
         content: {
           "application/json": Record<string, never>;
+        };
+      };
+      /** @description Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  getLoginProviders: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Retrieved successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown[];
         };
       };
       /** @description Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data */

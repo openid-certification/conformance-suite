@@ -1020,6 +1020,28 @@
         "security": [{ "bearerAuth": [] }, {}]
       }
     },
+    "/api/ui/login_providers": {
+      "get": {
+        "tags": ["Server"],
+        "summary": "Get the configured login providers",
+        "description": "The login providers this server offers, in the order the login page shows them. 'id' is the registration id, so a login starts at /oauth2/authorization/{id}; 'name' is shown on the button.",
+        "operationId": "getLoginProviders",
+        "responses": {
+          "200": {
+            "description": "Retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "description": "List of {id, name}" }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data"
+          }
+        },
+        "security": [{ "bearerAuth": [] }, {}]
+      }
+    },
     "/api/statistics/overview": {
       "get": {
         "tags": ["statistics-api"],

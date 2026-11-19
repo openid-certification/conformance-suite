@@ -1785,6 +1785,18 @@ def run_tests():
         resp = unauthenticated_get(base_url, f"api/ui/{endpoint}", verify_ssl)
         runner.check_status(f"Metadata: {endpoint} without ?public is denied", resp, 401)
 
+    # the login page reads the configured login providers before anyone has signed in, so they are
+    # public with ?public like the spec-link maps; each must expose its id and name and nothing else
+    resp = unauthenticated_get(base_url, "api/ui/login_providers", verify_ssl, params={"public": "true"})
+    body = resp.json() if resp.status_code == 200 else None
+    runner.check("Metadata: login_providers?public is publicly reachable, as id and name only",
+                 isinstance(body, list)
+                 and all(isinstance(p, dict) and set(p) == {"id", "name"} for p in body),
+                 f"HTTP {resp.status_code}, {resp.text[:200]}")
+
+    resp = unauthenticated_get(base_url, "api/ui/login_providers", verify_ssl)
+    runner.check_status("Metadata: login_providers without ?public is denied", resp, 401)
+
     # the mdoc IACA root is deliberately public: testers configure it as a trust anchor
     resp = unauthenticated_get(base_url, "mdoc-iaca-root.pem", verify_ssl)
     runner.check("Metadata: mdoc IACA root cert is publicly reachable as PEM",

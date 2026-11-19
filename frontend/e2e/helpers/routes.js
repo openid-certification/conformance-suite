@@ -12,6 +12,7 @@
 
 import { MOCK_USER } from "../fixtures/mock-users.js";
 import { MOCK_SERVER_INFO } from "../fixtures/mock-server.js";
+import { MOCK_LOGIN_PROVIDERS } from "../fixtures/mock-login-providers.js";
 import { MOCK_TEST_STATUS } from "../fixtures/mock-test-data.js";
 import { MOCK_LOG_LIST } from "../fixtures/mock-log-list.js";
 import {
@@ -22,11 +23,12 @@ import {
 } from "../fixtures/mock-plans.js";
 
 /**
- * Register the three routes every page needs:
+ * Register the routes every page needs:
  * - /api/currentuser
  * - /api/server
  * - api/ui/spec_links and api/ui/spec_section_links (note: no leading slash —
  *   lib/spec-links.js uses relative URLs)
+ * - /api/ui/login_providers, for login.html
  *
  * Also stubs Google Fonts so the JetBrains Mono <link> on
  * log-detail/schedule-test/tokens/upload never stalls page.goto() on a real
@@ -95,6 +97,14 @@ export async function setupCommonRoutes(page, options = {}) {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify(MOCK_SERVER_INFO),
+    }),
+  );
+
+  await page.route("**/api/ui/login_providers*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(MOCK_LOGIN_PROVIDERS),
     }),
   );
 

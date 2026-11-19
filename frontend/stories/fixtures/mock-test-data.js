@@ -218,3 +218,9 @@ export const MOCK_SERVER_INFO = {
   build_time: "2026-04-12T10:30:00Z",
   external_ip: "192.168.1.100",
 };
+
+/** GET /api/ui/login_providers response shape */
+export const MOCK_LOGIN_PROVIDERS = [
+  { id: "google", name: "Google" },
+  { id: "gitlab", name: "GitLab" },
+];

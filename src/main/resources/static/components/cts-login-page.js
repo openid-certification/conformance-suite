@@ -355,8 +355,32 @@ function injectStyles() {
 }
 
 /**
- * Login/register landing page. Offers Google/GitLab OAuth buttons (each with
- * its vendor mark) and rich-list links to the public logs and plans listings.
+ * @typedef {object} LoginProvider
+ * @property {string} id - Registration id; the button links to
+ *   `/oauth2/authorization/<id>`.
+ * @property {string} name - Shown on the button.
+ */
+
+/** Brand marks for the providers that have one; any other gets a generic icon. */
+const BRAND_SVGS = /** @type {Record<string, import('lit').TemplateResult>} */ ({
+  google: GOOGLE_BRAND_SVG,
+  gitlab: GITLAB_BRAND_SVG,
+});
+
+/**
+ * @param {string[]} names - Provider names, in display order.
+ * @returns {string} "A", "A or B", "A, B or C".
+ */
+function joinWithOr(names) {
+  if (names.length <= 1) return names.join("");
+  return `${names.slice(0, -1).join(", ")} or ${names[names.length - 1]}`;
+}
+
+/**
+ * Login/register landing page. Offers a sign-in button for each login
+ * provider the server has configured (from `/api/ui/login_providers`; Google
+ * and GitLab with their vendor marks) and rich-list links to the public logs
+ * and plans listings.
  *
  * Layout is a single rounded shell containing two panels: a warm-ink brand
  * band (OIDF wordmark + capability pillars) on the left and a focused form
@@ -364,13 +388,17 @@ function injectStyles() {
  * narrow screens. The error banner uses `cts-alert variant="danger"`; the
  * post-logout banner uses `cts-alert variant="info"`. Provider buttons render
  * as plain `<a class="oidf-btn oidf-btn-secondary oidf-btn-lg">` anchors
- * with the inline Google/GitLab brand SVG taking the leading-icon slot —
+ * with the inline Google/GitLab brand SVG (a generic user icon for any
+ * other provider) taking the leading-icon slot —
  * `cts-link-button`'s `icon` prop only accepts a coolicons name, and
  * brand glyphs are intentionally outside the cts-icon set (per the
  * 2026-04-25 brand-icon carve-out). The `oidf-btn` styles arrive via the
  * `cts-link-button.js` import which injects them at module load. All
  * other styling comes from `oidf-tokens.css` plus the scoped
  * `.oidf-login-*` rules injected on first mount.
+ *
+ * Until `/api/ui/login_providers` answers no provider buttons render; if it
+ * fails, or lists no providers, the form explains that instead.
  *
  * @property {string} error - OAuth error message to display; empty hides the
  *   alert.
@@ -387,6 +415,8 @@ class CtsLoginPage extends LitElement {
     logoutMessage: { type: Boolean, attribute: "logout-message" },
     tokenAuthUrl: { type: String, attribute: "token-auth-url" },
     returnTo: { type: String, attribute: "return-to" },
+    _providers: { state: true },
+    _providersFailed: { state: true },
   };
 
   constructor() {
@@ -395,6 +425,9 @@ class CtsLoginPage extends LitElement {
     this.logoutMessage = false;
     this.tokenAuthUrl = "";
     this.returnTo = "";
+    /** @type {LoginProvider[] | null} null until the server has answered. */
+    this._providers = null;
+    this._providersFailed = false;
   }
 
   /**
@@ -411,6 +444,31 @@ class CtsLoginPage extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     injectStyles();
+    this._fetchProviders();
+  }
+
+  /**
+   * Loads the configured login providers. The endpoint is public with
+   * `?public=true`, since nobody has signed in yet.
+   * @returns {Promise<void>} Resolves once the fetch settles.
+   */
+  async _fetchProviders() {
+    try {
+      const response = await fetch("/api/ui/login_providers?public=true");
+      if (!response.ok) {
+        throw new Error(`/api/ui/login_providers responded ${response.status}`);
+      }
+      const providers = await response.json();
+      this._providers = /** @type {LoginProvider[]} */ (
+        (Array.isArray(providers) ? providers : []).filter(
+          (/** @type {{ id?: unknown, name?: unknown }} */ p) =>
+            typeof p?.id === "string" && typeof p?.name === "string",
+        )
+      );
+    } catch (err) {
+      console.warn("[cts-login-page] could not load the login providers:", err);
+      this._providersFailed = true;
+    }
   }
 
   // Light DOM keeps the component composable with sibling pages and lets
@@ -431,6 +489,41 @@ class CtsLoginPage extends LitElement {
   _renderLogout() {
     if (!this.logoutMessage) return nothing;
     return html`<cts-alert variant="info" role="status"> You have been logged out. </cts-alert>`;
+  }
+
+  _renderSubtitle() {
+    const names = (this._providers ?? []).map((p) => p.name);
+    if (names.length === 0) return nothing;
+    return html`<p class="oidf-login-subtitle">
+      Use your ${joinWithOr(names)} account. New users are registered automatically on first sign
+      in.
+    </p>`;
+  }
+
+  _renderProviders() {
+    if (this._providersFailed) {
+      return html`<cts-alert variant="danger">
+        The sign-in options could not be loaded. Reload the page to try again.
+      </cts-alert>`;
+    }
+    if (this._providers === null) return nothing;
+    if (this._providers.length === 0) {
+      return html`<cts-alert variant="info">
+        No sign-in methods are configured on this server.
+      </cts-alert>`;
+    }
+    return html`<div class="oidf-login-providers">
+      ${this._providers.map(
+        (p) =>
+          html`<a
+            class="oidf-btn oidf-btn-secondary oidf-btn-lg"
+            href=${this._providerHref(p.id)}
+            role="button"
+            >${BRAND_SVGS[p.id] ?? html`<cts-icon name="user-01" aria-hidden="true"></cts-icon>`}
+            Proceed with ${p.name}</a
+          >`,
+      )}
+    </div>`;
   }
 
   _renderTokenIframe() {
@@ -475,7 +568,7 @@ class CtsLoginPage extends LitElement {
           CIBA, SSF &amp; AuthZEN
         </li>
       </ul>
-      <div class="oidf-login-brand__footer">Operated by the OpenID Foundation</div>
+      <div class="oidf-login-brand__footer"> Operated by the OpenID Foundation </div>
     </aside>`;
   }
 
@@ -486,27 +579,10 @@ class CtsLoginPage extends LitElement {
           ${this._renderBrand()}
           <div class="oidf-login-form">
             <header class="oidf-login-form__head">
-              <h1 class="oidf-login-title">Sign in to continue</h1>
-              <p class="oidf-login-subtitle">
-                Use your Google or GitLab account. New users are registered automatically on first
-                sign in.
-              </p>
+              <h1 class="oidf-login-title"> Sign in to continue </h1>
+              ${this._renderSubtitle()}
             </header>
-            ${this._renderError()}${this._renderLogout()}
-            <div class="oidf-login-providers">
-              <a
-                class="oidf-btn oidf-btn-secondary oidf-btn-lg"
-                href=${this._providerHref("google")}
-                role="button"
-                >${GOOGLE_BRAND_SVG} Proceed with Google</a
-              >
-              <a
-                class="oidf-btn oidf-btn-secondary oidf-btn-lg"
-                href=${this._providerHref("gitlab")}
-                role="button"
-                >${GITLAB_BRAND_SVG} Proceed with GitLab</a
-              >
-            </div>
+            ${this._renderError()}${this._renderLogout()}${this._renderProviders()}
             <div class="oidf-login-divider" role="separator">
               <span>Or browse without signing in</span>
             </div>
