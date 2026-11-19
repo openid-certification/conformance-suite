@@ -19,9 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientProperties;
-import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientPropertiesMapper;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -67,7 +64,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -79,7 +75,6 @@ import java.util.regex.Pattern;
 
 @Configuration
 @Order(2)
-@EnableConfigurationProperties({OAuth2ClientProperties.class})
 class WebSecurityOidcLoginConfig {
 
 	private static final Logger logger = LoggerFactory.getLogger(WebSecurityOidcLoginConfig.class);
@@ -125,15 +120,21 @@ class WebSecurityOidcLoginConfig {
 	private TestPlanService planService;
 
 	/**
-	 * Resolved lazily: mapping these properties fetches each provider's discovery
-	 * document, and doing it here would mean the suite cannot start while any of
-	 * them is briefly unreachable. See LazyClientRegistrationRepository.
+	 * One registration per configured login provider. Resolved lazily: building a
+	 * registration fetches the provider's discovery document, and doing it here would
+	 * mean the suite cannot start while any of them is briefly unreachable. See
+	 * LazyClientRegistrationRepository.
 	 */
 	@Bean
-	public ClientRegistrationRepository clientRegistrationRepository(OAuth2ClientProperties properties) {
+	public ClientRegistrationRepository clientRegistrationRepository(LoginProviders loginProviders) {
 		return new LazyClientRegistrationRepository(() -> {
-			List<ClientRegistration> registrations = new ArrayList<>(
-				new OAuth2ClientPropertiesMapper(properties).asClientRegistrations().values());
+			List<ClientRegistration> registrations = loginProviders.configured().stream()
+				.map(LoginProviders.Provider::toClientRegistration)
+				.toList();
+			if (registrations.isEmpty()) {
+				// InMemoryClientRegistrationRepository rejects an empty list.
+				return registrationId -> null;
+			}
 			return new InMemoryClientRegistrationRepository(registrations);
 		}, devmode);
 	}

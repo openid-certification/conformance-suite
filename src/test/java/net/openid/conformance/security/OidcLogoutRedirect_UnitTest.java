@@ -246,9 +246,8 @@ public class OidcLogoutRedirect_UnitTest {
 
 		@Bean
 		public ClientRegistrationRepository clientRegistrationRepository() {
-			// Overrides the config's properties-driven bean: an empty
-			// OAuth2ClientProperties would make InMemoryClientRegistrationRepository
-			// reject its empty registration list at refresh time. The "idp"
+			// Overrides the config's LoginProviders-driven bean, whose
+			// registrations would need discovery documents. The "idp"
 			// registration is the provider logout is propagated to; looking up
 			// UNREACHABLE_REGISTRATION_ID fails the way the lazy repository does
 			// while a provider's discovery document cannot be fetched.
