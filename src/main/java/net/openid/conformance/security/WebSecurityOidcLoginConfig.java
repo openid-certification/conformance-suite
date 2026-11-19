@@ -35,7 +35,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
@@ -70,8 +69,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Configuration
 @Order(2)
@@ -120,23 +121,17 @@ class WebSecurityOidcLoginConfig {
 	private TestPlanService planService;
 
 	/**
-	 * One registration per configured login provider. Resolved lazily: building a
-	 * registration fetches the provider's discovery document, and doing it here would
-	 * mean the suite cannot start while any of them is briefly unreachable. See
+	 * One registration per configured login provider, each resolved lazily and on
+	 * its own: building a registration fetches the provider's discovery document,
+	 * and doing it eagerly would mean the suite cannot start, nor anyone log in,
+	 * while any one provider is briefly unreachable. See
 	 * LazyClientRegistrationRepository.
 	 */
 	@Bean
 	public ClientRegistrationRepository clientRegistrationRepository(LoginProviders loginProviders) {
-		return new LazyClientRegistrationRepository(() -> {
-			List<ClientRegistration> registrations = loginProviders.configured().stream()
-				.map(LoginProviders.Provider::toClientRegistration)
-				.toList();
-			if (registrations.isEmpty()) {
-				// InMemoryClientRegistrationRepository rejects an empty list.
-				return registrationId -> null;
-			}
-			return new InMemoryClientRegistrationRepository(registrations);
-		}, devmode);
+		Map<String, Supplier<ClientRegistration>> registrations = loginProviders.configured().stream()
+			.collect(Collectors.toMap(LoginProviders.Provider::id, provider -> provider::toClientRegistration));
+		return new LazyClientRegistrationRepository(registrations, devmode);
 	}
 
 	@Bean
