@@ -1,6 +1,7 @@
 package net.openid.conformance.fapiciba.rp;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.as.ValidateClientAssertionAudClaimIsIssuerOnly;
 import net.openid.conformance.condition.as.ValidateClientAssertionSignature;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
@@ -13,5 +14,6 @@ public class BackchannelValidateClientAuthenticationWithPrivateKeyJWT extends Ab
 		callAndContinueOnFailure(BackchannelEnsureClientAssertionTypeIsJwt.class, Condition.ConditionResult.FAILURE, "RFC7523-2.2");
 		callAndContinueOnFailure(ValidateClientAssertionClaimsForBackchannelEndpoint.class, Condition.ConditionResult.FAILURE,
 			"RFC7523-3", "OIDCC-9", "CIBA-7.1");
+		callAndContinueOnFailure(ValidateClientAssertionAudClaimIsIssuerOnly.class, Condition.ConditionResult.WARNING, "CIBA-7.1");
 	}
 }
