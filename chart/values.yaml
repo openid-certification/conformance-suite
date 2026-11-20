@@ -12,9 +12,9 @@ application:
   env_slug: ""
   path_slug: ""
 # The OpenID Provider the suite trusts (oidc.idp.* in application.properties,
-# which has no defaults). iss is required by the template. acceptApiTokens makes
-# the API accept the IdP's access tokens as bearer tokens; apiAudience is then
-# required too and must match the 'aud' the IdP puts in access tokens for this API.
+# which has no defaults). acceptApiTokens makes the API accept the IdP's access
+# tokens as bearer tokens; the template then requires iss and apiAudience, and
+# apiAudience must match the 'aud' the IdP puts in access tokens for this API.
 idp:
   iss: https://openid.net/auth
   acceptApiTokens: false
