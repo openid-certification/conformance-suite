@@ -1,5 +1,16 @@
 [
     {
+        "test-name": "fapi-ciba-id1-client-*",
+        "variant": {
+            "client_auth_type": "private_key_jwt"
+        },
+        "configuration-filename": "*",
+        "current-block": "*",
+        "condition": "ValidateClientAssertionAudClaimIsIssuerOnly",
+        "expected-result": "warning",
+        "comment": "The paired OP test's emulated client sends the backchannel authentication endpoint URL or the token endpoint URL as the client assertion aud, which CIBA Core Final permits; the RP test warns that RFC 10070 requires the issuer as the only value."
+    },
+    {
         "test-name": "fapi-ciba-id1-client-test",
         "variant": {
             "client_auth_type": "private_key_jwt",

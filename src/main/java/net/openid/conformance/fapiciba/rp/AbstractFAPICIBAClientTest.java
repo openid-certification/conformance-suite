@@ -46,6 +46,7 @@ import net.openid.conformance.condition.as.GenerateIdTokenClaimsWith181DayExp;
 import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SetRsaAltServerJwks;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
+import net.openid.conformance.condition.as.ValidateClientAssertionAudClaimIsIssuerOnly;
 import net.openid.conformance.condition.as.ValidateFAPIInteractionIdInResourceRequest;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
@@ -528,6 +529,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		checkMtlsCertificate();
 		call(sequence(validateTokenEndpointClientAuthenticationSteps));
+		if (clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
+			callAndContinueOnFailure(ValidateClientAssertionAudClaimIsIssuerOnly.class, ConditionResult.WARNING, "RFC10070-4");
+		}
 
 		return handleTokenEndpointGrantType();
 	}
