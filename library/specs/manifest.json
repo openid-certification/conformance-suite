@@ -661,6 +661,22 @@
         }
       ]
     },
+    "rfc10070": {
+      "link_url": "https://www.rfc-editor.org/rfc/rfc10070.html",
+      "prefixes": [
+        "RFC10070-"
+      ],
+      "versions": [
+        {
+          "fetched": "2026-11-20",
+          "file": "ietf/rfc10070.txt",
+          "role": "linked",
+          "sha256": "bca193c44b10f864396706e29192a091256d9c15a66c1549b01e75866165e163",
+          "source_format": "txt",
+          "source_url": "https://www.rfc-editor.org/rfc/rfc10070.txt"
+        }
+      ]
+    },
     "rfc2585": {
       "link_url": "https://tools.ietf.org/html/rfc2585",
       "prefixes": [
