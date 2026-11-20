@@ -99,18 +99,25 @@ public final class IdpJwtDecoder implements JwtDecoder {
 	/**
 	 * Does not contact the IdP: its discovery document is fetched on first use.
 	 *
-	 * @throws IllegalStateException if the issuer is set without an API audience, or
+	 * @throws IllegalStateException if the issuer or the API audience is not set, or
 	 *                               the signing algorithms are invalid, so that the
 	 *                               suite fails at startup rather than starting with
 	 *                               an IdP whose tokens it cannot check
 	 */
 	public static IdpJwtDecoder forIssuer(IdpProperties idp) {
 		String issuer = idp.iss();
+		if (issuer == null || issuer.isBlank()) {
+			throw new IllegalStateException("oidc.idp.accept-api-tokens (environment variable"
+				+ " OIDC_IDP_ACCEPT_API_TOKENS) is true but oidc.idp.iss (OIDC_IDP_ISS) is not set. Set it to the"
+				+ " issuer of the IdP whose access tokens the API accepts, or set oidc.idp.accept-api-tokens to"
+				+ " false to accept no IdP access tokens.");
+		}
 		String audience = idp.apiAudience();
 		if (audience == null || audience.isBlank()) {
 			throw new IllegalStateException("oidc.idp.api-audience (environment variable OIDC_IDP_API_AUDIENCE) is"
 				+ " not set. Set it to the audience the IdP " + issuer + " puts in the 'aud' claim of access"
-				+ " tokens for this API, or unset oidc.idp.iss (OIDC_IDP_ISS) to accept no IdP access tokens.");
+				+ " tokens for this API, or set oidc.idp.accept-api-tokens (OIDC_IDP_ACCEPT_API_TOKENS) to false"
+				+ " to accept no IdP access tokens.");
 		}
 		List<SignatureAlgorithm> algorithms = IdpJwsAlgorithms.parse(idp.accessTokenSigningAlgs());
 		return new IdpJwtDecoder(issuer, () -> buildDelegate(issuer, audience, algorithms), System::nanoTime,

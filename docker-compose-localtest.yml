@@ -91,6 +91,7 @@ services:
        --fintechlabs.devmode=$$DEVMODE
        --fintechlabs.startredir=true
        --oidc.idp.iss=${OIDC_IDP_ISS:-https://openid.net/auth}
+       --oidc.idp.accept-api-tokens=${OIDC_IDP_ACCEPT_API_TOKENS:-true}
        --oidc.idp.api-audience=${OIDC_IDP_API_AUDIENCE:-conformance-suite-api}
        --oidc.idp.admin-role=${OIDC_IDP_ADMIN_ROLE:-conformance-admin}
     links:

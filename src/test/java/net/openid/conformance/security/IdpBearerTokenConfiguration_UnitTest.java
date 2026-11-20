@@ -5,11 +5,11 @@ import net.openid.conformance.sharing.privatelink.ShareJwtBearerAuthenticationPr
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.env.MockEnvironment;
@@ -20,8 +20,9 @@ import org.springframework.web.context.support.AnnotationConfigWebApplicationCon
 
 /**
  * oidc.idp.* is optional and has no defaults, so that a deployment does not trust
- * an IdP nobody chose: without an issuer the API accepts no IdP tokens. An issuer
- * without an API audience stops startup.
+ * an IdP nobody chose. The API accepts IdP tokens only when
+ * oidc.idp.accept-api-tokens is true, not merely because an issuer is set; turning
+ * it on without an issuer or an API audience stops startup.
  */
 public class IdpBearerTokenConfiguration_UnitTest {
 
@@ -29,7 +30,7 @@ public class IdpBearerTokenConfiguration_UnitTest {
 	@EnableConfigurationProperties(IdpProperties.class)
 	static class ConditionalBeanConfig {
 		@Bean
-		@Conditional(WebSecurityResourceServerConfig.IdpIssuerConfigured.class)
+		@ConditionalOnProperty(name = IdpProperties.ACCEPT_API_TOKENS_PROPERTY, havingValue = "true")
 		String idpProvider() {
 			return "provider";
 		}
@@ -44,17 +45,21 @@ public class IdpBearerTokenConfiguration_UnitTest {
 		.withUserConfiguration(ConditionalBeanConfig.class);
 
 	@Test
-	public void without_an_issuer_the_provider_is_not_defined() {
+	public void an_issuer_alone_does_not_define_the_provider() {
 		contextRunner.run(context -> Assertions.assertFalse(context.containsBean("idpProvider")));
-		contextRunner.withPropertyValues("oidc.idp.iss=", "oidc.idp.api-audience=conformance-suite-api")
+		contextRunner.withPropertyValues("oidc.idp.iss=https://idp.example.com",
+				"oidc.idp.api-audience=conformance-suite-api")
 			.run(context -> Assertions.assertFalse(context.containsBean("idpProvider")));
-		contextRunner.withPropertyValues("oidc.idp.iss=  ")
-			.run(context -> Assertions.assertFalse(context.containsBean("idpProvider")));
+		for (String value : new String[] {"false", "", "  ", "yes"}) {
+			contextRunner.withPropertyValues("oidc.idp.iss=https://idp.example.com",
+					"oidc.idp.accept-api-tokens=" + value)
+				.run(context -> Assertions.assertFalse(context.containsBean("idpProvider"), "'" + value + "'"));
+		}
 	}
 
 	@Test
-	public void with_an_issuer_the_provider_is_defined() {
-		contextRunner.withPropertyValues("oidc.idp.iss=https://idp.example.com")
+	public void accepting_api_tokens_defines_the_provider() {
+		contextRunner.withPropertyValues("oidc.idp.iss=https://idp.example.com", "oidc.idp.accept-api-tokens=true")
 			.run(context -> Assertions.assertTrue(context.containsBean("idpProvider")));
 	}
 
@@ -97,23 +102,51 @@ public class IdpBearerTokenConfiguration_UnitTest {
 		}
 	}
 
+	private static AnnotationConfigWebApplicationContext resourceServerContext(MockEnvironment environment) {
+		var context = new AnnotationConfigWebApplicationContext();
+		context.setServletContext(new MockServletContext());
+		context.setEnvironment(environment);
+		context.register(ResourceServerConfig.class);
+		return context;
+	}
+
 	/**
-	 * With an issuer the real resource-server configuration defines the IdP decoder
-	 * and provider. Building them must not contact the IdP: port 1 on the loopback
-	 * address refuses connections.
+	 * When IdP tokens are accepted the real resource-server configuration defines
+	 * the IdP decoder and provider. Building them must not contact the IdP: port 1
+	 * on the loopback address refuses connections.
 	 */
 	@Test
-	public void the_resource_server_configuration_starts_with_an_issuer() {
-		try (var context = new AnnotationConfigWebApplicationContext()) {
-			context.setServletContext(new MockServletContext());
-			context.setEnvironment(new MockEnvironment()
+	public void the_resource_server_configuration_starts_when_accepting_api_tokens() {
+		try (var context = resourceServerContext(new MockEnvironment()
 				.withProperty("oidc.idp.iss", "http://127.0.0.1:1")
-				.withProperty("oidc.idp.api-audience", "conformance-suite-api"));
-			context.register(ResourceServerConfig.class);
+				.withProperty("oidc.idp.api-audience", "conformance-suite-api")
+				.withProperty("oidc.idp.accept-api-tokens", "true"))) {
 			context.refresh();
 
 			Assertions.assertNotNull(context.getBean(IdpJwtDecoder.class));
 			Assertions.assertNotNull(context.getBean(JwtAuthenticationProvider.class));
+		}
+	}
+
+	/** An issuer that is set only for browser logins leaves the API closed to its tokens. */
+	@Test
+	public void the_resource_server_configuration_has_no_idp_provider_for_an_issuer_alone() {
+		try (var context = resourceServerContext(new MockEnvironment()
+				.withProperty("oidc.idp.iss", "http://127.0.0.1:1"))) {
+			context.refresh();
+
+			Assertions.assertTrue(context.getBeansOfType(IdpJwtDecoder.class).isEmpty());
+			Assertions.assertTrue(context.getBeansOfType(JwtAuthenticationProvider.class).isEmpty());
+		}
+	}
+
+	@Test
+	public void accepting_api_tokens_without_an_issuer_does_not_start() {
+		for (String issuer : new String[] {null, "", " "}) {
+			IllegalStateException e = Assertions.assertThrows(IllegalStateException.class,
+				() -> IdpJwtDecoder.forIssuer(new IdpProperties(issuer, "conformance-suite-api", "")));
+
+			Assertions.assertTrue(e.getMessage().contains("OIDC_IDP_ISS"), e.getMessage());
 		}
 	}
 

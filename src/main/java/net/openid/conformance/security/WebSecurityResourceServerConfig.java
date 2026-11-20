@@ -9,16 +9,13 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
-import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
@@ -59,35 +56,23 @@ public class WebSecurityResourceServerConfig {
 
 	/**
 	 * Verifies access tokens from the IdP configured in {@code oidc.idp.*}. Only
-	 * defined when {@code oidc.idp.iss} is set; without it the API accepts only the
-	 * suite's own API tokens and share links. Read from {@code oidc.idp.*} directly,
-	 * not from a spring.security.oauth2.client registration, so that accepting the
-	 * IdP's tokens does not also enable browser login through it.
+	 * defined when {@code oidc.idp.accept-api-tokens} is true; otherwise the API
+	 * accepts only the suite's own API tokens and share links, whether or not
+	 * {@code oidc.idp.iss} is set. Read from {@code oidc.idp.*} directly, not from a
+	 * spring.security.oauth2.client registration, so that accepting the IdP's
+	 * tokens does not also enable browser login through it.
 	 */
 	@Bean
-	@Conditional(IdpIssuerConfigured.class)
+	@ConditionalOnProperty(name = IdpProperties.ACCEPT_API_TOKENS_PROPERTY, havingValue = "true")
 	public IdpJwtDecoder idpJwtDecoder(IdpProperties idp) {
 		return IdpJwtDecoder.forIssuer(idp);
 	}
 
 	@Bean
-	@Conditional(IdpIssuerConfigured.class)
+	@ConditionalOnProperty(name = IdpProperties.ACCEPT_API_TOKENS_PROPERTY, havingValue = "true")
 	public JwtAuthenticationProvider idpJwtAuthenticationProvider(IdpJwtDecoder idpJwtDecoder,
 		RolesAuthoritiesConverter authoritiesConverter) {
 		return createIdpJwtAuthenticationProvider(idpJwtDecoder, authoritiesConverter);
-	}
-
-	/**
-	 * Matches when {@code oidc.idp.iss} is non-blank. Not
-	 * {@code @ConditionalOnProperty}, which also matches an empty value, and
-	 * application.properties maps an unset OIDC_IDP_ISS to an empty one.
-	 */
-	static final class IdpIssuerConfigured implements Condition {
-		@Override
-		public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-			String issuer = context.getEnvironment().getProperty(IdpProperties.ISSUER_PROPERTY);
-			return issuer != null && !issuer.isBlank();
-		}
 	}
 
 	static JwtAuthenticationProvider createIdpJwtAuthenticationProvider(JwtDecoder idpJwtDecoder, RolesAuthoritiesConverter authoritiesConverter) {
@@ -182,8 +167,8 @@ public class WebSecurityResourceServerConfig {
 				if (idpProvider != null) {
 					providers.add(idpProvider);
 				} else {
-					logger.info("{} is not set: the API does not accept access tokens issued by an IdP",
-						IdpProperties.ISSUER_PROPERTY);
+					logger.info("{} is not true: the API does not accept access tokens issued by an IdP",
+						IdpProperties.ACCEPT_API_TOKENS_PROPERTY);
 				}
 
 				opaqueTokenConfigurer.authenticationManager(new ProviderManager(providers));

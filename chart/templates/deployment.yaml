@@ -47,8 +47,12 @@ spec:
           value: {{ .Values.service.mtls | quote }}
         - name: OIDC_IDP_ISS
           value: {{ required "idp.iss must be set: the suite does not start without the IdP issuer" .Values.idp.iss | quote }}
+        - name: OIDC_IDP_ACCEPT_API_TOKENS
+          value: {{ .Values.idp.acceptApiTokens | default false | quote }}
+        {{- if .Values.idp.acceptApiTokens }}
         - name: OIDC_IDP_API_AUDIENCE
-          value: {{ required "idp.apiAudience must be set: the suite does not start without the API audience" .Values.idp.apiAudience | quote }}
+          value: {{ required "idp.apiAudience must be set when idp.acceptApiTokens is true: the suite does not start without the API audience" .Values.idp.apiAudience | quote }}
+        {{- end }}
         - name: OIDC_IDP_ADMIN_ROLE
           value: {{ .Values.idp.adminRole | quote }}
         - name: MONGODB_HOST
