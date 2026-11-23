@@ -37,7 +37,7 @@
 		<htmlunit.version>5.6.0</htmlunit.version>
 		<selenium.version>4.51.0</selenium.version>
 		<selenium-htmlunit.version>4.51.0</selenium-htmlunit.version>
-		<playwright.version>1.62.0</playwright.version>
+		<playwright.version>1.65.1</playwright.version>
 	</properties>
 
 	<dependencies>
