@@ -5,7 +5,11 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.frontchannel.PlaywrightBrowserRunner.TraceMode;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class PlaywrightBrowserRunner_UnitTest {
 
@@ -64,44 +68,57 @@ public class PlaywrightBrowserRunner_UnitTest {
 	}
 
 	@Test
-	public void settingsAreReadFromSystemProperties() {
-		String[] names = {"browser.playwright.type", "browser.playwright.headless", "browser.playwright.slowMo",
-			"browser.playwright.sharedBrowser", "browser.playwright.extraHttpHeaders", "browser.playwright.traceEnabled",
-			"browser.playwright.tracesDir"};
-		try {
-			PlaywrightBrowserRunner.Settings defaults = PlaywrightBrowserRunner.Settings.fromSystemProperties();
-			assertThat(defaults.browserType()).isEqualTo("chromium");
-			assertThat(defaults.headless()).isTrue();
-			assertThat(defaults.slowMo()).isZero();
-			assertThat(defaults.sharedBrowser()).isTrue();
-			assertThat(defaults.extraHttpHeaders()).isEmpty();
-			assertThat(defaults.traceMode()).isEqualTo(TraceMode.OFF);
-			assertThat(defaults.tracesDir()).isEmpty();
+	public void settingsDefaultWhenNothingIsConfigured() {
+		PlaywrightBrowserRunner.Settings defaults = PlaywrightBrowserRunner.Settings.from(name -> null);
 
-			System.setProperty("browser.playwright.type", "Firefox");
-			System.setProperty("browser.playwright.headless", "false");
-			System.setProperty("browser.playwright.slowMo", "250");
-			System.setProperty("browser.playwright.sharedBrowser", "false");
-			System.setProperty("browser.playwright.extraHttpHeaders", "{\"X-Test\": \"1\", \"ngrok-skip-browser-warning\": \"yes\"}");
-			System.setProperty("browser.playwright.traceEnabled", "on-failure");
-			System.setProperty("browser.playwright.tracesDir", "/tmp/traces");
+		assertThat(defaults.browserType()).isEqualTo("chromium");
+		assertThat(defaults.headless()).isTrue();
+		assertThat(defaults.slowMo()).isZero();
+		assertThat(defaults.sharedBrowser()).isTrue();
+		assertThat(defaults.extraHttpHeaders()).isEmpty();
+		assertThat(defaults.traceMode()).isEqualTo(TraceMode.OFF);
+		assertThat(defaults.tracesDir()).isEmpty();
+	}
 
-			PlaywrightBrowserRunner.Settings configured = PlaywrightBrowserRunner.Settings.fromSystemProperties();
-			assertThat(configured.browserType()).isEqualTo("firefox");
-			assertThat(configured.headless()).isFalse();
-			assertThat(configured.slowMo()).isEqualTo(250);
-			assertThat(configured.sharedBrowser()).isFalse();
-			assertThat(configured.extraHttpHeaders()).containsExactlyInAnyOrderEntriesOf(
-				java.util.Map.of("X-Test", "1", "ngrok-skip-browser-warning", "yes"));
-			assertThat(configured.traceMode()).isEqualTo(TraceMode.ON_FAILURE);
-			assertThat(configured.tracesDir()).isEqualTo("/tmp/traces");
+	@Test
+	public void settingsAreReadByTheirFullNames() {
+		Map<String, String> configured = new HashMap<>(Map.of(
+			"browser.playwright.type", "Firefox",
+			"browser.playwright.headless", "false",
+			"browser.playwright.slowMo", "250",
+			"browser.playwright.sharedBrowser", "false",
+			"browser.playwright.extraHttpHeaders", "{\"X-Test\": \"1\", \"ngrok-skip-browser-warning\": \"yes\"}",
+			"browser.playwright.traceEnabled", "on-failure",
+			"browser.playwright.tracesDir", "/tmp/traces"));
 
-			System.setProperty("browser.playwright.extraHttpHeaders", "not json");
-			assertThat(PlaywrightBrowserRunner.Settings.fromSystemProperties().extraHttpHeaders()).isEmpty();
-		} finally {
-			for (String name : names) {
-				System.clearProperty(name);
-			}
-		}
+		PlaywrightBrowserRunner.Settings settings = PlaywrightBrowserRunner.Settings.from(configured::get);
+
+		assertThat(settings.browserType()).isEqualTo("firefox");
+		assertThat(settings.headless()).isFalse();
+		assertThat(settings.slowMo()).isEqualTo(250);
+		assertThat(settings.sharedBrowser()).isFalse();
+		assertThat(settings.extraHttpHeaders()).containsExactlyInAnyOrderEntriesOf(
+			Map.of("X-Test", "1", "ngrok-skip-browser-warning", "yes"));
+		assertThat(settings.traceMode()).isEqualTo(TraceMode.ON_FAILURE);
+		assertThat(settings.tracesDir()).isEqualTo("/tmp/traces");
+
+		configured.put("browser.playwright.extraHttpHeaders", "not json");
+		assertThat(PlaywrightBrowserRunner.Settings.from(configured::get).extraHttpHeaders()).isEmpty();
+	}
+
+	@Test
+	public void browserSettingsDefaultToSeleniumAndRejectAnUnknownEngine() {
+		assertThat(new BrowserSettings(name -> null).engine()).isEqualTo(BrowserSettings.ENGINE_SELENIUM);
+		assertThat(new BrowserSettings(name -> null).isPlaywright()).isFalse();
+
+		BrowserSettings playwright = new BrowserSettings(Map.of(
+			"browser.engine", "Playwright",
+			"browser.playwright.tracesDir", "/tmp/traces")::get);
+		assertThat(playwright.isPlaywright()).isTrue();
+		assertThat(playwright.tracesDir()).isEqualTo("/tmp/traces");
+
+		assertThatThrownBy(() -> new BrowserSettings(Map.of("browser.engine", "netscape")::get))
+			.isInstanceOf(IllegalStateException.class)
+			.hasMessageContaining("netscape");
 	}
 }

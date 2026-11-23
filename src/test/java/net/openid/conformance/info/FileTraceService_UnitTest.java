@@ -1,8 +1,8 @@
 package net.openid.conformance.info;
 
+import net.openid.conformance.frontchannel.BrowserSettings;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -17,9 +17,7 @@ public class FileTraceService_UnitTest {
 	Path tracesDir;
 
 	private FileTraceService service(String dir) {
-		FileTraceService service = new FileTraceService();
-		ReflectionTestUtils.setField(service, "tracesDir", dir);
-		return service;
+		return new FileTraceService(new BrowserSettings(name -> "browser.playwright.tracesDir".equals(name) ? dir : null));
 	}
 
 	@Test

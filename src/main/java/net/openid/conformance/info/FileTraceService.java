@@ -1,9 +1,9 @@
 package net.openid.conformance.info;
 
 import com.google.common.base.Strings;
+import net.openid.conformance.frontchannel.BrowserSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -25,8 +25,11 @@ public class FileTraceService implements TraceService {
 	// crafted id and must not be turned into a path
 	private static final Pattern TEST_ID = Pattern.compile("[A-Za-z0-9]+");
 
-	@Value("${browser.playwright.tracesDir:}")
-	private String tracesDir;
+	private final String tracesDir;
+
+	public FileTraceService(BrowserSettings browserSettings) {
+		this.tracesDir = browserSettings.tracesDir();
+	}
 
 	@Override
 	public Optional<byte[]> getTraceForTestId(String testId) {

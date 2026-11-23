@@ -66,7 +66,9 @@ The app runs at `https://localhost.emobix.co.uk:8443` (regular) and `:8444` (mTL
 
 The scripted browser that runs a test config's `"browser"` automation block (`BrowserControl` in
 `frontchannel/`) has two engines behind the `BrowserRunner` interface, selected per JVM with
-`-Dbrowser.engine=`:
+`-Dbrowser.engine=`. This and the `browser.playwright.*` settings below are ordinary Spring properties held by
+the `BrowserSettings` bean, so `-D`, `--browser.engine=...`, an environment variable or `application.properties`
+all work, and everything that needs a setting takes it from that bean:
 
 - `selenium` (default) — headless HtmlUnit via Selenium (`SeleniumBrowserRunner`)
 - `playwright` — a real Chromium/Firefox/WebKit via Playwright (`PlaywrightBrowserRunner`); tune with

@@ -18,7 +18,6 @@ import org.springframework.util.PatternMatchUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -30,7 +29,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * handed to a scripted browser ({@link BrowserRunner}) when the test configuration's "browser"
  * block has a matching entry, or exposed to the user for manual interaction.
  *
- * <p>The scripted browser engine is selected with the {@code browser.engine} system property:
+ * <p>The scripted browser engine is selected with the {@code browser.engine} setting ({@link BrowserSettings}):
  * {@code selenium} (default, headless HtmlUnit driven through Selenium, see
  * {@link SeleniumBrowserRunner}) or {@code playwright} (a real Chromium/Firefox/WebKit, see
  * {@link PlaywrightBrowserRunner} and its {@code browser.playwright.*} settings).
@@ -78,8 +77,6 @@ public class BrowserControl implements DataUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(BrowserControl.class);
 
-	public static final String ENGINE_SELENIUM = "selenium";
-	public static final String ENGINE_PLAYWRIGHT = "playwright";
 
 	private String testId;
 
@@ -88,7 +85,7 @@ public class BrowserControl implements DataUtils {
 	private boolean verboseLogging;
 	private boolean showQrCodes = false;
 	private boolean cssParsingEnabled = true;
-	private final String engine;
+	private final BrowserSettings settings;
 
 	private List<String> urls = new ArrayList<>();
 	private List<UrlWithMethod> urlsWithMethod = new ArrayList<>();
@@ -110,8 +107,10 @@ public class BrowserControl implements DataUtils {
 	private CookieManager cookieManager = new CookieManager(); // HtmlUnit
 	private volatile String playwrightStorageState; // Playwright: BrowserContext.storageState() JSON
 
-	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog, TestExecutionManager executionManager, ImageService imageService) {
+	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog, TestExecutionManager executionManager,
+						ImageService imageService, BrowserSettings settings) {
 		this.testId = testId;
+		this.settings = settings;
 		this.eventLog = eventLog;
 		this.executionManager = executionManager;
 		this.imageService = imageService;
@@ -135,24 +134,19 @@ public class BrowserControl implements DataUtils {
 				this.cssParsingEnabled = OIDFJSON.getBoolean(cssEnable);
 			}
 		}
-
-		this.engine = System.getProperty("browser.engine", ENGINE_SELENIUM).toLowerCase(Locale.ROOT);
-		if (!engine.equals(ENGINE_SELENIUM) && !engine.equals(ENGINE_PLAYWRIGHT)) {
-			throw new IllegalStateException("Unsupported browser.engine '" + engine + "', expected "
-				+ ENGINE_SELENIUM + " or " + ENGINE_PLAYWRIGHT);
-		}
 	}
 
 	/**
-	 * The scripted browser engine in use, {@link #ENGINE_SELENIUM} or {@link #ENGINE_PLAYWRIGHT}.
+	 * The scripted browser engine in use, {@link BrowserSettings#ENGINE_SELENIUM} or
+	 * {@link BrowserSettings#ENGINE_PLAYWRIGHT}.
 	 */
 	public String getEngine() {
-		return engine;
+		return settings.engine();
 	}
 
 	private BrowserRunner createRunner(BrowserVisit visit) {
-		if (engine.equals(ENGINE_PLAYWRIGHT)) {
-			return new PlaywrightBrowserRunner(this, testId, eventLog, PlaywrightBrowserRunner.Settings.fromSystemProperties(), visit);
+		if (settings.isPlaywright()) {
+			return new PlaywrightBrowserRunner(this, testId, eventLog, settings.playwright(), visit);
 		}
 		return new SeleniumBrowserRunner(this, testId, eventLog, cookieManager, verboseLogging, cssParsingEnabled, visit);
 	}
@@ -235,7 +229,7 @@ public class BrowserControl implements DataUtils {
 					runners.remove(wr);
 					throw e;
 				}
-				logger.debug(testId + ": " + engine + " BrowserRunner submitted to task executor for: " + url);
+				logger.debug(testId + ": " + settings.engine() + " BrowserRunner submitted to task executor for: " + url);
 
 				return;
 			}

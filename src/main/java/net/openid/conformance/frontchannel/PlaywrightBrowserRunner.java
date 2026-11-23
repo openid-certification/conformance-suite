@@ -52,6 +52,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import java.util.function.Function;
 
 /**
  * A {@link BrowserRunner} driving a real browser engine (Chromium, Firefox or WebKit) through
@@ -1087,7 +1088,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	}
 
 	/**
-	 * Engine settings, read once per runner from these system properties:
+	 * Engine settings, held by {@link BrowserSettings}:
 	 * <ul>
 	 * <li>{@code browser.playwright.type} – chromium (default), firefox or webkit</li>
 	 * <li>{@code browser.playwright.headless} – default true</li>
@@ -1103,15 +1104,23 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	record Settings(String browserType, boolean headless, int slowMo, boolean sharedBrowser, Map<String, String> extraHttpHeaders,
 					TraceMode traceMode, String tracesDir) {
 
-		static Settings fromSystemProperties() {
+		/**
+		 * @param lookup the value of a setting by its full name, or null if it is not set
+		 */
+		static Settings from(Function<String, String> lookup) {
+			Function<String, String> setting = name -> lookup.apply("browser.playwright." + name);
 			return new Settings(
-				System.getProperty("browser.playwright.type", "chromium").toLowerCase(Locale.ROOT),
-				Boolean.parseBoolean(System.getProperty("browser.playwright.headless", "true")),
-				Integer.parseInt(System.getProperty("browser.playwright.slowMo", "0")),
-				Boolean.parseBoolean(System.getProperty("browser.playwright.sharedBrowser", "true")),
-				parseExtraHttpHeaders(System.getProperty("browser.playwright.extraHttpHeaders", "")),
-				TraceMode.parse(System.getProperty("browser.playwright.traceEnabled", "false")),
-				System.getProperty("browser.playwright.tracesDir", ""));
+				valueOr(setting.apply("type"), "chromium").toLowerCase(Locale.ROOT),
+				Boolean.parseBoolean(valueOr(setting.apply("headless"), "true")),
+				Integer.parseInt(valueOr(setting.apply("slowMo"), "0")),
+				Boolean.parseBoolean(valueOr(setting.apply("sharedBrowser"), "true")),
+				parseExtraHttpHeaders(setting.apply("extraHttpHeaders")),
+				TraceMode.parse(valueOr(setting.apply("traceEnabled"), "false")),
+				valueOr(setting.apply("tracesDir"), ""));
+		}
+
+		private static String valueOr(String value, String defaultValue) {
+			return value == null ? defaultValue : value;
 		}
 
 		private static Map<String, String> parseExtraHttpHeaders(String json) {

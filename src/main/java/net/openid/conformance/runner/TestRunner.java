@@ -20,6 +20,7 @@ import net.openid.conformance.apidoc.WaitStateReached;
 import net.openid.conformance.apidoc.WaitStateTimeout;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.frontchannel.BrowserControl;
+import net.openid.conformance.frontchannel.BrowserSettings;
 import net.openid.conformance.info.ImageService;
 import net.openid.conformance.info.Plan;
 import net.openid.conformance.info.SavedConfigurationService;
@@ -138,6 +139,9 @@ public class TestRunner implements DataUtils {
 
 	@Autowired
 	private ImageService imageService;
+
+	@Autowired
+	private BrowserSettings browserSettings;
 
 	@Autowired
 	private SavedConfigurationService savedConfigurationService;
@@ -805,7 +809,7 @@ public class TestRunner implements DataUtils {
 		TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);
 
 		TestExecutionManager executionManager = new TestExecutionManager(id, executorCompletionService, authenticationFacade, support);
-		BrowserControl browser = new BrowserControl(config, id, wrappedEventLog, executionManager, imageService);
+		BrowserControl browser = new BrowserControl(config, id, wrappedEventLog, executionManager, imageService, browserSettings);
 
 		// When running as part of a test plan, pass the plan's combined parameters so that
 		// modules can access variant values declared by sibling modules in the plan

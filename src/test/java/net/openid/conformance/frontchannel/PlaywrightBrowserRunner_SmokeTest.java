@@ -176,7 +176,7 @@ public class PlaywrightBrowserRunner_SmokeTest {
 		server.start();
 
 		eventLog = BsonEncoding.testInstanceEventLog();
-		browserControl = new BrowserControl(new JsonObject(), TEST_ID, eventLog, null, null);
+		browserControl = new BrowserControl(new JsonObject(), TEST_ID, eventLog, null, null, new BrowserSettings(name -> null));
 	}
 
 	@AfterEach
@@ -217,7 +217,7 @@ public class PlaywrightBrowserRunner_SmokeTest {
 		String endpoint = PlaywrightBrowserServer.endpoint(settings());
 
 		// ...which a runner of another test (another BrowserControl) in the same browser must not see
-		BrowserControl otherTest = new BrowserControl(new JsonObject(), "PWSMOKE2", eventLog, null, null);
+		BrowserControl otherTest = new BrowserControl(new JsonObject(), "PWSMOKE2", eventLog, null, null, new BrowserSettings(name -> null));
 		JsonArray tasks = JsonParser.parseString("""
 			[{"task": "Check", "commands": [["wait", "css", "#result", 5, "^anonymous$"]]}]""").getAsJsonArray();
 		new PlaywrightBrowserRunner(otherTest, "PWSMOKE2", eventLog, settings(),
