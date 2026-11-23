@@ -34,7 +34,7 @@ import java.util.Date;
 
 /**
  * Which algorithms an ID token may be signed with depends on the login
- * registration: the "idp" registration accepts each of IdpJwsAlgorithms.ID_TOKEN,
+ * registration: the "idp" registration accepts each of IdTokenDecoderFactory.IDP_ALGORITHMS,
  * every other registration only RS256.
  */
 public class IdTokenDecoderFactory_UnitTest {

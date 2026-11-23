@@ -1,10 +1,8 @@
 package net.openid.conformance.security.idp;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -14,18 +12,13 @@ import java.util.Set;
 /**
  * Grants ROLE_USER to every IdP-authenticated principal, and ROLE_ADMIN to those
  * whose "roles" claim contains the configured admin role. A blank admin role grants
- * nobody admin. Applied to the IdP's access tokens on the API and to its ID tokens
- * on a browser login.
+ * nobody admin. Applied to the IdP's ID tokens on a browser login.
  * <p>
- * The claim is read through the untyped {@code getClaim} rather than
- * {@code Jwt#getClaimAsStringList}: an IdP is free to send "roles" as something
- * other than a JSON array, and that must grant no admin rather than fail the
- * request. The typed accessor throws IllegalArgumentException when the claim will
- * not convert, which is not an AuthenticationException and would surface as a 500
- * instead of a 401.
+ * The claim is taken untyped: an IdP is free to send "roles" as something other
+ * than a JSON array, and that must grant no admin rather than fail the login.
  */
 @Component
-public class RolesAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
+public class RolesAuthoritiesConverter {
 
 	public static final String ROLES_CLAIM = "roles";
 
@@ -38,14 +31,9 @@ public class RolesAuthoritiesConverter implements Converter<Jwt, Collection<Gran
 		this.adminRole = adminRole;
 	}
 
-	@Override
-	public Collection<GrantedAuthority> convert(Jwt jwt) {
-		return fromRolesClaim(jwt.getClaim(ROLES_CLAIM));
-	}
-
 	/**
-	 * @param rolesClaim the "roles" claim of a token the IdP issued, an access token
-	 *                   or an ID token; may be null or of any type
+	 * @param rolesClaim the "roles" claim of an ID token the IdP issued; may be null
+	 *                   or of any type
 	 */
 	public Collection<GrantedAuthority> fromRolesClaim(Object rolesClaim) {
 		Set<GrantedAuthority> authorities = new HashSet<>();

@@ -161,24 +161,6 @@ def generate_test_share_link(owner_client, base_url, test_id, exp_days="1"):
     return _extract_share_token(response)
 
 
-def _b64url(raw):
-    return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
-
-
-def forged_jwt(header, payload, signature=b"not-a-real-signature"):
-    """Build a structurally valid JWT that no IdP ever signed.
-
-    Used to drive the IdP JwtAuthenticationProvider down its rejection paths.
-    The segments are real base64url so parsing succeeds and the token reaches
-    signature verification -- "invalid only in the intended way".
-    """
-    return ".".join([
-        _b64url(json.dumps(header).encode()),
-        _b64url(json.dumps(payload).encode()),
-        _b64url(signature),
-    ])
-
-
 def bearer_client(base_url, jwt_token, verify_ssl):
     """Return an httpx.Client that sends the share JWT as Authorization: Bearer.
 
@@ -269,22 +251,6 @@ class TestRunner:
         actual = response.status_code
         self.check(name, actual in expected_statuses,
                    f"expected HTTP status in {expected_statuses}, got {actual}")
-
-    def check_rejected(self, name, response, expected_status=401):
-        """Assert a credential was refused *cleanly*.
-
-        A 5xx here means an exception escaped the authentication chain rather
-        than being turned into a refusal -- e.g. a claim converter throwing
-        IllegalArgumentException on an unexpected claim shape. That is a
-        distinct failure from "wrong status", so it is called out separately.
-        """
-        actual = response.status_code
-        if 500 <= actual < 600:
-            self.check(name, False,
-                       f"expected HTTP {expected_status}, got {actual} -- an exception escaped "
-                       f"the authentication chain instead of a clean rejection: {response.text[:200]}")
-            return
-        self.check(name, actual == expected_status, f"expected HTTP {expected_status}, got {actual}")
 
     def summary(self):
         total = len(self.results)
@@ -895,8 +861,7 @@ def run_tests():
 
     # Regression: the admin API token used throughout these tests is presented
     # as Authorization: Bearer and continues to work — this validates the
-    # three-provider chain order in WebSecurityResourceServerConfig (share JWT,
-    # opaque API token, then the IdP's JWTs).
+    # two-provider chain order in WebSecurityResourceServerConfig.
     api_token_bearer = bearer_client(base_url, token, verify_ssl)
     resp = api_token_bearer.get(f"{base_url}api/currentuser")
     runner.check_status("Bearer regression: opaque API token still authenticates", resp, 200)
@@ -965,87 +930,6 @@ def run_tests():
                               params={"states": "FINISHED", "timeoutMs": 1})
     runner.check_status_in("Wait-state: plan-share token cannot reach runner", resp, {401, 403})
     ws_plan_bearer.close()
-
-    # ===================================================================
-    # 2f. IdP-ISSUED JWT BEARER TOKENS
-    # ===================================================================
-    # The API filter chain gained a third authentication provider that verifies
-    # JWTs issued by the IdP against its JWKS. Every bearer token the first two
-    # providers do not recognise now reaches it, so anything a caller can put in
-    # an Authorization header must come back as a clean 401 -- never a 5xx, and
-    # never an accepted identity.
-    #
-    # None of these tokens is signed by the IdP, so none reaches the checks that
-    # follow signature verification (token type, audience, expiry, subject) or
-    # the roles->authorities converter, and a validly signed token cannot be
-    # shown to get 200 here: this script does not have the IdP's signing key.
-    # IdpJwtDecoderChain_UnitTest drives the real decoder with correctly signed
-    # tokens against a local IdP for those cases, and
-    # RolesAuthoritiesConverter_UnitTest covers oddly-shaped roles claims.
-    #
-    # Tokens whose iss is not the configured IdP are rejected before any request
-    # to the IdP, so most of these cases do not depend on it being reachable.
-    print("\n--- 2f. IdP JWT bearer tokens ---")
-
-    now = int(time.time())
-
-    untrusted = forged_jwt(
-        {"alg": "ES256", "typ": "JWT", "kid": "no-such-key"},
-        {"iss": "https://idp.example.invalid", "sub": "attacker", "aud": "conformance-suite",
-         "exp": now + 3600, "iat": now})
-    c = bearer_client(base_url, untrusted, verify_ssl)
-    runner.check_rejected("IdP JWT: untrusted signature rejected",
-                          c.get(f"{base_url}api/currentuser"))
-    c.close()
-
-    # alg=none must never authenticate: an unsigned token is not evidence of
-    # anything, and accepting it would be a complete authentication bypass.
-    unsigned = forged_jwt(
-        {"alg": "none", "typ": "JWT"},
-        {"iss": "https://idp.example.invalid", "sub": "attacker", "exp": now + 3600, "iat": now},
-        signature=b"")
-    c = bearer_client(base_url, unsigned, verify_ssl)
-    runner.check_rejected("IdP JWT: alg=none rejected", c.get(f"{base_url}api/currentuser"))
-    c.close()
-
-    # An expired token must be refused even if everything else about it is right.
-    expired = forged_jwt(
-        {"alg": "ES256", "typ": "JWT"},
-        {"iss": "https://idp.example.invalid", "sub": "attacker",
-         "exp": now - 3600, "iat": now - 7200})
-    c = bearer_client(base_url, expired, verify_ssl)
-    runner.check_rejected("IdP JWT: expired token rejected", c.get(f"{base_url}api/currentuser"))
-    c.close()
-
-    # A token minted for a different client of the same realm must not authenticate
-    # here. Like the cases above this one is never verified, so it pins the outcome
-    # rather than the audience check itself; IdpJwtDecoderChain_UnitTest covers a
-    # correctly signed token with someone else's aud.
-    wrong_audience = forged_jwt(
-        {"alg": "ES256", "typ": "JWT"},
-        {"iss": "https://idp.example.invalid", "sub": "attacker", "aud": "some-other-app",
-         "azp": "some-other-app", "exp": now + 3600, "iat": now})
-    c = bearer_client(base_url, wrong_audience, verify_ssl)
-    runner.check_rejected("IdP JWT: token for another client rejected",
-                          c.get(f"{base_url}api/currentuser"))
-    c.close()
-
-    # An admin-looking roles claim must buy nothing without a valid signature.
-    forged_admin = forged_jwt(
-        {"alg": "ES256", "typ": "JWT"},
-        {"iss": "https://idp.example.invalid", "sub": "attacker", "exp": now + 3600, "iat": now,
-         "roles": ["conformance-admin"]})
-    c = bearer_client(base_url, forged_admin, verify_ssl)
-    runner.check_rejected("IdP JWT: forged admin role rejected",
-                          c.get(f"{base_url}api/plan"))
-    c.close()
-
-    # A JWT whose payload is not even JSON must not blow up the decoder.
-    malformed = ".".join([_b64url(json.dumps({"alg": "ES256"}).encode()),
-                          _b64url(b"this-is-not-json"), _b64url(b"sig")])
-    c = bearer_client(base_url, malformed, verify_ssl)
-    runner.check_rejected("IdP JWT: non-JSON payload rejected", c.get(f"{base_url}api/currentuser"))
-    c.close()
 
     # ===================================================================
     # 3. UNAUTHENTICATED ACCESS REJECTION

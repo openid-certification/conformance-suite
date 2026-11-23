@@ -114,7 +114,7 @@ class WebSecurityOidcLoginConfig {
 	private String adminIss;
 
 	// Logins through this OpenID Provider take their roles from its "roles" claim.
-	@Value("${" + IdpProperties.ISSUER_PROPERTY + ":}")
+	@Value("${oidc.idp.iss:}")
 	private String idpIss;
 
 	// Allows to deduce ROLE_ADMIN by gitlab project role

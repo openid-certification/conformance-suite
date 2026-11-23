@@ -142,16 +142,10 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 			}
 			return oauth.getName();
 		} else if (a instanceof JwtAuthenticationToken jwtToken) {
-			// An IdP access token may carry the user's email or name; an API token
-			// carries only its owner's iss and sub, so it falls back to the subject.
-			Jwt jwt = jwtToken.getToken();
-			for (String claim : new String[] {"email", "name"}) {
-				String value = jwt.getClaimAsString(claim);
-				if (value != null) {
-					return value;
-				}
-			}
-			return jwt.getSubject() == null ? "" : jwt.getSubject();
+			// An API token carries only its owner's iss and sub, so the subject is
+			// the only name available for it.
+			String subject = jwtToken.getToken().getSubject();
+			return subject == null ? "" : subject;
 		} else if (a instanceof OneTimeTokenAuthentication ott) {
 			PrivateLinkOneTimeToken privateToken = (PrivateLinkOneTimeToken) ott.getDetails();
 			return privateToken.getUsername();

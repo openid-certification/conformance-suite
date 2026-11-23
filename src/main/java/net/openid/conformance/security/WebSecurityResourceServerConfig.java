@@ -1,30 +1,25 @@
 package net.openid.conformance.security;
 
+import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import jakarta.servlet.Filter;
-import net.openid.conformance.security.idp.RolesAuthoritiesConverter;
 import net.openid.conformance.sharing.privatelink.ShareJwtBearerAuthenticationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.security.oauth2.server.resource.autoconfigure.servlet.JwkSetUriJwtDecoderBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
@@ -34,13 +29,11 @@ import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
 @Configuration
 @Order(1)
-@EnableConfigurationProperties(IdpProperties.class)
 public class WebSecurityResourceServerConfig {
 
 	private static final Logger logger = LoggerFactory.getLogger(WebSecurityResourceServerConfig.class);
@@ -54,42 +47,10 @@ public class WebSecurityResourceServerConfig {
 	@Autowired
 	private DummyUserFilter dummyUserFilter;
 
-	/**
-	 * Verifies access tokens from the IdP configured in {@code oidc.idp.*}. Only
-	 * defined when {@code oidc.idp.accept-api-tokens} is true; otherwise the API
-	 * accepts only the suite's own API tokens and share links, whether or not
-	 * {@code oidc.idp.iss} is set. Read from {@code oidc.idp.*} directly, not from a
-	 * spring.security.oauth2.client registration, so that accepting the IdP's
-	 * tokens does not also enable browser login through it.
-	 */
-	@Bean
-	@ConditionalOnProperty(name = IdpProperties.ACCEPT_API_TOKENS_PROPERTY, havingValue = "true")
-	public IdpJwtDecoder idpJwtDecoder(IdpProperties idp) {
-		return IdpJwtDecoder.forIssuer(idp);
-	}
-
-	@Bean
-	@ConditionalOnProperty(name = IdpProperties.ACCEPT_API_TOKENS_PROPERTY, havingValue = "true")
-	public JwtAuthenticationProvider idpJwtAuthenticationProvider(IdpJwtDecoder idpJwtDecoder,
-		RolesAuthoritiesConverter authoritiesConverter) {
-		return createIdpJwtAuthenticationProvider(idpJwtDecoder, authoritiesConverter);
-	}
-
-	static JwtAuthenticationProvider createIdpJwtAuthenticationProvider(JwtDecoder idpJwtDecoder, RolesAuthoritiesConverter authoritiesConverter) {
-		var jwtAuthProvider = new JwtAuthenticationProvider(idpJwtDecoder);
-		var jwtAuthConverter = new JwtAuthenticationConverter();
-		// Must be the injected bean: a hand-constructed converter never gets its
-		// @Value admin-role name populated, so ROLE_ADMIN would never be granted.
-		jwtAuthConverter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
-		jwtAuthProvider.setJwtAuthenticationConverter(jwtAuthConverter);
-		return jwtAuthProvider;
-	}
-
 	@Bean
 	protected SecurityFilterChain filterChainResourceServer(HttpSecurity http,
 															ApiTokenAuthenticationProvider apiTokenAuthenticationProvider,
-															ShareJwtBearerAuthenticationProvider shareJwtBearerAuthenticationProvider,
-															ObjectProvider<JwtAuthenticationProvider> idpJwtAuthProvider) throws Exception {
+															ShareJwtBearerAuthenticationProvider shareJwtBearerAuthenticationProvider) throws Exception {
 
 		http.securityMatcher(request -> {
 			// only handle API requests with this filter chain
@@ -155,23 +116,12 @@ public class WebSecurityResourceServerConfig {
 		http.oauth2ResourceServer(oauthResourceServer -> {
 			oauthResourceServer.opaqueToken(opaqueTokenConfigurer -> {
 				// Order matters for efficiency only: share JWT parse failure is a cheap local
-				// check; the opaque-token path may hit the DB via TokenService.findToken;
-				// the IdP provider may reach the IdP. Each of the first two returns null
-				// for tokens it does not recognise, so ProviderManager falls through to
-				// the next.
-				List<AuthenticationProvider> providers = new ArrayList<>(List.of(
+				// check; the opaque-token path may hit the DB via TokenService.findToken.
+				// Each provider returns null for tokens it does not recognise, so
+				// ProviderManager falls through to the next.
+				opaqueTokenConfigurer.authenticationManager(new ProviderManager(List.of(
 					shareJwtBearerAuthenticationProvider,
-					apiTokenAuthenticationProvider));
-
-				JwtAuthenticationProvider idpProvider = idpJwtAuthProvider.getIfAvailable();
-				if (idpProvider != null) {
-					providers.add(idpProvider);
-				} else {
-					logger.info("{} is not true: the API does not accept access tokens issued by an IdP",
-						IdpProperties.ACCEPT_API_TOKENS_PROPERTY);
-				}
-
-				opaqueTokenConfigurer.authenticationManager(new ProviderManager(providers));
+					apiTokenAuthenticationProvider)));
 			});
 		});
 
@@ -184,6 +134,18 @@ public class WebSecurityResourceServerConfig {
 		}
 
 		return http.build();
+	}
+
+	@Bean
+	public NimbusJwtDecoder jwtDecoder() {
+		return new NimbusJwtDecoder(new DefaultJWTProcessor<>());
+	}
+
+	@Bean
+	public JwkSetUriJwtDecoderBuilderCustomizer jwtDecoderBuilderCustomizer() {
+		return builder -> {
+			logger.debug("Customize JWT Decoder here");
+		};
 	}
 
 	@Bean

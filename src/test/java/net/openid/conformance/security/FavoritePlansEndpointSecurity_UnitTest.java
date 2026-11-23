@@ -10,7 +10,6 @@ import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.mock.env.MockEnvironment;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -58,8 +57,6 @@ public class FavoritePlansEndpointSecurity_UnitTest {
 	@BeforeEach
 	public void setUp() {
 		context = new AnnotationConfigWebApplicationContext();
-		// Without the process environment, where oidc.idp.iss may be set.
-		context.setEnvironment(new MockEnvironment());
 		context.setServletContext(new MockServletContext());
 		context.register(TestSecurityConfig.class);
 		context.refresh();

@@ -5,11 +5,13 @@ import org.springframework.security.oauth2.client.oidc.authentication.OidcIdToke
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.converter.ClaimTypeConverter;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoderFactory;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Decodes ID tokens per login registration. Spring's own factory verifies with a
  * single algorithm per registration, RS256 unless told otherwise, which suits
  * every registration except the one named {@value #IDP_REGISTRATION_ID}: that
- * OpenID Provider may sign with any of {@link IdpJwsAlgorithms#DEFAULT}, so its
+ * OpenID Provider may sign with any of {@link #IDP_ALGORITHMS}, so its
  * ID tokens are accepted with each of them and otherwise validated as Spring
  * validates any ID token.
  */
@@ -25,6 +27,8 @@ final class IdTokenDecoderFactory implements JwtDecoderFactory<ClientRegistratio
 
 	/** The login registration (spring.security.oauth2.client.registration.idp.*) for the oidc.idp.* provider. */
 	static final String IDP_REGISTRATION_ID = "idp";
+
+	static final List<SignatureAlgorithm> IDP_ALGORITHMS = List.of(SignatureAlgorithm.ES256, SignatureAlgorithm.RS256);
 
 	private final OidcIdTokenDecoderFactory springDefault = new OidcIdTokenDecoderFactory();
 
@@ -40,7 +44,7 @@ final class IdTokenDecoderFactory implements JwtDecoderFactory<ClientRegistratio
 
 	private static JwtDecoder idpDecoder(ClientRegistration clientRegistration) {
 		NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(clientRegistration.getProviderDetails().getJwkSetUri())
-			.jwsAlgorithms(algorithms -> algorithms.addAll(IdpJwsAlgorithms.ID_TOKEN))
+			.jwsAlgorithms(algorithms -> algorithms.addAll(IDP_ALGORITHMS))
 			.build();
 		decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
 			new JwtTimestampValidator(), new OidcIdTokenValidator(clientRegistration)));
