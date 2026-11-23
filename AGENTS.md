@@ -71,7 +71,10 @@ The scripted browser that runs a test config's `"browser"` automation block (`Br
 - `selenium` (default) — headless HtmlUnit via Selenium (`SeleniumBrowserRunner`)
 - `playwright` — a real Chromium/Firefox/WebKit via Playwright (`PlaywrightBrowserRunner`); tune with
   `-Dbrowser.playwright.type=chromium|firefox|webkit`, `.headless`, `.slowMo`, `.extraHttpHeaders` (JSON),
-  `.traceEnabled=false|true|on-failure` and `.tracesDir`. Traces land as `<tracesDir>/<testId>.zip`, are
+  `.traceEnabled=false|true|on-failure` and `.tracesDir`. `on-failure` keeps the trace of a scripted browser run
+  that itself failed (a command timed out, an element was missing, an unexpected url); it does not look at the
+  test's result, so a test that fails on a condition after a browser run that went through has no trace — use
+  `true` for that. Traces land as `<tracesDir>/<testId>.zip`, are
   downloadable at `GET /api/log/{id}/trace` (test owner or admin only, never public) and open with
   `npx playwright show-trace`; they are deleted with their test plan, and there is no age-based cleanup, so
   tracing is a debugging switch rather than something to leave on for a long-running instance. The browser binary is
@@ -91,7 +94,8 @@ Both engines accept the same commands and log under the `WebRunner` source. The 
 local-provider plans once per engine; locally, `BROWSER_ENGINE=playwright docker-compose -f docker-compose-localtest.yml ...`
 does the same (add `BROWSER_TRACE=true` to get a trace of every scripted-browser run under `traces/`, not just failed
 ones; `run test --rerun 10:1` runs a single plan/module). CI sets `BROWSER_TRACE=false` for speed — flip it to
-`on-failure` in `.gitlab-ci.yml` when a CI failure needs a trace. Playwright drives a real browser, so it also sees the
+`on-failure` in `.gitlab-ci.yml` when a failing scripted browser run needs a trace, or to `true` when the browser run
+goes through and the test fails afterwards. Playwright drives a real browser, so it also sees the
 transient pages HtmlUnit skips over (e.g. an AS's `response_mode=form_post` page); that is why the Playwright runner
 waits for a task's url to match rather than judging it at an instant and keeps its screenshots short-lived. `PLAYWRIGHT_NODEJS_PATH=$(which node) mvn test -Dtest=PlaywrightBrowserRunner_SmokeTest -Dplaywright.smoke=true` exercises the
 Playwright runner end-to-end against an in-process fake AS (opt-in because it needs a Node.js and the browser download).

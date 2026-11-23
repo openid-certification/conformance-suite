@@ -1065,6 +1065,12 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	enum TraceMode {
 		OFF,
 		ALWAYS,
+		/**
+		 * Only when the scripted browser run itself failed: a command timed out, an element was
+		 * missing, the browser was on an unexpected url. The result of the test does not come into
+		 * it, so a test that fails on a condition, or is stopped, after a browser run that went
+		 * through leaves no trace.
+		 */
 		ON_FAILURE;
 
 		static TraceMode parse(String value) {
@@ -1089,7 +1095,8 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	 * <li>{@code browser.playwright.sharedBrowser} – default true: runners share the JVM's one browser
 	 * ({@link PlaywrightBrowserServer}) rather than each launching their own</li>
 	 * <li>{@code browser.playwright.extraHttpHeaders} – JSON object of headers to add to every request</li>
-	 * <li>{@code browser.playwright.traceEnabled} – false (default), true or on-failure</li>
+	 * <li>{@code browser.playwright.traceEnabled} – false (default), true or on-failure
+	 * (see {@link TraceMode#ON_FAILURE}: a failed browser run, not a failed test)</li>
 	 * <li>{@code browser.playwright.tracesDir} – directory the trace archives are written to as {@code <testId>.zip}</li>
 	 * </ul>
 	 */

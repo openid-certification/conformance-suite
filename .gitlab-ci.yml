@@ -580,8 +580,9 @@ local_test:
   variables:
     # Playwright tracing records screenshots and DOM snapshots of every scripted-browser run even in
     # the compose file's default 'on-failure' mode (it only decides at the end whether to keep the
-    # trace), which is measurable overhead over ~1000 modules. Off here; set to on-failure or true
-    # when a failure needs a trace (see the traces/ artifact below), and locally.
+    # trace), which is measurable overhead over ~1000 modules. Off here; set to on-failure when a
+    # failing scripted-browser run needs a trace, or to true when the test fails after a browser run
+    # that went through (see the traces/ artifact below), and locally.
     BROWSER_TRACE: "false"
   script:
     - apk add docker-compose
