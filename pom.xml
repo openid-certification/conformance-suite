@@ -208,11 +208,20 @@
 		</dependency>
 
 		<!-- Playwright: real browser engine (chromium/firefox/webkit) alternative to HtmlUnit for BrowserControl,
-		     selected at runtime with -Dbrowser.engine=playwright -->
+		     selected at runtime with -Dbrowser.engine=playwright.
+		     driver-bundle is nothing but a Node.js binary per platform (about 230 MB) for Playwright's
+		     driver to run on. It is left out, so the engine needs a Node.js of its own, named by the
+		     PLAYWRIGHT_NODEJS_PATH environment variable; see "Scripted browser engine" in AGENTS.md. -->
 		<dependency>
 			<groupId>com.microsoft.playwright</groupId>
 			<artifactId>playwright</artifactId>
 			<version>${playwright.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.microsoft.playwright</groupId>
+					<artifactId>driver-bundle</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>

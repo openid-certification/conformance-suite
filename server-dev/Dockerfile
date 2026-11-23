@@ -7,11 +7,18 @@
 #
 # We install redir, and then the --fintechlabs.startredir=true option
 # to java is used to launch it
+FROM node:22-slim AS node
+
 FROM eclipse-temurin:21
 
-# Alongside redir, the shared libraries Playwright's Chromium needs when the
-# suite runs with -Dbrowser.engine=playwright (the browser itself is downloaded
-# by Playwright on first use).
+# The Node.js that Playwright's driver runs on when the suite runs with
+# -Dbrowser.engine=playwright; the suite's jar does not bundle one.
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+ENV PLAYWRIGHT_NODEJS_PATH=/usr/local/bin/node
+
+# Alongside redir, the shared libraries Playwright's Chromium needs (the browser
+# itself is downloaded by Playwright on first use). docker-compose-prebuilt-playwright.yml
+# installs the same list.
 RUN apt-get update && apt-get install -y \
     redir \
     libnss3 \

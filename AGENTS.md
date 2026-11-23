@@ -80,14 +80,21 @@ The scripted browser that runs a test config's `"browser"` automation block (`Br
   bundled driver; each runner connects and gets an isolated context) — `-Dbrowser.playwright.sharedBrowser=false`
   makes every runner launch its own browser instead, which the runners also fall back to if the server fails.
 
+Playwright is opt-in and does not work out of the box: the jar leaves out Playwright's `driver-bundle` (a Node.js
+binary per platform, about 230 MB), so the engine needs a Node.js 20 or newer named by the `PLAYWRIGHT_NODEJS_PATH`
+environment variable, and on Linux the shared libraries the browser links against. The dev image
+(`server-dev/Dockerfile`, used by `docker-compose-localtest.yml` and CI) has both; the prebuilt image has neither,
+and `docker-compose-prebuilt-playwright.yml` is the overlay that adds them. Without a Node.js the first scripted
+browser run fails with Playwright's "Failed to find the bundled Node.js" error.
+
 Both engines accept the same commands and log under the `WebRunner` source. The CI `local_test` job runs the
 local-provider plans once per engine; locally, `BROWSER_ENGINE=playwright docker-compose -f docker-compose-localtest.yml ...`
 does the same (add `BROWSER_TRACE=true` to get a trace of every scripted-browser run under `traces/`, not just failed
 ones; `run test --rerun 10:1` runs a single plan/module). CI sets `BROWSER_TRACE=false` for speed — flip it to
 `on-failure` in `.gitlab-ci.yml` when a CI failure needs a trace. Playwright drives a real browser, so it also sees the
 transient pages HtmlUnit skips over (e.g. an AS's `response_mode=form_post` page); that is why the Playwright runner
-waits for a task's url to match rather than judging it at an instant and keeps its screenshots short-lived. `mvn test -Dtest=PlaywrightBrowserRunner_SmokeTest -Dplaywright.smoke=true` exercises the
-Playwright runner end-to-end against an in-process fake AS (opt-in because it needs the browser download).
+waits for a task's url to match rather than judging it at an instant and keeps its screenshots short-lived. `PLAYWRIGHT_NODEJS_PATH=$(which node) mvn test -Dtest=PlaywrightBrowserRunner_SmokeTest -Dplaywright.smoke=true` exercises the
+Playwright runner end-to-end against an in-process fake AS (opt-in because it needs a Node.js and the browser download).
 
 ### Dev loop (save-and-see)
 

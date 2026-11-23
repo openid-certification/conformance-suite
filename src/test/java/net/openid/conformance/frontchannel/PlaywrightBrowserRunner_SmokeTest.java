@@ -43,8 +43,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * End-to-end check of {@link PlaywrightBrowserRunner} against an in-process HTTP server that plays
  * an authorization server with a login page.
  *
- * <p>Needs a Playwright Chromium (downloaded on first use to Playwright's browser cache), so it is
- * opt-in: {@code mvn test -Dtest=PlaywrightBrowserRunner_SmokeTest -Dplaywright.smoke=true}
+ * <p>Needs a Node.js for Playwright's driver and a Playwright Chromium (downloaded on first use to
+ * Playwright's browser cache), so it is opt-in:
+ * {@code PLAYWRIGHT_NODEJS_PATH=$(which node) mvn test -Dtest=PlaywrightBrowserRunner_SmokeTest -Dplaywright.smoke=true}
  */
 @EnabledIfSystemProperty(named = "playwright.smoke", matches = "true")
 public class PlaywrightBrowserRunner_SmokeTest {

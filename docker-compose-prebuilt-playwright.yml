@@ -1,0 +1,52 @@
+# Runs the prebuilt suite with Playwright (a real Chromium) as the scripted browser instead of
+# the default HtmlUnit, e.g. for a login page HtmlUnit cannot drive:
+#
+#   docker compose -f docker-compose-prebuilt.yml -f docker-compose-prebuilt-playwright.yml up --build
+#
+# The prebuilt image has what HtmlUnit needs and no more. Playwright needs three more things:
+#
+# 1. A Node.js (20 or newer) for Playwright's driver to run on, named by PLAYWRIGHT_NODEJS_PATH.
+#    The suite's jar does not bundle one. It is copied in from the official Node.js image.
+# 2. The shared libraries Chromium links against. They are apt packages, so they are installed
+#    into an image built on top of the prebuilt one. The list is the one in server-dev/Dockerfile.
+# 3. Chromium itself, which Playwright downloads when the server first starts. The volume keeps
+#    the download across restarts.
+#
+# Firefox and WebKit (-Dbrowser.playwright.type) need other libraries than the ones listed here.
+services:
+  server:
+    image: conformance-suite-playwright:${IMAGE_TAG:-latest}
+    build:
+      dockerfile_inline: |
+        FROM node:22-slim AS node
+        FROM registry.gitlab.com/openid/conformance-suite:${IMAGE_TAG:-latest}
+        COPY --from=node /usr/local/bin/node /usr/local/bin/node
+        RUN apt-get update && apt-get install -y --no-install-recommends \
+            libnss3 \
+            libnspr4 \
+            libatk1.0-0 \
+            libatk-bridge2.0-0 \
+            libcups2 \
+            libdrm2 \
+            libxkbcommon0 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxfixes3 \
+            libxrandr2 \
+            libgbm1 \
+            libpango-1.0-0 \
+            libcairo2 \
+            libasound2t64 \
+            libatspi2.0-0 \
+            && rm -rf /var/lib/apt/lists/*
+    environment:
+      PLAYWRIGHT_NODEJS_PATH: /usr/local/bin/node
+      JAVA_EXTRA_ARGS: >-
+        -Dbrowser.engine=playwright
+        -Dbrowser.playwright.type=chromium
+        ${JAVA_EXTRA_ARGS:-}
+    volumes:
+     - playwright-browsers:/root/.cache/ms-playwright
+
+volumes:
+  playwright-browsers:
