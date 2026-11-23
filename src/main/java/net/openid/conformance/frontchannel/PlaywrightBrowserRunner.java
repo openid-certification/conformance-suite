@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -93,7 +94,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	/** Browser types {@link #ensureBrowserInstalled} has verified in this JVM. */
 	private static final Set<String> INSTALLED_BROWSER_TYPES = ConcurrentHashMap.newKeySet();
 
-	/** How long {@link #closeBrowser()} gives Playwright to shut down gracefully before the driver is terminated. */
+	/** How long {@link #closeBrowser()} gives Playwright to shut down gracefully before the driver process is killed. */
 	private static final long SHUTDOWN_TIMEOUT_MILLIS = 20_000;
 	private static final ScheduledExecutorService SHUTDOWN_WATCHDOG = Executors.newSingleThreadScheduledExecutor(runnable -> {
 		Thread thread = new Thread(runnable, "playwright-shutdown-watchdog");
@@ -121,6 +122,12 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	private final BrowserVisit visit;
 
 	private Playwright playwright;
+	/**
+	 * The driver of {@link #playwright}, the Node.js process every Playwright call goes through.
+	 * Captured when it is started, for the shutdown watchdog; see {@link #closeBrowser()}.
+	 */
+	private volatile ProcessHandle driverProcess;
+	private long shutdownTimeoutMillis = SHUTDOWN_TIMEOUT_MILLIS;
 	private Browser browser;
 	private BrowserContext context;
 	private Page page;
@@ -512,6 +519,11 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 		ensureBrowserInstalled(settings.browserType());
 
 		playwright = Playwright.create();
+		driverProcess = driverProcessOf(playwright).orElse(null);
+		if (driverProcess == null) {
+			logger.error(testId + ": The Playwright driver process could not be determined; if the browser hangs "
+				+ "on shutdown this scripted browser run cannot be terminated");
+		}
 
 		BrowserType browserType;
 		switch (settings.browserType()) {
@@ -918,17 +930,19 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	 * really released rather than leaked; the flag is restored afterwards.
 	 *
 	 * <p>Playwright's close calls have no timeout and have been seen to never return (the driver
-	 * waiting on a browser that no longer answers). A watchdog therefore terminates the driver
-	 * process after {@link #SHUTDOWN_TIMEOUT_MILLIS}, which fails any call still blocked on it and
-	 * takes the browser down with it.
+	 * waiting on a browser that no longer answers). A watchdog therefore kills the driver process
+	 * after the shutdown timeout, which fails any call still blocked on it and takes a browser the
+	 * driver launched down with it. The watchdog runs on another thread than the runner's, and
+	 * Playwright's objects must only be used from the thread that created them, so it works on the
+	 * process alone and makes no Playwright call.
 	 */
 	private void closeBrowser() {
 		boolean interrupted = Thread.interrupted();
-		Playwright toTerminate = playwright;
+		ProcessHandle toTerminate = driverProcess;
 		ScheduledFuture<?> watchdog = toTerminate == null ? null : SHUTDOWN_WATCHDOG.schedule(() -> {
-			logger.warn(testId + ": Playwright did not shut down within " + SHUTDOWN_TIMEOUT_MILLIS + "ms, terminating the driver");
+			logger.warn(testId + ": Playwright did not shut down within " + shutdownTimeoutMillis + "ms, terminating the driver");
 			terminateDriver(testId, toTerminate);
-		}, SHUTDOWN_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+		}, shutdownTimeoutMillis, TimeUnit.MILLISECONDS);
 		try {
 			if (context != null) {
 				// the session state first: the next runner is waiting for it, and writing a trace can take a while
@@ -959,30 +973,66 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 		}
 	}
 
+	/** The class and field {@link #driverProcessOf} reads; Playwright's API does not expose the driver process. */
+	static final String PLAYWRIGHT_IMPL_CLASS = "com.microsoft.playwright.impl.PlaywrightImpl";
+	static final String DRIVER_PROCESS_FIELD = "driverProcess";
+
 	/**
-	 * Last resort for a hung shutdown: closes the connection to the driver, which makes any call
-	 * blocked on it throw, and kills the driver process (and with it the browser) if closing the
-	 * connection did not make it exit.
+	 * The field of Playwright's implementation that holds the driver process.
+	 *
+	 * @throws ReflectiveOperationException if this version of Playwright has no such field
+	 */
+	static Field driverProcessField() throws ReflectiveOperationException {
+		Field field = Class.forName(PLAYWRIGHT_IMPL_CLASS).getDeclaredField(DRIVER_PROCESS_FIELD);
+		if (!Process.class.isAssignableFrom(field.getType())) {
+			throw new NoSuchFieldException(PLAYWRIGHT_IMPL_CLASS + "." + DRIVER_PROCESS_FIELD + " is a " + field.getType().getName());
+		}
+		return field;
+	}
+
+	/**
+	 * The driver process of a Playwright instance, or empty if it cannot be determined.
 	 */
 	@SuppressWarnings("PMD.AvoidAccessibilityAlteration") // the driver process is not exposed by Playwright's API
-	static void terminateDriver(String testId, Playwright toTerminate) {
+	static Optional<ProcessHandle> driverProcessOf(Playwright playwright) {
 		try {
-			toTerminate.close();
-		} catch (RuntimeException e) {
-			logger.warn(testId + ": Error closing Playwright while terminating the driver", e);
-		}
-		try {
-			Field driverProcessField = toTerminate.getClass().getDeclaredField("driverProcess");
-			driverProcessField.setAccessible(true);
-			Process driverProcess = (Process) driverProcessField.get(toTerminate);
-			if (driverProcess != null && driverProcess.isAlive()) {
-				logger.warn(testId + ": Playwright driver process " + driverProcess.pid() + " still alive, killing it");
-				driverProcess.descendants().forEach(ProcessHandle::destroyForcibly);
-				driverProcess.destroyForcibly();
-			}
+			Field field = driverProcessField();
+			field.setAccessible(true);
+			Process process = (Process) field.get(playwright);
+			return Optional.ofNullable(process).map(Process::toHandle);
 		} catch (ReflectiveOperationException | RuntimeException e) {
-			logger.warn(testId + ": Could not check whether the Playwright driver process exited", e);
+			logger.error("Could not read the Playwright driver process from " + PLAYWRIGHT_IMPL_CLASS + "." + DRIVER_PROCESS_FIELD, e);
+			return Optional.empty();
 		}
+	}
+
+	/**
+	 * Last resort for a hung shutdown: kills the driver process and the processes it started (a
+	 * browser, unless the runner uses the shared one). Any Playwright call blocked on the driver
+	 * then fails.
+	 */
+	static void terminateDriver(String testId, ProcessHandle driver) {
+		try {
+			// the descendants first: they can no longer be found through a driver that has exited
+			List<ProcessHandle> processes = new ArrayList<>(driver.descendants().toList());
+			processes.add(driver);
+			for (ProcessHandle process : processes) {
+				if (process.isAlive()) {
+					logger.warn(testId + ": Killing Playwright " + (process.equals(driver) ? "driver" : "browser") + " process " + process.pid());
+					process.destroyForcibly();
+				}
+			}
+		} catch (RuntimeException e) {
+			logger.warn(testId + ": Could not terminate the Playwright driver process", e);
+		}
+	}
+
+	void setShutdownTimeoutMillis(long shutdownTimeoutMillis) {
+		this.shutdownTimeoutMillis = shutdownTimeoutMillis;
+	}
+
+	ProcessHandle driverProcess() {
+		return driverProcess;
 	}
 
 	private void closeQuietly(String what, Runnable step) {

@@ -39,6 +39,13 @@ public class PlaywrightBrowserRunner_UnitTest {
 	}
 
 	@Test
+	public void thePinnedPlaywrightVersionStillHasTheDriverProcessFieldTheShutdownWatchdogReads() throws Exception {
+		// fails on a Playwright update that renames or retypes the field: without it a hung
+		// browser shutdown can no longer be terminated, see PlaywrightBrowserRunner.closeBrowser()
+		assertThat(PlaywrightBrowserRunner.driverProcessField().getType()).isEqualTo(Process.class);
+	}
+
+	@Test
 	public void laterTaskUrlMatchersLeaveOutThoseMatchingAnything() {
 		JsonArray tasks = JsonParser.parseString("""
 			[

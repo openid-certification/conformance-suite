@@ -19,7 +19,9 @@ import net.openid.conformance.testmodule.TestFailureException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
@@ -28,6 +30,7 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -461,14 +464,76 @@ public class PlaywrightBrowserRunner_SmokeTest {
 		Browser browser = playwright.chromium().launch();
 		Page page = browser.newContext().newPage();
 		page.navigate(baseUrl + "/callback");
-		long driverPid = ProcessHandle.current().children()
-			.filter(p -> p.info().commandLine().orElse("").contains("playwright"))
-			.mapToLong(ProcessHandle::pid).max().orElseThrow();
+		ProcessHandle driver = PlaywrightBrowserRunner.driverProcessOf(playwright).orElseThrow();
+		List<ProcessHandle> browserProcesses = driver.descendants().toList();
+		assertThat(browserProcesses).as("processes of the browser the driver launched").isNotEmpty();
 
-		PlaywrightBrowserRunner.terminateDriver(TEST_ID, playwright);
+		PlaywrightBrowserRunner.terminateDriver(TEST_ID, driver);
 
-		assertThat(ProcessHandle.of(driverPid).map(ProcessHandle::isAlive).orElse(false)).as("driver process alive").isFalse();
+		assertThat(exited(driver)).as("driver process exited").isTrue();
+		assertThat(browserProcesses).as("browser processes exited").allMatch(PlaywrightBrowserRunner_SmokeTest::exited);
 		assertThatThrownBy(page::title).isInstanceOf(PlaywrightException.class);
+	}
+
+	@Test
+	@DisabledOnOs(OS.WINDOWS) // the driver is frozen with SIGSTOP
+	public void killsADriverThatNoLongerAnswersWhenShuttingDown() throws Exception {
+		// a browser of its own, so that the driver has browser processes to take down with it
+		PlaywrightBrowserRunner runner = runner(baseUrl + "/callback", "GET", """
+			[{"task": "Wait", "commands": [["wait", "id", "never-appears", 60]]}]""", settings(false));
+		runner.setShutdownTimeoutMillis(2_000);
+		AtomicReference<Object> outcome = new AtomicReference<>();
+		Thread thread = new Thread(() -> {
+			try {
+				outcome.set(runner.call());
+			} catch (Throwable t) {
+				outcome.set(t);
+			}
+		});
+		thread.start();
+
+		long deadline = System.currentTimeMillis() + 30_000;
+		while (!"wait".equals(currentCommand(runner)) && System.currentTimeMillis() < deadline) {
+			Thread.sleep(100);
+		}
+		assertThat(currentCommand(runner)).isEqualTo("wait");
+		ProcessHandle driver = runner.driverProcess();
+		List<ProcessHandle> browserProcesses = driver.descendants().toList();
+		assertThat(browserProcesses).as("processes of the browser the driver launched").isNotEmpty();
+
+		try {
+			// the driver stops answering: every Playwright call of the shutdown now blocks for good
+			signal("STOP", driver);
+			long cancelled = System.currentTimeMillis();
+			thread.interrupt();
+			thread.join(15_000);
+
+			assertThat(thread.isAlive()).as("runner thread finished").isFalse();
+			assertThat(System.currentTimeMillis() - cancelled).as("time the shutdown took").isGreaterThanOrEqualTo(2_000);
+			assertThat(outcome.get()).isEqualTo("web runner cancelled");
+			assertThat(exited(driver)).as("driver process exited").isTrue();
+			assertThat(browserProcesses).as("browser processes exited").allMatch(PlaywrightBrowserRunner_SmokeTest::exited);
+		} finally {
+			if (driver.isAlive()) {
+				signal("CONT", driver);
+				driver.descendants().forEach(ProcessHandle::destroyForcibly);
+				driver.destroyForcibly();
+			}
+		}
+	}
+
+	private static void signal(String signal, ProcessHandle process) throws IOException, InterruptedException {
+		new ProcessBuilder("kill", "-" + signal, Long.toString(process.pid())).inheritIO().start().waitFor();
+	}
+
+	/** True once the process is gone; a killed process takes a moment to go. */
+	private static boolean exited(ProcessHandle process) {
+		try {
+			process.onExit().get(5, TimeUnit.SECONDS);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 
 	@Test
