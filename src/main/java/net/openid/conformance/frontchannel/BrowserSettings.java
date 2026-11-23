@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Path;
 import java.util.Locale;
 import java.util.function.Function;
 
@@ -66,5 +67,27 @@ public class BrowserSettings {
 
 	PlaywrightBrowserRunner.Settings playwright() {
 		return playwright;
+	}
+
+	/**
+	 * Where the traces of a test are kept. The one definition of the layout, shared by the
+	 * runner that writes a trace and the service that serves it.
+	 *
+	 * @param tracesDir the configured traces directory
+	 * @param testId    the test instance id
+	 * @return the directory holding that test's traces
+	 */
+	public static Path traceDirectory(String tracesDir, String testId) {
+		return Path.of(tracesDir).resolve(testId);
+	}
+
+	/**
+	 * @param tracesDir the configured traces directory
+	 * @param testId    the test instance id
+	 * @param visit     the number of the scripted browser visit within the test, from 1
+	 * @return the trace archive of that visit
+	 */
+	public static Path traceFile(String tracesDir, String testId, int visit) {
+		return traceDirectory(tracesDir, testId).resolve(visit + ".zip");
 	}
 }

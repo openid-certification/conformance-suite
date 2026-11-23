@@ -76,9 +76,10 @@ all work, and everything that needs a setting takes it from that bean:
   `.traceEnabled=false|true|on-failure` and `.tracesDir`. `on-failure` keeps the trace of a scripted browser run
   that itself failed (a command timed out, an element was missing, an unexpected url); it does not look at the
   test's result, so a test that fails on a condition after a browser run that went through has no trace — use
-  `true` for that. Traces land as `<tracesDir>/<testId>.zip`, are
-  downloadable at `GET /api/log/{id}/trace` (test owner or admin only, never public) and open with
-  `npx playwright show-trace`; they are deleted with their test plan, and there is no age-based cleanup, so
+  `true` for that. There is one trace per scripted browser
+  visit, at `<tracesDir>/<testId>/<visit>.zip` (visits are numbered from 1 per test); `GET /api/log/{id}/traces`
+  lists them and `GET /api/log/{id}/traces/{visit}` downloads one (test owner or admin only, never public). They
+  open with `npx playwright show-trace`; they are deleted with their test plan, and there is no age-based cleanup, so
   tracing is a debugging switch rather than something to leave on for a long-running instance. The browser binary is
   downloaded into Playwright's cache at server startup (`PlaywrightBrowserInstaller`) if missing. All runners
   of a JVM share one browser process (`PlaywrightBrowserServer`, Playwright's `launch-server` run from the

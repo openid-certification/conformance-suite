@@ -1020,17 +1020,15 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 		}
 
 		try {
-			Path tracesDirPath = Path.of(settings.tracesDir());
-			Files.createDirectories(tracesDirPath);
-
-			Path tracePath = tracesDirPath.resolve(testId + ".zip");
+			Path tracePath = BrowserSettings.traceFile(settings.tracesDir(), testId, visit.number());
+			Files.createDirectories(tracePath.getParent());
 			context.tracing().stop(new Tracing.StopOptions().setPath(tracePath));
 
 			long traceSize = Files.size(tracePath);
 			logger.info(testId + ": Playwright trace saved to " + tracePath + ", size: " + traceSize + " bytes");
 
 			eventLog.log("WebRunner", args(
-				"msg", "Playwright trace captured; download it from /api/log/" + testId + "/trace",
+				"msg", "Playwright trace captured; download it from /api/log/" + testId + "/traces/" + visit.number(),
 				"trace_path", tracePath.toString(),
 				"trace_size", traceSize,
 				"result", Condition.ConditionResult.INFO));
@@ -1098,7 +1096,8 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	 * <li>{@code browser.playwright.extraHttpHeaders} – JSON object of headers to add to every request</li>
 	 * <li>{@code browser.playwright.traceEnabled} – false (default), true or on-failure
 	 * (see {@link TraceMode#ON_FAILURE}: a failed browser run, not a failed test)</li>
-	 * <li>{@code browser.playwright.tracesDir} – directory the trace archives are written to as {@code <testId>.zip}</li>
+	 * <li>{@code browser.playwright.tracesDir} – directory the trace archives are written to, one per
+	 * scripted browser visit as {@code <testId>/<visit>.zip} ({@link BrowserSettings#traceFile})</li>
 	 * </ul>
 	 */
 	record Settings(String browserType, boolean headless, int slowMo, boolean sharedBrowser, Map<String, String> extraHttpHeaders,

@@ -23,6 +23,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Front channel control for a test module instance: urls the test wants visited are either
@@ -94,6 +95,7 @@ public class BrowserControl implements DataUtils {
 	private List<BrowserApiRequest> browserApiRequests = new ArrayList<>();
 	private List<UriInputRequest> uriInputRequests = new ArrayList<>();
 	private Queue<BrowserRunner> runners = new ConcurrentLinkedQueue<>();
+	private final AtomicInteger visitCounter = new AtomicInteger();
 
 	private ImageService imageService;
 
@@ -219,7 +221,7 @@ public class BrowserControl implements DataUtils {
 					limit--;
 					commands.addProperty("match-limit", limit);
 				}
-				BrowserRunner wr = createRunner(new BrowserVisit(url, commands.getAsJsonArray("tasks"), placeholder, method, delaySeconds));
+				BrowserRunner wr = createRunner(new BrowserVisit(url, commands.getAsJsonArray("tasks"), placeholder, method, delaySeconds, visitCounter.incrementAndGet()));
 				// registered before it is submitted, so that the runner finds itself (and, in submission
 				// order, the runners that came before it) in the queue from the moment it starts
 				addRunner(wr);

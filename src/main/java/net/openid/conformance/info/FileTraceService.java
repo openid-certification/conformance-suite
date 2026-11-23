@@ -5,16 +5,23 @@ import net.openid.conformance.frontchannel.BrowserSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileSystemUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * Serves Playwright trace archives from the directory the scripted browser writes them to
- * ({@code browser.playwright.tracesDir}, one {@code <testId>.zip} per test).
+ * ({@code browser.playwright.tracesDir}), laid out as {@link BrowserSettings#traceFile} has it:
+ * a directory per test with one {@code <visit>.zip} per traced visit.
  */
 @Service
 public class FileTraceService implements TraceService {
@@ -25,6 +32,8 @@ public class FileTraceService implements TraceService {
 	// crafted id and must not be turned into a path
 	private static final Pattern TEST_ID = Pattern.compile("[A-Za-z0-9]+");
 
+	private static final Pattern TRACE_FILE = Pattern.compile("([1-9][0-9]*)\\.zip");
+
 	private final String tracesDir;
 
 	public FileTraceService(BrowserSettings browserSettings) {
@@ -32,42 +41,69 @@ public class FileTraceService implements TraceService {
 	}
 
 	@Override
-	public Optional<byte[]> getTraceForTestId(String testId) {
-		Optional<Path> tracePath = tracePath(testId);
-		if (tracePath.isEmpty() || !Files.isRegularFile(tracePath.get())) {
+	public List<TraceInfo> listTraces(String testId) {
+		Optional<Path> directory = traceDirectory(testId);
+		if (directory.isEmpty() || !Files.isDirectory(directory.get())) {
+			return List.of();
+		}
+
+		List<TraceInfo> traces = new ArrayList<>();
+		try (Stream<Path> files = Files.list(directory.get())) {
+			for (Path file : (Iterable<Path>) files::iterator) {
+				Matcher matcher = TRACE_FILE.matcher(file.getFileName().toString());
+				if (matcher.matches() && Files.isRegularFile(file)) {
+					traces.add(new TraceInfo(Integer.parseInt(matcher.group(1)), Files.size(file)));
+				}
+			}
+		} catch (IOException | NumberFormatException e) {
+			logger.error("Failed to list traces for testId: {}", testId, e);
+			return List.of();
+		}
+		traces.sort(Comparator.comparingInt(TraceInfo::visit));
+		return traces;
+	}
+
+	@Override
+	public Optional<byte[]> getTrace(String testId, int visit) {
+		Optional<Path> directory = traceDirectory(testId);
+		if (directory.isEmpty() || visit < 1) {
+			return Optional.empty();
+		}
+		Path tracePath = BrowserSettings.traceFile(tracesDir, testId, visit);
+		if (!Files.isRegularFile(tracePath)) {
 			return Optional.empty();
 		}
 
 		try {
-			return Optional.of(Files.readAllBytes(tracePath.get()));
+			return Optional.of(Files.readAllBytes(tracePath));
 		} catch (IOException e) {
-			logger.error("Failed to read trace for testId: {}", testId, e);
+			logger.error("Failed to read trace {} for testId: {}", visit, testId, e);
 			return Optional.empty();
 		}
 	}
 
 	@Override
-	public void deleteTraceForTestId(String testId) {
-		Optional<Path> tracePath = tracePath(testId);
-		if (tracePath.isEmpty()) {
+	public void deleteTracesForTestId(String testId) {
+		Optional<Path> directory = traceDirectory(testId);
+		if (directory.isEmpty()) {
 			return;
 		}
 
 		try {
-			if (Files.deleteIfExists(tracePath.get())) {
-				logger.debug("Deleted trace for testId: {}", testId);
+			if (FileSystemUtils.deleteRecursively(directory.get())) {
+				logger.debug("Deleted traces for testId: {}", testId);
 			}
 		} catch (IOException e) {
-			logger.error("Failed to delete trace for testId: {}", testId, e);
+			logger.error("Failed to delete traces for testId: {}", testId, e);
 		}
 	}
 
 	/**
-	 * The path a test's trace is at, or empty if traces aren't configured or the id isn't one of
-	 * ours. The id is only ever turned into a path if it is plain alphanumeric, so it can't leave
-	 * the traces directory or name anything but a {@code <testId>.zip} in it.
+	 * The directory a test's traces are in, or empty if traces aren't configured or the id isn't
+	 * one of ours. The id is only ever turned into a path if it is plain alphanumeric, so it can't
+	 * leave the traces directory or name anything but a test's own directory in it.
 	 */
-	private Optional<Path> tracePath(String testId) {
+	private Optional<Path> traceDirectory(String testId) {
 		if (Strings.isNullOrEmpty(tracesDir)) {
 			return Optional.empty();
 		}
@@ -75,6 +111,6 @@ public class FileTraceService implements TraceService {
 			logger.debug("Refusing to turn malformed testId into a trace path: {}", testId);
 			return Optional.empty();
 		}
-		return Optional.of(Path.of(tracesDir).resolve(testId + ".zip"));
+		return Optional.of(BrowserSettings.traceDirectory(tracesDir, testId));
 	}
 }

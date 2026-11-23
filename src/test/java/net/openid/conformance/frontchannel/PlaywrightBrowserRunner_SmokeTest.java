@@ -34,6 +34,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,6 +58,7 @@ public class PlaywrightBrowserRunner_SmokeTest {
 
 	private HttpServer server;
 	private String baseUrl;
+	private final AtomicInteger visitNumber = new AtomicInteger();
 	private HttpServer hangingServer;
 	private final CountDownLatch releaseHangingRequests = new CountDownLatch(1);
 	private final AtomicReference<String> loginBody = new AtomicReference<>();
@@ -201,7 +203,7 @@ public class PlaywrightBrowserRunner_SmokeTest {
 	private PlaywrightBrowserRunner runner(String url, String method, String tasksJson, Settings settings) {
 		JsonArray tasks = JsonParser.parseString(tasksJson).getAsJsonArray();
 		return new PlaywrightBrowserRunner(browserControl, TEST_ID, eventLog, settings,
-			new BrowserVisit(url, tasks, null, method, 0));
+			new BrowserVisit(url, tasks, null, method, 0, visitNumber.incrementAndGet()));
 	}
 
 	@Test
@@ -221,7 +223,7 @@ public class PlaywrightBrowserRunner_SmokeTest {
 		JsonArray tasks = JsonParser.parseString("""
 			[{"task": "Check", "commands": [["wait", "css", "#result", 5, "^anonymous$"]]}]""").getAsJsonArray();
 		new PlaywrightBrowserRunner(otherTest, "PWSMOKE2", eventLog, settings(),
-			new BrowserVisit(baseUrl + "/whoami", tasks, null, "GET", 0)).call();
+			new BrowserVisit(baseUrl + "/whoami", tasks, null, "GET", 0, 1)).call();
 
 		// while the same test's next runner does, through the storage state as before
 		runner(baseUrl + "/whoami", "GET", """
@@ -392,7 +394,19 @@ public class PlaywrightBrowserRunner_SmokeTest {
 			.isInstanceOf(TestFailureException.class)
 			.hasMessageContaining("Timed out waiting for element visibility");
 
-		assertThat(tracesDir.resolve(TEST_ID + ".zip")).isRegularFile();
+		assertThat(BrowserSettings.traceFile(tracesDir.toString(), TEST_ID, 1)).isRegularFile();
+	}
+
+	@Test
+	public void keepsTheTraceOfEveryVisitOfATest() {
+		for (int visit = 1; visit <= 2; visit++) {
+			assertThatThrownBy(() -> runner(baseUrl + "/callback", "GET", """
+				[{"task": "Wait", "commands": [["wait-element-visible", "id", "missing", 1]]}]""").call())
+				.isInstanceOf(TestFailureException.class);
+		}
+
+		assertThat(BrowserSettings.traceFile(tracesDir.toString(), TEST_ID, 1)).isRegularFile();
+		assertThat(BrowserSettings.traceFile(tracesDir.toString(), TEST_ID, 2)).isRegularFile();
 	}
 
 	@Test

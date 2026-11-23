@@ -117,7 +117,7 @@ public class TestPlanApi_UnitTest {
 		verify(infoService, times(1)).deleteTests(testIds);
 		// and their Playwright traces, which live on disk rather than in the database
 		for (String testId : testIds) {
-			verify(traceService, times(1)).deleteTraceForTestId(testId);
+			verify(traceService, times(1)).deleteTracesForTestId(testId);
 		}
 	}
 

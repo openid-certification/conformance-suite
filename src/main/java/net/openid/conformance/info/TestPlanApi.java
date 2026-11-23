@@ -803,7 +803,7 @@ public class TestPlanApi implements DataUtils {
 		infoService.deleteTests(testIds);
 		planService.deleteMutableTestPlan(id);
 		// the Playwright traces (if any were recorded) live on disk, outside the database cascade
-		testIds.forEach(traceService::deleteTraceForTestId);
+		testIds.forEach(traceService::deleteTracesForTestId);
 
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}

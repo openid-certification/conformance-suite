@@ -19,8 +19,8 @@ authentication. Tests cover:
 - Public list/export endpoints return only published results
 - Runner running-list, start, and cancel, /lastconfig, and plan metadata
 - API token lifecycle, and that an expired API token is rejected with 401
-- Playwright trace download (GET /log/{id}/trace): owner (or admin) only —
-  never public, not even for a published test, and not via share links
+- Playwright traces (GET /log/{id}/traces and /log/{id}/traces/{visit}): owner (or admin)
+  only — never public, not even for a published test, and not via share links
 
 Not yet covered (the exposed API surface these do NOT touch):
 - POST /token (creating a new token; only listing/deleting is covered)
@@ -50,13 +50,14 @@ Environment variables:
                         seeded directly in MongoDB, since the 24-hour TTL of a token
                         created over HTTP cannot be shortened)
     CONFORMANCE_TRACES_DIR  the server's browser.playwright.tracesDir as this script sees it
-                        (optional; a trace is placed there for the trace download checks)
+                        (optional; a trace is placed there for the trace list and download checks)
 """
 
 import base64
 import io
 import json
 import os
+import shutil
 import sys
 import time
 import traceback
@@ -343,6 +344,12 @@ def run_tests():
 
     runner = TestRunner()
 
+    def check_traces_status(name, client, trace_test_id, expected_status, query=""):
+        """Checks both Playwright trace endpoints of a test: the list and the download of a visit."""
+        for what, path in (("list", "traces"), ("download", "traces/1")):
+            resp = client.get(f"{base_url}api/log/{trace_test_id}/{path}{query}")
+            runner.check_status(f"{name} ({what})", resp, expected_status)
+
     wait_for_server(base_url, token, verify_ssl)
 
     # --- Precondition: verify server is NOT in dev mode ---
@@ -488,8 +495,7 @@ def run_tests():
 
     # Likewise the Playwright trace (screenshots and DOM snapshots of every page the scripted
     # browser visited, login form included) is a three-segment URI outside the allowlist
-    resp = pl_client.get(f"{base_url}api/log/{test_id}/trace")
-    runner.check_status("Plan share: cannot download shared test trace (not in allowlist)", resp, 403)
+    check_traces_status("Plan share: cannot reach shared test traces (not in allowlist)", pl_client, test_id, 403)
 
     # Denied access
     print("\n--- 1. Plan sharing: denied access ---")
@@ -527,8 +533,7 @@ def run_tests():
     resp = pl_client.get(f"{base_url}api/log/exporthtml/{UNKNOWN_TEST_ID}")
     runner.check_status("Plan share: export of unknown test html", resp, 404)
 
-    resp = pl_client.get(f"{base_url}api/log/{other_test_id}/trace")
-    runner.check_status("Plan share: cannot download other test trace", resp, 403)
+    check_traces_status("Plan share: cannot reach other test traces", pl_client, other_test_id, 403)
 
     resp = pl_client.post(f"{base_url}api/info/{test_id}/publish",
                           content=json.dumps({"publish": "summary"}),
@@ -679,11 +684,9 @@ def run_tests():
     resp = tl_client.get(f"{base_url}api/log/export/{other_test_id}")
     runner.check_status("Test share: cannot export other test zip", resp, 404)
 
-    resp = tl_client.get(f"{base_url}api/log/{test_id}/trace")
-    runner.check_status("Test share: cannot download shared test trace (not in allowlist)", resp, 403)
+    check_traces_status("Test share: cannot reach shared test traces (not in allowlist)", tl_client, test_id, 403)
 
-    resp = tl_client.get(f"{base_url}api/log/{other_test_id}/trace")
-    runner.check_status("Test share: cannot download other test trace", resp, 403)
+    check_traces_status("Test share: cannot reach other test traces", tl_client, other_test_id, 403)
 
     resp = tl_client.post(f"{base_url}api/info/{test_id}/publish",
                           content=json.dumps({"publish": "summary"}),
@@ -758,8 +761,7 @@ def run_tests():
     resp = plan_bearer.get(f"{base_url}api/plan/exporthtml/{plan_id}")
     runner.check_status("Plan JWT Bearer: cannot export shared plan (not in allowlist)", resp, 403)
 
-    resp = plan_bearer.get(f"{base_url}api/log/{test_id}/trace")
-    runner.check_status("Plan JWT Bearer: cannot download shared test trace", resp, 403)
+    check_traces_status("Plan JWT Bearer: cannot reach shared test traces", plan_bearer, test_id, 403)
 
     resp = plan_bearer.post(f"{base_url}api/plan/{plan_id}/share", params={"exp": "1"})
     runner.check_status("Plan JWT Bearer: cannot create share link", resp, 403)
@@ -860,8 +862,7 @@ def run_tests():
     resp = test_bearer.get(f"{base_url}api/log/export/{UNKNOWN_TEST_ID}")
     runner.check_status("Test JWT Bearer: export of unknown test zip", resp, 404)
 
-    resp = test_bearer.get(f"{base_url}api/log/{test_id}/trace")
-    runner.check_status("Test JWT Bearer: cannot download shared test trace", resp, 403)
+    check_traces_status("Test JWT Bearer: cannot reach shared test traces", test_bearer, test_id, 403)
 
     test_bearer.close()
 
@@ -980,8 +981,7 @@ def run_tests():
     resp = noauth_client.get(f"{base_url}api/log/{test_id}")
     runner.check_status("Unauth: test log rejected", resp, 401)
 
-    resp = noauth_client.get(f"{base_url}api/log/{test_id}/trace")
-    runner.check_status("Unauth: test trace rejected", resp, 401)
+    check_traces_status("Unauth: test traces rejected", noauth_client, test_id, 401)
 
     resp = noauth_client.get(f"{base_url}api/runner/available")
     runner.check_status("Unauth: runner rejected", resp, 401)
@@ -1107,8 +1107,7 @@ def run_tests():
     # Unlike the log export, the Playwright trace of a published test stays private: it holds
     # screenshots and DOM snapshots of every page the scripted browser visited, the login form
     # with the configured credentials included. There is no ?public variant of it at all.
-    resp = pub_client.get(f"{base_url}api/log/{test_id}/trace?public=true")
-    runner.check_status("Public: published test trace needs auth even with ?public", resp, 401)
+    check_traces_status("Public: published test traces need auth even with ?public", pub_client, test_id, 401, query="?public=true")
 
     resp = pub_client.get(f"{base_url}api/log/export/{test_id}?public=true")
     assert_valid_export_zip(runner, "Public: can export published test zip", resp, [test_id])
@@ -1153,8 +1152,7 @@ def run_tests():
     resp = pub_client.get(f"{base_url}api/log/export/{test_id}")
     runner.check_status("Public: log/export without ?public requires auth", resp, 401)
 
-    resp = pub_client.get(f"{base_url}api/log/{test_id}/trace")
-    runner.check_status("Public: test trace requires auth", resp, 401)
+    check_traces_status("Public: test traces require auth", pub_client, test_id, 401)
 
     resp = pub_client.post(f"{base_url}api/info/{test_id}/publish",
                            content=json.dumps({"publish": "summary"}),
@@ -1525,19 +1523,17 @@ def run_tests():
         runner.check_status("Isolation: cannot upload an image to another user's test placeholder", resp, 403)
 
         # The same 404 as for an unknown test, so that the test's existence does not leak
-        resp = user_b.get(f"{base_url}api/log/{iso_test_id}/trace")
-        runner.check_status("Isolation: cannot download another user's test trace", resp, 404)
+        check_traces_status("Isolation: cannot reach another user's test traces", user_b, iso_test_id, 404)
 
         user_b.close()
     else:
         print("  NOTE: CONFORMANCE_TOKEN_2 not set; skipping cross-user isolation checks")
 
-    resp = owner_client.get(f"{base_url}api/log/nonexistenttestid/trace")
-    runner.check_status("Trace: unknown test is 404", resp, 404)
+    check_traces_status("Trace: unknown test is 404", owner_client, "nonexistenttestid", 404)
 
-    # Whether a test has a trace depends on the engine and trace settings the server runs with,
-    # so the owner's download is tested with a trace placed in the server's traces directory
-    # (CONFORMANCE_TRACES_DIR, that directory as this script sees it).
+    # Whether a test has traces depends on the engine and trace settings the server runs with,
+    # so the owner's access is tested with a trace placed in the server's traces directory
+    # (CONFORMANCE_TRACES_DIR, that directory as this script sees it), as the trace of visit 2.
     traces_dir = os.environ.get("CONFORMANCE_TRACES_DIR")
     if traces_dir:
         trace_plan_id, trace_module = create_test_plan(owner_client, base_url, plan_name, config)
@@ -1547,24 +1543,36 @@ def run_tests():
         seeded = io.BytesIO()
         with zipfile.ZipFile(seeded, "w") as archive:
             archive.writestr("trace.trace", "seeded by run-security-tests.py")
-        os.makedirs(traces_dir, exist_ok=True)
-        trace_file = os.path.join(traces_dir, f"{trace_test_id}.zip")
-        with open(trace_file, "wb") as f:
+        test_traces_dir = os.path.join(traces_dir, trace_test_id)
+        os.makedirs(test_traces_dir, exist_ok=True)
+        with open(os.path.join(test_traces_dir, "2.zip"), "wb") as f:
             f.write(seeded.getvalue())
         try:
-            resp = owner_client.get(f"{base_url}api/log/{trace_test_id}/trace")
-            runner.check_status("Trace: owner can download their test's trace", resp, 200)
+            resp = owner_client.get(f"{base_url}api/log/{trace_test_id}/traces")
+            runner.check_status("Trace: owner can list their test's traces", resp, 200)
+            runner.check("Trace: the list has the recorded visit and its size",
+                         resp.status_code == 200
+                         and resp.json() == [{"visit": 2, "size": len(seeded.getvalue())}],
+                         f"body={resp.text[:200]}")
+
+            resp = owner_client.get(f"{base_url}api/log/{trace_test_id}/traces/2")
+            runner.check_status("Trace: owner can download the trace of a visit", resp, 200)
             runner.check("Trace: download is the recorded zip",
                          resp.headers.get("content-type", "").startswith("application/zip")
                          and resp.content == seeded.getvalue(),
                          f"content-type={resp.headers.get('content-type')} length={len(resp.content)}")
-        finally:
-            os.remove(trace_file)
 
-        resp = owner_client.get(f"{base_url}api/log/{trace_test_id}/trace")
-        runner.check_status("Trace: owner's test without a recorded trace is 404", resp, 404)
+            resp = owner_client.get(f"{base_url}api/log/{trace_test_id}/traces/1")
+            runner.check_status("Trace: a visit without a recorded trace is 404", resp, 404)
+        finally:
+            shutil.rmtree(test_traces_dir, ignore_errors=True)
+
+        resp = owner_client.get(f"{base_url}api/log/{trace_test_id}/traces")
+        runner.check("Trace: owner's test without traces lists none",
+                     resp.status_code == 200 and resp.json() == [],
+                     f"HTTP {resp.status_code} body={resp.text[:200]}")
     else:
-        print("  NOTE: CONFORMANCE_TRACES_DIR not set; skipping the trace download checks")
+        print("  NOTE: CONFORMANCE_TRACES_DIR not set; skipping the trace list and download checks")
 
     # ===================================================================
     # 4f. CERTIFICATION PACKAGE & IMMUTABLE PLANS
