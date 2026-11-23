@@ -46,6 +46,13 @@ public class PlaywrightBrowserRunner_UnitTest {
 	}
 
 	@Test
+	public void theSharedBrowsersEndpointIsLoggedWithoutItsSecretPath() {
+		assertThat(PlaywrightBrowserServer.withoutSecret("ws://[::1]:46837/23b8f6fcbdcad9085303485923991931"))
+			.isEqualTo("ws://[::1]:46837/...");
+		assertThat(PlaywrightBrowserServer.withoutSecret("ws://127.0.0.1:1234/abc")).isEqualTo("ws://127.0.0.1:1234/...");
+	}
+
+	@Test
 	public void laterTaskUrlMatchersLeaveOutThoseMatchingAnything() {
 		JsonArray tasks = JsonParser.parseString("""
 			[

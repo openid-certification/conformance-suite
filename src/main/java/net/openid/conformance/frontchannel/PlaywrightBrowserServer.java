@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,6 +40,13 @@ import java.util.regex.Pattern;
  *
  * <p>The server is started on first use, or at server startup by {@link PlaywrightBrowserInstaller},
  * and started again if it has died. It is stopped when the JVM exits.
+ *
+ * <p>The server listens on the loopback interface, on a port and under a random path of its own
+ * choosing; anything that can reach that port and knows the path controls the browser. The browser
+ * itself runs with Playwright's defaults, which for Chromium means without its sandbox, and loads
+ * the pages of the systems under test. Both are fine inside the container the suite is deployed
+ * in, which is the boundary: don't run the Playwright engine in a JVM that shares a host or a
+ * user account with anything it should be kept apart from.
  */
 final class PlaywrightBrowserServer {
 
@@ -71,6 +79,15 @@ final class PlaywrightBrowserServer {
 		stop();
 		start(settings, key);
 		return endpoint;
+	}
+
+	/**
+	 * The endpoint as it may be logged. Its path is a random token and the only thing between a
+	 * process on this host and control of the browser, so it stays out of the log.
+	 */
+	static String withoutSecret(String endpoint) {
+		URI uri = URI.create(endpoint);
+		return uri.getScheme() + "://" + uri.getRawAuthority() + "/...";
 	}
 
 	static synchronized boolean isRunning() {
@@ -114,7 +131,7 @@ final class PlaywrightBrowserServer {
 			process = started;
 			startedFor = key;
 			installShutdownHook();
-			logger.info("Shared Playwright " + settings.browserType() + " browser server is up at " + endpoint
+			logger.info("Shared Playwright " + settings.browserType() + " browser server is up at " + withoutSecret(endpoint)
 				+ " (took " + (System.currentTimeMillis() - start) + "ms)");
 		} catch (IOException e) {
 			destroy(started);

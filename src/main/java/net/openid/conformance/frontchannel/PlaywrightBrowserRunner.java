@@ -103,7 +103,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	});
 	/** Timeout for the page to finish loading before a task's commands run (matches the HtmlUnit runner). */
 	private static final int PAGE_LOAD_TIMEOUT_MILLIS = 10_000;
-	/** Timeout for one attempt at the screenshot shown in the test log; see {@link #updateCache()}. */
+	/** Timeout for one attempt at the screenshot shown in the test log; see {@link #screenshotOfFailure()}. */
 	private static final int SCREENSHOT_TIMEOUT_MILLIS = 5_000;
 	/** Timeout for connecting to the shared browser, see {@link PlaywrightBrowserServer}. */
 	private static final int CONNECT_TIMEOUT_MILLIS = 30_000;
@@ -138,9 +138,8 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	private boolean failed = false;
 
 	// Playwright objects must only be touched from the runner thread, so getStatus() (called from
-	// the HTTP request thread) serves these cached copies instead.
+	// the HTTP request thread) serves this cached copy instead.
 	private volatile String cachedCurrentUrl;
-	private volatile String cachedScreenshot;
 
 	/**
 	 * @param browserControl the owning control, notified when the url has been visited and when this runner finishes
@@ -209,7 +208,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 				// DOMContentLoaded rather than the default 'load': see the per-task wait below
 				response = page.navigate(url, new Page.NavigateOptions().setWaitUntil(WaitUntilState.DOMCONTENTLOADED));
 			}
-			updateCache();
+			updateCachedUrl();
 
 			eventLog.log("WebRunner", args(
 				"msg", "Scripted browser HTTP response",
@@ -217,8 +216,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 				"url", page.url(),
 				"title", page.title(),
 				"response_status_code", response != null ? response.status() : null,
-				"response_content_type", response != null ? response.headers().get("content-type") : null,
-				"img", cachedScreenshot
+				"response_content_type", response != null ? response.headers().get("content-type") : null
 			));
 
 			// Consider this URL visited
@@ -299,8 +297,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 						}
 					}
 
-					// one screenshot per task, not per command: each costs a round trip to the browser
-					updateCache();
+					updateCachedUrl();
 
 					eventLog.log("WebRunner", args(
 						"msg", "Completed processing of webpage",
@@ -332,7 +329,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 
 			logger.error(testId + ": WebRunner caught exception", e);
 			failed = true;
-			updateCache();
+			updateCachedUrl();
 
 			String pageSource = null;
 			try {
@@ -346,7 +343,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 					args("msg", e.getMessage(),
 						"page_source", pageSource,
 						"url", cachedCurrentUrl != null ? cachedCurrentUrl : url,
-						"img", cachedScreenshot,
+						"img", screenshotOfFailure(),
 						"result", Condition.ConditionResult.FAILURE)));
 			this.lastException = e.getMessage();
 			if (e instanceof TestFailureException) {
@@ -547,7 +544,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 			try {
 				String endpoint = PlaywrightBrowserServer.endpoint(settings);
 				browser = browserType.connect(endpoint, new BrowserType.ConnectOptions().setTimeout(CONNECT_TIMEOUT_MILLIS));
-				logger.debug(testId + ": Connected to the shared " + settings.browserType() + " at " + endpoint);
+				logger.debug(testId + ": Connected to the shared " + settings.browserType() + " at " + PlaywrightBrowserServer.withoutSecret(endpoint));
 			} catch (RuntimeException e) {
 				logger.warn(testId + ": Could not use the shared Playwright browser, launching one for this run instead", e);
 			}
@@ -866,20 +863,9 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	}
 
 	/**
-	 * Refresh the values served by {@link #getStatus()}. Must only be called from the runner thread.
-	 *
-	 * <p>The screenshot is best effort and deliberately short-lived. A screenshot taken while the
-	 * page is navigating to another origin (Chromium swaps renderer processes for that) has been
-	 * seen never to return, so it only ends with its timeout. That is the normal course of events
-	 * after a click that lands on an authorization server's response_mode=form_post page: the click
-	 * returns once that page has committed, and the page then immediately POSTs itself to the
-	 * suite's redirect uri. With the context's default (navigation) timeout this stalled the runner
-	 * for a minute after such a click, long enough for the test to give up waiting for it and for
-	 * the next runner not to get this one's session state. So the screenshot gets a short timeout
-	 * and one more try, by which time the page has settled; if that fails too the previous
-	 * screenshot is kept.
+	 * Refresh the url served by {@link #getStatus()}. Must only be called from the runner thread.
 	 */
-	private void updateCache() {
+	private void updateCachedUrl() {
 		if (page == null) {
 			return;
 		}
@@ -887,20 +873,37 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 			cachedCurrentUrl = page.url();
 		} catch (RuntimeException e) {
 			logger.warn(testId + ": Failed to capture Playwright page url", e);
-			return;
+		}
+	}
+
+	/**
+	 * A screenshot of the page for the test log entry of a failed run, as a data url, or null if
+	 * none could be taken. Only taken on failure: a screenshot costs a round trip to the browser
+	 * and a few tens of kilobytes in the test log, and a trace is the tool for following a run
+	 * that went through.
+	 *
+	 * <p>Best effort and deliberately short-lived. A screenshot taken while the page is navigating
+	 * to another origin (Chromium swaps renderer processes for that) has been seen never to return,
+	 * so it only ends with its timeout; with the context's default (navigation) timeout that is a
+	 * minute. So the screenshot gets a short timeout and one more try, by which time the page has
+	 * settled.
+	 */
+	private String screenshotOfFailure() {
+		if (page == null) {
+			return null;
 		}
 		for (int attempt = 1; attempt <= 2; attempt++) {
 			try {
 				byte[] screenshot = page.screenshot(new Page.ScreenshotOptions().setTimeout(SCREENSHOT_TIMEOUT_MILLIS));
-				cachedScreenshot = "data:image/png;base64," + Base64.getEncoder().encodeToString(screenshot);
-				return;
+				return "data:image/png;base64," + Base64.getEncoder().encodeToString(screenshot);
 			} catch (TimeoutError e) {
 				logger.debug(testId + ": Playwright screenshot timed out (attempt " + attempt + "), page is probably navigating");
 			} catch (RuntimeException e) {
 				logger.warn(testId + ": Failed to capture Playwright screenshot", e);
-				return;
+				return null;
 			}
 		}
+		return null;
 	}
 
 	/**
@@ -1095,7 +1098,6 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 		JsonObject o = new JsonObject();
 		o.addProperty("url", visit.url());
 		o.addProperty("currentUrl", cachedCurrentUrl != null ? cachedCurrentUrl : visit.url());
-		o.addProperty("currentScreenshot", cachedScreenshot);
 		o.addProperty("currentTask", currentTask);
 		o.addProperty("currentCommand", currentCommand);
 		o.addProperty("lastException", lastException);
