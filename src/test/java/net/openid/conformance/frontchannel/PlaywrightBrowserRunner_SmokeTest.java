@@ -398,6 +398,17 @@ public class PlaywrightBrowserRunner_SmokeTest {
 	}
 
 	@Test
+	public void keepsNoTraceOnceTheTestIsBeingDeleted() {
+		browserControl.discardTraces();
+
+		assertThatThrownBy(() -> runner(baseUrl + "/callback", "GET", """
+			[{"task": "Wait", "commands": [["wait-element-visible", "id", "missing", 1]]}]""").call())
+			.isInstanceOf(TestFailureException.class);
+
+		assertThat(BrowserSettings.traceDirectory(tracesDir.toString(), TEST_ID)).doesNotExist();
+	}
+
+	@Test
 	public void keepsTheTraceOfEveryVisitOfATest() {
 		for (int visit = 1; visit <= 2; visit++) {
 			assertThatThrownBy(() -> runner(baseUrl + "/callback", "GET", """

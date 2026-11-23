@@ -2,6 +2,7 @@ package net.openid.conformance.info;
 
 import com.mongodb.client.result.DeleteResult;
 import jakarta.annotation.PreDestroy;
+import net.openid.conformance.frontchannel.BrowserControl;
 import net.openid.conformance.runner.TestRunnerSupport;
 import net.openid.conformance.testmodule.TestModule;
 import org.bson.Document;
@@ -361,6 +362,12 @@ public class BulkPlanDeleter {
 			TestModule runningTest = testRunnerSupport.getRunningTestById(testId);
 			if (runningTest != null) {
 				logger.info("Stopping {}, which is still running, before its plan is deleted", testId);
+				// before the stop: its scripted browser runs save their traces as they shut down,
+				// which is after this returns and can be after the traces have been deleted
+				BrowserControl browser = runningTest.getBrowser();
+				if (browser != null) {
+					browser.discardTraces();
+				}
 				runningTest.stop(STOPPED_BECAUSE_PLAN_DELETED);
 			}
 		}

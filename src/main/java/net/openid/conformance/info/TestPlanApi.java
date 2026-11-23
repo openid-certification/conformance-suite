@@ -90,9 +90,6 @@ public class TestPlanApi implements DataUtils {
 	/** {@link #filterOptions()}, built on first use; the registry it describes never changes. */
 	private volatile Map<String, Object> planFilterOptions;
 
-	@Autowired
-	private TraceService traceService;
-
 	@PostMapping(value = "/plan", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(operationId = "createTestPlan", summary = "Create test plan")
 	@ApiResponses(value = {
@@ -802,8 +799,6 @@ public class TestPlanApi implements DataUtils {
 		// both setStatusInternal() and call() refuse to act from a terminal state.
 		infoService.deleteTests(testIds);
 		planService.deleteMutableTestPlan(id);
-		// the Playwright traces (if any were recorded) live on disk, outside the database cascade
-		testIds.forEach(traceService::deleteTracesForTestId);
 
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}

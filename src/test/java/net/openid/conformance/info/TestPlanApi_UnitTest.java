@@ -1,5 +1,6 @@
 package net.openid.conformance.info;
 
+import net.openid.conformance.frontchannel.BrowserControl;
 import net.openid.conformance.runner.TestRunnerSupport;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import net.openid.conformance.testmodule.TestModule;
@@ -32,7 +33,6 @@ public class TestPlanApi_UnitTest {
 	TestPlanService planService;
 	TestInfoService infoService;
 	TestRunnerSupport testRunnerSupport;
-	TraceService traceService;
 	Plan plan;
 	TestPlanApi api;
 
@@ -41,7 +41,6 @@ public class TestPlanApi_UnitTest {
 		planService = Mockito.mock(TestPlanService.class);
 		infoService = Mockito.mock(TestInfoService.class);
 		testRunnerSupport = Mockito.mock(TestRunnerSupport.class);
-		traceService = Mockito.mock(TraceService.class);
 		plan = Mockito.mock(Plan.class);
 		api = new TestPlanApi();
 		ReflectionTestUtils.setField(api, "planService", planService);
@@ -51,7 +50,6 @@ public class TestPlanApi_UnitTest {
 		// mocks, and the ordering assertion below is unchanged by that
 		ReflectionTestUtils.setField(api, "bulkPlanDeleter",
 			new BulkPlanDeleter(Mockito.mock(MongoTemplate.class), infoService, testRunnerSupport));
-		ReflectionTestUtils.setField(api, "traceService", traceService);
 	}
 
 	@Test
@@ -115,10 +113,6 @@ public class TestPlanApi_UnitTest {
 
 		verify(planService, times(1)).deleteMutableTestPlan("abc");
 		verify(infoService, times(1)).deleteTests(testIds);
-		// and their Playwright traces, which live on disk rather than in the database
-		for (String testId : testIds) {
-			verify(traceService, times(1)).deleteTracesForTestId(testId);
-		}
 	}
 
 	@Test
@@ -131,12 +125,16 @@ public class TestPlanApi_UnitTest {
 		Mockito.when(planService.getTestPlan(anyString())).thenReturn(plan);
 
 		TestModule runningTest = Mockito.mock(TestModule.class);
+		BrowserControl browser = Mockito.mock(BrowserControl.class);
+		Mockito.when(runningTest.getBrowser()).thenReturn(browser);
 		Mockito.when(testRunnerSupport.getRunningTestById("testId0")).thenReturn(runningTest);
 
 		api.deleteMutableTestPlan("abc");
 
-		// stop() writes the module's final log entries, so it has to run before they are deleted
-		InOrder inOrder = Mockito.inOrder(runningTest, infoService);
+		// stop() writes the module's final log entries, so it has to run before they are deleted;
+		// its scripted browser is told beforehand not to keep the traces it saves as it shuts down
+		InOrder inOrder = Mockito.inOrder(browser, runningTest, infoService);
+		inOrder.verify(browser).discardTraces();
 		inOrder.verify(runningTest).stop(anyString());
 		inOrder.verify(infoService).deleteTests(testIds);
 	}

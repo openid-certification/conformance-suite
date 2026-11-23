@@ -55,6 +55,9 @@ public class DBTestInfoService implements TestInfoService {
 	@Autowired
 	private TestPlanService testPlanService;
 
+	@Autowired
+	private TraceService traceService;
+
 	@SuppressWarnings("CacheLoaderNull")
 	//Private cache for holding test owners without having to hit the db
 	LoadingCache<String, ImmutableMap<String, String>> testOwnerCache = CacheBuilder.newBuilder()
@@ -248,8 +251,16 @@ public class DBTestInfoService implements TestInfoService {
 			eventLogCriteria.and("testOwner").is(owner);
 		}
 
+		// The scripted browser's traces are files, outside the database, and go with the tests
+		// here so that every way of deleting a test removes them. With an owner filter only that
+		// owner's tests are deleted, so only their traces may go: which of the ids those are has
+		// to be asked before the rows are removed.
+		List<String> idsToDeleteTracesOf = owner == null ? ids : idsOfTests(testInfoCriteria);
+
 		DeleteResult testInfoDeleteResult = mongoTemplate.remove(new Query(testInfoCriteria), COLLECTION);
 		DeleteResult logDeleteResult = mongoTemplate.remove(new Query(eventLogCriteria), DBEventLog.COLLECTION);
+
+		idsToDeleteTracesOf.forEach(traceService::deleteTracesForTestId);
 
 		// Drop any cached owner for the deleted tests, otherwise a warm cache (e.g. from an
 		// earlier image-endpoint call) keeps authorising the owner for up to 30 minutes and
@@ -258,5 +269,13 @@ public class DBTestInfoService implements TestInfoService {
 
 		return new Deleted(testInfoDeleteResult.getDeletedCount(), logDeleteResult.getDeletedCount(),
 			testInfoDeleteResult.wasAcknowledged() && logDeleteResult.wasAcknowledged());
+	}
+
+	private List<String> idsOfTests(Criteria testInfoCriteria) {
+		Query query = new Query(testInfoCriteria);
+		query.fields().include("_id");
+		return mongoTemplate.find(query, Document.class, COLLECTION).stream()
+			.map(test -> test.getString("_id"))
+			.toList();
 	}
 }

@@ -109,6 +109,8 @@ public class BrowserControl implements DataUtils {
 	private CookieManager cookieManager = new CookieManager(); // HtmlUnit
 	private volatile String playwrightStorageState; // Playwright: BrowserContext.storageState() JSON
 
+	private volatile boolean tracesDiscarded;
+
 	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog, TestExecutionManager executionManager,
 						ImageService imageService, BrowserSettings settings) {
 		this.testId = testId;
@@ -292,6 +294,19 @@ public class BrowserControl implements DataUtils {
 	 */
 	void addRunner(BrowserRunner runner) {
 		runners.add(runner);
+	}
+
+	/**
+	 * Tells the runners of this test not to keep their traces: the test is being deleted, and a
+	 * runner that is stopped for it only writes its trace as it shuts down, which can be after
+	 * the test's traces have been removed.
+	 */
+	public void discardTraces() {
+		tracesDiscarded = true;
+	}
+
+	boolean tracesDiscarded() {
+		return tracesDiscarded;
 	}
 
 	/**

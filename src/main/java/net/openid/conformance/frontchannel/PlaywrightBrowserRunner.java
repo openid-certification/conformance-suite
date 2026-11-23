@@ -1006,7 +1006,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 
 	private void stopTracing() {
 		boolean save = settings.traceMode() == TraceMode.ALWAYS || (settings.traceMode() == TraceMode.ON_FAILURE && failed);
-		if (!save) {
+		if (!save || browserControl.tracesDiscarded()) {
 			context.tracing().stop();
 			return;
 		}
