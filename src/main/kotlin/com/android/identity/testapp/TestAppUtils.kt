@@ -485,7 +485,8 @@ object TestAppUtils {
                             }
                             addDataElement(deName, value)
                         } else {
-                            Logger.w(TAG, "No sample value for data element $deName")
+                            // expected for e.g. the PhotoID biometric data groups (dg4..dg11)
+                            Logger.d(TAG, "No sample value for data element $deName")
                         }
                     }
                 }
@@ -628,7 +629,7 @@ object TestAppUtils {
                     }
                     put(claimName, value)
                 } else {
-                    Logger.w(TAG, "No sample value for claim $claimName")
+                    Logger.d(TAG, "No sample value for claim $claimName")
                 }
             }
         }
