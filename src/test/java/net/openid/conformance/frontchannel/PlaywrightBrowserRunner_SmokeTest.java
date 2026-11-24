@@ -102,6 +102,10 @@ public class PlaywrightBrowserRunner_SmokeTest {
 			}
 		});
 		server.createContext("/callback", exchange -> html(exchange, "<div id=\"result\">Done</div>"));
+		// an authorization endpoint that sends the browser on to the login page from a script, a
+		// moment after the page has loaded, rather than with a redirect
+		server.createContext("/js-authorize", exchange ->
+			html(exchange, "<p>One moment</p><script>setTimeout(function() { location.href = '/login'; }, 500);</script>"));
 		// like /authorize, but redirecting back to a callback that takes its time to answer, as the
 		// suite does when it is busy processing the authorization response
 		server.createContext("/slow-authorize", exchange -> {
@@ -248,6 +252,20 @@ public class PlaywrightBrowserRunner_SmokeTest {
 			]""").call();
 
 		assertThat(System.currentTimeMillis() - start).as("no 2s wait per skipped optional task").isLessThan(3_500);
+	}
+
+	@Test
+	public void doesNotSkipAnOptionalTaskBecauseALaterTasksUrlIsAParameterOfTheCurrentOne() throws Exception {
+		// the browser is still on the authorization request, whose redirect_uri parameter is the
+		// callback's url; that it matches the last task's pattern does not mean the login page is behind it
+		runner(baseUrl + "/js-authorize?redirect_uri=" + baseUrl + "/callback", "GET", """
+			[
+				{"task": "Login", "optional": true, "match": "*/login*", "commands": [["text", "id", "username", "alice"], ["click", "id", "login"]]},
+				{"task": "Consent", "optional": true, "match": "*/authorize", "commands": [["click", "id", "authorize"]]},
+				{"task": "Done", "match": "*/callback*", "commands": [["wait", "id", "result", 5, "Done"]]}
+			]""").call();
+
+		assertThat(loginBody.get()).as("the login form was submitted").contains("username=alice");
 	}
 
 	@Test

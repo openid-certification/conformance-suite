@@ -420,8 +420,9 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	 * this waits for it to match: for up to the navigation timeout if the task is required, and
 	 * briefly if it is optional, where not matching is the normal way of skipping the task.
 	 *
-	 * <p>An optional task is skipped without waiting once the page is on a url that one of the
-	 * later tasks is for: the browser has evidently gone past the optional task's page. That is
+	 * <p>An optional task is skipped without waiting once the page is at the address of a page that
+	 * one of the later tasks is for ({@link #isOnALaterTasksPage}): the browser has gone past the
+	 * optional task's page. That is
 	 * the everyday case of the Login and Consent tasks on a visit by a user the authorization
 	 * server still knows, which sends the browser straight to the suite's redirect uri.
 	 *
@@ -433,7 +434,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 		if (PatternMatchUtils.simpleMatch(expectedUrlMatcher, page.url())) {
 			return true;
 		}
-		if (optional && matchesAny(laterTaskUrlMatchers, page.url())) {
+		if (optional && isOnALaterTasksPage(laterTaskUrlMatchers, page.url())) {
 			logger.debug(testId + ": WebRunner url " + page.url() + " is already one of a later task's, skipping the optional task without waiting");
 			return false;
 		}
@@ -441,7 +442,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 		logger.debug(testId + ": WebRunner url " + page.url() + " does not match '" + expectedUrlMatcher
 			+ "', waiting up to " + timeout + "ms for it to");
 		try {
-			page.waitForURL(url -> PatternMatchUtils.simpleMatch(expectedUrlMatcher, url) || (optional && matchesAny(laterTaskUrlMatchers, url)),
+			page.waitForURL(url -> PatternMatchUtils.simpleMatch(expectedUrlMatcher, url) || (optional && isOnALaterTasksPage(laterTaskUrlMatchers, url)),
 				new Page.WaitForURLOptions()
 					.setWaitUntil(WaitUntilState.DOMCONTENTLOADED)
 					.setTimeout(timeout));
@@ -451,8 +452,37 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 		}
 	}
 
-	private static boolean matchesAny(List<String> urlMatchers, String url) {
-		return urlMatchers.stream().anyMatch(matcher -> PatternMatchUtils.simpleMatch(matcher, url));
+	/**
+	 * True if the url is the address of a page one of the later tasks is for.
+	 *
+	 * <p>Only the address proper counts, not the query string or fragment: an authorization
+	 * request or a login page usually carries the url the browser will end up on (redirect_uri, a
+	 * return url) as a parameter, and a later task's pattern matching that says where the browser
+	 * is headed, not that it has gone past the optional task's page.
+	 */
+	static boolean isOnALaterTasksPage(List<String> laterTaskUrlMatchers, String url) {
+		String address = withoutQueryAndFragment(url);
+		return laterTaskUrlMatchers.stream().anyMatch(matcher -> PatternMatchUtils.simpleMatch(matcher, address));
+	}
+
+	static String withoutQueryAndFragment(String url) {
+		int end = url.length();
+		for (char delimiter : new char[] {'?', '#'}) {
+			int index = url.indexOf(delimiter);
+			if (index >= 0 && index < end) {
+				end = index;
+			}
+		}
+		return url.substring(0, end);
+	}
+
+	/**
+	 * The test of a 'wait contains' command: the url contains the target, in which a '*' also
+	 * matches any run of characters. Every url that contains the target literally, which is all
+	 * the HtmlUnit runner accepts, matches.
+	 */
+	static boolean urlContains(String target, String url) {
+		return PatternMatchUtils.simpleMatch("*" + target + "*", url);
 	}
 
 	/**
@@ -721,7 +751,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 						// use it (e.g. "/test/*/post"); with HtmlUnit such a wait never runs, as its click
 						// returns only once the whole chain of pages is done and the optional task it sits
 						// in is then skipped, while a real browser is seen on the transient pages in between.
-						page.waitForURL(u -> PatternMatchUtils.simpleMatch("*" + target + "*", u), urlWaitOptions(timeoutMillis));
+						page.waitForURL(u -> urlContains(target, u), urlWaitOptions(timeoutMillis));
 					} else if (elementType.equalsIgnoreCase("match")) {
 						Pattern urlPattern = Pattern.compile(target); // NB this takes a regexp
 						page.waitForURL(u -> urlPattern.matcher(u).find(), urlWaitOptions(timeoutMillis));

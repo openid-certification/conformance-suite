@@ -106,7 +106,14 @@ ones; `run test --rerun 10:1` runs a single plan/module). CI sets `BROWSER_TRACE
 goes through and the test fails afterwards. Playwright drives a real browser, so it also sees the
 transient pages HtmlUnit skips over (e.g. an AS's `response_mode=form_post` page); that is why the Playwright runner
 waits for a task's url to match rather than judging it at an instant. It takes a screenshot for the test log only
-when a run fails; a trace is the way to follow a run that went through. `PLAYWRIGHT_NODEJS_PATH=$(which node) mvn test -Dtest=PlaywrightBrowserRunner_SmokeTest -Dplaywright.smoke=true` exercises the
+when a run fails; a trace is the way to follow a run that went through.
+
+Two things differ from HtmlUnit on purpose and matter when writing a `"browser"` block. An optional task is skipped
+at once, without its 2 second wait for the url, when the page's address (query string and fragment left out) matches
+the `match` of a later task, so give later tasks a pattern that only their own page matches, not a host-wide one.
+And the Playwright runners of one test run one after another, each waiting up to 40 seconds for the earlier ones so
+that it starts with their cookies, where HtmlUnit runners overlap; the local-provider plans pass like this in CI,
+the plan families that only run against external servers have not been run with Playwright. `PLAYWRIGHT_NODEJS_PATH=$(which node) mvn test -Dtest=PlaywrightBrowserRunner_SmokeTest -Dplaywright.smoke=true` exercises the
 Playwright runner end-to-end against an in-process fake AS (opt-in because it needs a Node.js and the browser download).
 
 ### Dev loop (save-and-see)

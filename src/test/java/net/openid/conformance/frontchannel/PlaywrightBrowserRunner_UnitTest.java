@@ -6,6 +6,7 @@ import net.openid.conformance.frontchannel.PlaywrightBrowserRunner.TraceMode;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,6 +51,45 @@ public class PlaywrightBrowserRunner_UnitTest {
 		assertThat(PlaywrightBrowserServer.withoutSecret("ws://[::1]:46837/23b8f6fcbdcad9085303485923991931"))
 			.isEqualTo("ws://[::1]:46837/...");
 		assertThat(PlaywrightBrowserServer.withoutSecret("ws://127.0.0.1:1234/abc")).isEqualTo("ws://127.0.0.1:1234/...");
+	}
+
+	@Test
+	public void anOptionalTaskIsOnlySkippedAtOnceWhenTheAddressIsALaterTasks() {
+		List<String> later = List.of("*/consent*", "*/test/*/callback*");
+
+		assertThat(PlaywrightBrowserRunner.isOnALaterTasksPage(later, "https://suite.example.com/test/a/alias/callback?code=1")).isTrue();
+		assertThat(PlaywrightBrowserRunner.isOnALaterTasksPage(later, "https://suite.example.com/test/a/alias/callback#code=1")).isTrue();
+		assertThat(PlaywrightBrowserRunner.isOnALaterTasksPage(later, "https://as.example.com/consent")).isTrue();
+		assertThat(PlaywrightBrowserRunner.isOnALaterTasksPage(later, "https://as.example.com/login")).isFalse();
+
+		// where the browser is headed is not where it is: the authorization request and the login
+		// page carry the callback's url as a parameter
+		assertThat(PlaywrightBrowserRunner.isOnALaterTasksPage(later,
+			"https://as.example.com/auth?client_id=x&redirect_uri=https://suite.example.com/test/a/alias/callback")).isFalse();
+		assertThat(PlaywrightBrowserRunner.isOnALaterTasksPage(later,
+			"https://as.example.com/login#return=https://suite.example.com/test/a/alias/callback")).isFalse();
+		assertThat(PlaywrightBrowserRunner.isOnALaterTasksPage(List.of("*callback*"),
+			"https://as.example.com/auth?redirect_uri=https%3A%2F%2Fsuite.example.com%2Fcallback")).isFalse();
+
+		assertThat(PlaywrightBrowserRunner.isOnALaterTasksPage(List.of(), "https://as.example.com/login")).isFalse();
+	}
+
+	@Test
+	public void waitContainsAcceptsEveryUrlHtmlUnitsLiteralTestAcceptsAndWildcardsBesides() {
+		String url = "https://suite.example.com/test/a/alias/post?state=a*b&x=1";
+
+		// literal substrings, the HtmlUnit runner's semantics (Selenium's urlContains)
+		for (String literal : new String[] {"/test/a/alias/post", "suite.example.com", "state=a*b", "?state", "x=1", ""}) {
+			assertThat(url.contains(literal)).isTrue();
+			assertThat(PlaywrightBrowserRunner.urlContains(literal, url)).as("literal %s", literal).isTrue();
+		}
+		// '*' matches any run of characters, as the CI configuration's "/test/*/post" needs
+		assertThat(PlaywrightBrowserRunner.urlContains("/test/*/post", url)).isTrue();
+		assertThat(PlaywrightBrowserRunner.urlContains("/test/*/post", "https://suite.example.com/test/a/alias/callback")).isFalse();
+		// nothing else is special: no regular expressions, no '?' wildcard
+		assertThat(PlaywrightBrowserRunner.urlContains("/test/.*/post", url)).isFalse();
+		assertThat(PlaywrightBrowserRunner.urlContains("alias/pos?", url)).isFalse();
+		assertThat(PlaywrightBrowserRunner.urlContains("/callback", url)).isFalse();
 	}
 
 	@Test
