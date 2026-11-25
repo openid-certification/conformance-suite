@@ -162,6 +162,7 @@
 			<!-- needed by nimbusds for OKP keys -->
 			<groupId>com.google.crypto.tink</groupId>
 			<artifactId>tink</artifactId>
+			<version>1.23.0</version>
 		</dependency>
 		<dependency>
 			<groupId>io.specto</groupId>
