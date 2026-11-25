@@ -11,6 +11,11 @@ import java.net.URL;
 
 public abstract class ValidateUrlRequirements extends AbstractCondition {
 
+	/** An Entity Identifier must not contain query parameters (OIDFED 1.2); an endpoint URL may (OIDFED 5.1.1). */
+	protected boolean allowsQueryParameters() {
+		return false;
+	}
+
 	protected Environment validateUrlRequirements(JsonElement urlStringElement, String fieldName, String label, Environment env) {
 		if (urlStringElement == null || urlStringElement.isJsonNull()) {
 			throw error("%s is missing or null".formatted(label), args(fieldName, urlStringElement));
@@ -30,7 +35,7 @@ public abstract class ValidateUrlRequirements extends AbstractCondition {
 				throw error("%s must have a host component".formatted(label), args(fieldName, urlString));
 			}
 
-			if (url.getQuery() != null) {
+			if (url.getQuery() != null && !allowsQueryParameters()) {
 				throw error("%s must not contain query parameters".formatted(label), args(fieldName, urlString));
 			}
 
