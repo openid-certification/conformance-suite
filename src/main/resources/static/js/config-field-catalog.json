@@ -848,6 +848,18 @@
           "tooltip": "client_id for this client on the OpenBanking Directory. This is used to obtain an access token, which is used to retrieve the software statement. The MTLS certificate provided for the client MUST be one that can be used to access the OpenBanking directory. An example client/configuration is linked to from the instructions (see link at top of this page)."
         },
         {
+          "key": "directory.client_secret",
+          "label": "Directory client secret",
+          "type": "string",
+          "tooltip": "Client secret for this client on the directory, sent with the directory client ID (client_secret_post) to obtain the access token used to retrieve the software statement. Used by the Chile CMF Directorio."
+        },
+        {
+          "key": "directory.software_statement_endpoint",
+          "label": "Directory software statement endpoint",
+          "type": "string",
+          "tooltip": "URL the software statement (SSA) is retrieved from with a GET, using the directory access token. Used by the Chile CMF Directorio."
+        },
+        {
           "key": "directory.apibase",
           "label": "Directory API base",
           "type": "string",

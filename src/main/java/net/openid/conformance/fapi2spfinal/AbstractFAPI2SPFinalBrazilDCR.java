@@ -46,6 +46,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
+import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 import java.util.function.Supplier;
@@ -69,6 +70,15 @@ import java.util.function.Supplier;
 	"mtls2.key",
 	"mtls2.cert",
 	"mtls2.ca"
+})
+// The CMF Directorio authenticates the suite with a client secret and issues the software statement
+// from an endpoint the tester configures, instead of one built from directory.apibase.
+@VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_chile", configurationFields = {
+	"directory.client_secret",
+	"directory.software_statement_endpoint"
+})
+@VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_chile", configurationFields = {
+	"directory.apibase"
 })
 public abstract class AbstractFAPI2SPFinalBrazilDCR extends AbstractFAPI2SPFinalServerTestModule {
 	protected void getSsa() {
