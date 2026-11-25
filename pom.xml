@@ -29,7 +29,7 @@
 <!--		<thymeleaf.version>3.1.4.RELEASE</thymeleaf.version>-->
 <!--		<thymeleaf-spring6.version>3.1.4.RELEASE</thymeleaf-spring6.version>-->
 <!--		<commons-lang3.version>3.20.0</commons-lang3.version>-->
-		<bouncycastle.version>1.84</bouncycastle.version>
+		<bouncycastle.version>1.87</bouncycastle.version>
 		<json-schema-validator.version>3.0.3</json-schema-validator.version>
 		<!-- HtmlUnit before 5.5.0 throws a NullPointerException matching ':has(+ x)' against an element
 		     without a next sibling. These are the versions Spring Boot 4.2 manages; remove the three
