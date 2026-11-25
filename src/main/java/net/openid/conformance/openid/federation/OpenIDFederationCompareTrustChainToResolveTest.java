@@ -84,7 +84,7 @@ public class OpenIDFederationCompareTrustChainToResolveTest extends OpenIDFedera
 
 		env.putString("federation_endpoint_url", resolveEndpoint);
 		env.putString("expected_sub", env.getString("primary_entity_statement_iss"));
-		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+		callAndStopOnFailure(ValidateFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
 		callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-8.3.1");
 		callAndContinueOnFailure(AppendAnchorToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-8.3.1");
 

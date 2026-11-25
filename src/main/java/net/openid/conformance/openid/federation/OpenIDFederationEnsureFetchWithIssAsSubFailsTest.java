@@ -35,7 +35,7 @@ public class OpenIDFederationEnsureFetchWithIssAsSubFailsTest extends OpenIDFede
 		}
 
 		env.putString("federation_endpoint_url", fetchEndpoint);
-		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+		callAndStopOnFailure(ValidateFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
 		String entityIdentifier = OIDFJSON.getString(env.getElementFromObject("config", "federation.entity_identifier"));
 		env.putString("expected_sub", entityIdentifier);
 		callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
