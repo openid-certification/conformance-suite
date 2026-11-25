@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAuthorizationCodeGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientCredentialsGrantTypeToDynamicRegistrationRequest;
-import net.openid.conformance.condition.client.AddClientIdToRequest;
 import net.openid.conformance.condition.client.AddJwksUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddMTLSEndpointAliasesToEnvironment;
 import net.openid.conformance.condition.client.AddRedirectUriToDynamicRegistrationRequest;
@@ -30,28 +29,26 @@ import net.openid.conformance.condition.client.CreateEmptyDynamicRegistrationReq
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
-import net.openid.conformance.condition.client.ExtractDirectoryConfiguration;
 import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
-import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
-import net.openid.conformance.condition.client.FAPIBrazilExtractClientMTLSCertificateSubject;
 import net.openid.conformance.condition.client.FAPIBrazilExtractJwksUriFromSoftwareStatement;
-import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDirectoryApiBase;
-import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDirectoryDiscoveryUrl;
 import net.openid.conformance.condition.client.FapiBrazilVerifyRedirectUriContainedInSoftwareStatement;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetOauthDynamicServerConfiguration;
-import net.openid.conformance.condition.client.SetDirectorySoftwareScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.SetResponseTypeCodeInDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
+
+import java.util.function.Supplier;
 
 @ConfigurationFields({
 	"directory.discoveryUrl",
@@ -76,13 +73,14 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 public abstract class AbstractFAPI2SPFinalBrazilDCR extends AbstractFAPI2SPFinalServerTestModule {
 	protected void getSsa() {
 
+		Supplier<? extends ConditionSequence> directoryConfigurationSteps = profileBehavior.getDirectoryConfigurationSteps();
+		if (directoryConfigurationSteps == null) {
+			throw new TestFailureException(getId(), "Dynamic client registration is not supported for the selected FAPI profile");
+		}
+
 		eventLog.startBlock("Obtain access token for directory and retrieve a software statement");
 
-		callAndStopOnFailure(ExtractDirectoryConfiguration.class);
-
-		callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDirectoryDiscoveryUrl.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-6.1");
-
-		callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDirectoryApiBase.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-6.1");
+		call(sequence(directoryConfigurationSteps));
 
 		env.mapKey("config", "directory_config");
 		env.mapKey("server", "directory_server");
@@ -101,11 +99,8 @@ public abstract class AbstractFAPI2SPFinalBrazilDCR extends AbstractFAPI2SPFinal
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 
-		callAndStopOnFailure(SetDirectorySoftwareScopeOnTokenEndpointRequest.class);
-
-		// MTLS client auth
 		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
-		callAndStopOnFailure(AddClientIdToRequest.class);
+		call(sequence(profileBehavior.getDirectoryTokenRequestSteps()));
 		unmapClientAuthKeys();
 
 		callSenderConstrainedTokenEndpoint();
@@ -126,13 +121,16 @@ public abstract class AbstractFAPI2SPFinalBrazilDCR extends AbstractFAPI2SPFinal
 		// restore MTLS aliases to the values for the server being tested
 		callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.FAILURE, "RFC8705-5");
 
-		callAndStopOnFailure(FAPIBrazilExtractClientMTLSCertificateSubject.class);
-
-		// use access token to get ssa
-		// https://matls-api.sandbox.directory.openbankingbrasil.org.br/organisations/${ORGID}/softwarestatements/${SSID}/assertion
-		callAndStopOnFailure(FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken.class);
+		fetchSoftwareStatement();
 
 		eventLog.endBlock();
+	}
+
+	/**
+	 * Obtain a software statement from the directory, using the directory access token from {@link #getSsa()}.
+	 */
+	protected void fetchSoftwareStatement() {
+		call(sequence(profileBehavior.getSoftwareStatementRequestSteps()));
 	}
 
 	@Override

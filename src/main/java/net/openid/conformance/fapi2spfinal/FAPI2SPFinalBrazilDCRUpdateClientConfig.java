@@ -20,7 +20,6 @@ import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400or401;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs401;
-import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
 import net.openid.conformance.condition.client.FapiBrazilVerifyRedirectUriContainedInSoftwareStatement;
 import net.openid.conformance.condition.client.GenerateFakeMTLSCertificate;
 import net.openid.conformance.condition.client.InvalidateSoftwareStatementSignature;
@@ -42,7 +41,7 @@ public class FAPI2SPFinalBrazilDCRUpdateClientConfig extends AbstractFAPI2SPFina
 		eventLog.startBlock("Make PUT request to client configuration endpoint to change redirect uri");
 		callAndStopOnFailure(CreateClientConfigurationRequestFromDynamicClientRegistrationResponse.class);
 		// get a new SSA (technically there should be one in the DCR response, but they may be single use?)
-		callAndStopOnFailure(FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken.class);
+		fetchSoftwareStatement();
 		callAndStopOnFailure(AddSoftwareStatementToClientConfigurationRequest.class);
 		originalRedirectUri = env.getString("redirect_uri");
 		callAndStopOnFailure(AddRedirectUriQuerySuffix.class, "RFC6749-3.1.2");
@@ -63,7 +62,7 @@ public class FAPI2SPFinalBrazilDCRUpdateClientConfig extends AbstractFAPI2SPFina
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
 		// get a new SSA (there is already one, but they may be single use?)
-		callAndStopOnFailure(FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken.class);
+		fetchSoftwareStatement();
 		callAndStopOnFailure(AddSoftwareStatementToClientConfigurationRequest.class);
 
 		// try negative tests changing redirect uri back to original

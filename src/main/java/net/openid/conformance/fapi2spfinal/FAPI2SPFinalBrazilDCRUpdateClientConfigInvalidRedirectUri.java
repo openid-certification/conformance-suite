@@ -9,7 +9,6 @@ import net.openid.conformance.condition.client.CreateBadRedirectUri;
 import net.openid.conformance.condition.client.CreateClientConfigurationRequestFromDynamicClientRegistrationResponse;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
-import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -28,7 +27,7 @@ public class FAPI2SPFinalBrazilDCRUpdateClientConfigInvalidRedirectUri extends A
 		eventLog.startBlock("Make PUT request to client configuration endpoint to change redirect uri to one not in software statement");
 		callAndStopOnFailure(CreateClientConfigurationRequestFromDynamicClientRegistrationResponse.class);
 		// get a new SSA (technically there should be one in the DCR response, but they may be single use?)
-		callAndStopOnFailure(FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken.class);
+		fetchSoftwareStatement();
 		callAndStopOnFailure(AddSoftwareStatementToClientConfigurationRequest.class);
 
 		callAndStopOnFailure(CreateBadRedirectUri.class);

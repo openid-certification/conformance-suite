@@ -9,7 +9,6 @@ import net.openid.conformance.condition.client.CheckErrorFromDynamicRegistration
 import net.openid.conformance.condition.client.CreateClientConfigurationRequestFromDynamicClientRegistrationResponse;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
-import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
 import net.openid.conformance.condition.client.GeneratePS256ClientJWKsWithKeyID;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -29,7 +28,7 @@ public class FAPI2SPFinalBrazilDCRUpdateClientConfigInvalidJwksByValue extends A
 		eventLog.startBlock("Make PUT request to client configuration endpoint to change jwks to one passed by value");
 		callAndStopOnFailure(CreateClientConfigurationRequestFromDynamicClientRegistrationResponse.class);
 		// get a new SSA (technically there should be one in the DCR response, but they may be single use?)
-		callAndStopOnFailure(FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken.class);
+		fetchSoftwareStatement();
 		callAndStopOnFailure(AddSoftwareStatementToClientConfigurationRequest.class);
 
 		callAndStopOnFailure(GeneratePS256ClientJWKsWithKeyID.class);

@@ -2,6 +2,13 @@ package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddAudAsPaymentInitiationUriToRequestObject;
+import net.openid.conformance.condition.client.AddClientIdToRequest;
+import net.openid.conformance.condition.client.ExtractDirectoryConfiguration;
+import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
+import net.openid.conformance.condition.client.FAPIBrazilExtractClientMTLSCertificateSubject;
+import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDirectoryApiBase;
+import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDirectoryDiscoveryUrl;
+import net.openid.conformance.condition.client.SetDirectorySoftwareScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddEndToEndIdToPaymentRequestEntityClaims;
 import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIdempotencyKeyHeader;
@@ -263,6 +270,50 @@ public class OpenBankingBrazilProfileBehavior extends FAPI2ProfileBehavior {
 	@Override
 	public Supplier<? extends ConditionSequence> getProfileSpecificDiscoveryChecks() {
 		return DiscoveryEndpointChecks::new;
+	}
+
+	@Override
+	public Supplier<? extends ConditionSequence> getDirectoryConfigurationSteps() {
+		return DirectoryConfigurationSteps::new;
+	}
+
+	@Override
+	public Supplier<? extends ConditionSequence> getDirectoryTokenRequestSteps() {
+		return DirectoryTokenRequestSteps::new;
+	}
+
+	@Override
+	public Supplier<? extends ConditionSequence> getSoftwareStatementRequestSteps() {
+		return SoftwareStatementRequestSteps::new;
+	}
+
+	public static class DirectoryConfigurationSteps extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(ExtractDirectoryConfiguration.class);
+			callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDirectoryDiscoveryUrl.class, ConditionResult.FAILURE, "BrazilOBDCR-6.1");
+			callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDirectoryApiBase.class, ConditionResult.FAILURE, "BrazilOBDCR-6.1");
+			// the software statement URL is built from the organisation and software ids in this subject
+			callAndStopOnFailure(FAPIBrazilExtractClientMTLSCertificateSubject.class);
+		}
+	}
+
+	/**
+	 * The Brazil directory authenticates the client with its mTLS certificate, so only the client_id is added.
+	 */
+	public static class DirectoryTokenRequestSteps extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(SetDirectorySoftwareScopeOnTokenEndpointRequest.class);
+			callAndStopOnFailure(AddClientIdToRequest.class);
+		}
+	}
+
+	public static class SoftwareStatementRequestSteps extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken.class);
+		}
 	}
 
 	public static class DiscoveryEndpointChecks extends AbstractConditionSequence {

@@ -119,6 +119,33 @@ public class FAPI2ProfileBehavior {
 	// --- Action methods returning ConditionSequence (null = no-op) ---
 
 	/**
+	 * Dynamic client registration: read the ecosystem directory settings from the test configuration
+	 * into {@code directory_config} and {@code directory_client}, and check them. The DCR modules use
+	 * the directory to obtain the software statement sent in the registration request; a profile that
+	 * returns null has no directory and cannot run them.
+	 */
+	public Supplier<? extends ConditionSequence> getDirectoryConfigurationSteps() {
+		return null;
+	}
+
+	/**
+	 * Dynamic client registration: complete the client credentials request to the directory's token
+	 * endpoint. It runs with {@code client} mapped to {@code directory_client} and
+	 * {@code request_form_parameters}/{@code request_headers} mapped to the token endpoint request.
+	 */
+	public Supplier<? extends ConditionSequence> getDirectoryTokenRequestSteps() {
+		return null;
+	}
+
+	/**
+	 * Dynamic client registration: obtain a software statement from the directory with
+	 * {@code directory_access_token}, storing it in {@code software_statement_assertion}.
+	 */
+	public Supplier<? extends ConditionSequence> getSoftwareStatementRequestSteps() {
+		return null;
+	}
+
+	/**
 	 * Set up the resource endpoint. Default calls GetResourceEndpointConfiguration
 	 * and the resource configuration sequence.
 	 */
