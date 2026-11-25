@@ -22,7 +22,6 @@ import net.openid.conformance.runner.TestStatusWaiterService;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.SkippedCondition;
-import net.openid.conformance.settings.ServerSettingsReader;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,9 +79,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	// guard against the very first CREATED transition that fires inside setProperties (line 129),
 	// which happens before TestRunner.setTestStatusWaiterService() has had a chance to inject this.
 	private TestStatusWaiterService testStatusWaiterService;
-
-	// Plain field, wired by TestRunner like testStatusWaiterService.
-	private ServerSettingsReader serverSettingsReader;
 
 	private Supplier<String> testNameSupplier = Suppliers.memoize(() -> getClass().getDeclaredAnnotation(PublishTestModule.class).testName());
 
@@ -148,19 +144,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	@Override
 	public void setTestStatusWaiterService(TestStatusWaiterService service) {
 		this.testStatusWaiterService = service;
-	}
-
-	@Override
-	public void setServerSettingsReader(ServerSettingsReader reader) {
-		this.serverSettingsReader = reader;
-	}
-
-	/**
-	 * The admin-configured server settings. They hold the suite operator's secrets: see
-	 * {@link net.openid.conformance.settings.CMFChileDirectorySettings} for what must not reach the test log.
-	 */
-	protected ServerSettingsReader getServerSettingsReader() {
-		return serverSettingsReader;
 	}
 
 	@Override

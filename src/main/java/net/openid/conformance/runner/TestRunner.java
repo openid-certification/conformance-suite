@@ -28,7 +28,6 @@ import net.openid.conformance.info.TestPlanService;
 import net.openid.conformance.logging.EventLog;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.security.AuthenticationFacade;
-import net.openid.conformance.settings.ServerSettingsReader;
 import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -147,9 +146,6 @@ public class TestRunner implements DataUtils {
 
 	@Autowired
 	private TestStatusWaiterService testStatusWaiterService;
-
-	@Autowired
-	private ServerSettingsReader serverSettingsReader;
 
 	private ExecutorService executorService = Executors.newCachedThreadPool();
 	private ExecutorCompletionService<Object> executorCompletionService = new ExecutorCompletionService<>(executorService);
@@ -828,7 +824,6 @@ public class TestRunner implements DataUtils {
 		// calls setStatusInternal(CREATED) internally. The publish for CREATED is null-safe but
 		// every subsequent setStatusInternal call expects the field populated.
 		module.setTestStatusWaiterService(testStatusWaiterService);
-		module.setServerSettingsReader(serverSettingsReader);
 
 		browser.setPlaceholderFilledListener(module::placeholderFilled);
 

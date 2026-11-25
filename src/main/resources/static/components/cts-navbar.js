@@ -27,7 +27,6 @@ const NAV_LINKS = [
   // API answers 403 to non-admins; hiding the link is the third layer, so a
   // non-admin never sees a destination they cannot reach.
   { page: "statistics", label: "Statistics", href: "statistics.html", adminOnly: true },
-  { page: "settings", label: "Settings", href: "settings.html", adminOnly: true },
   { page: "tokens", label: "Tokens", href: "tokens.html" },
   { page: "api-docs", label: "API Docs", href: "api-document.html", external: true },
 ];

@@ -34,7 +34,6 @@ const PAGES = [
   "/plans.html",
   "/running-test.html",
   "/schedule-test.html",
-  "/settings.html",
   "/statistics.html",
   "/tokens.html",
   "/upload.html",
