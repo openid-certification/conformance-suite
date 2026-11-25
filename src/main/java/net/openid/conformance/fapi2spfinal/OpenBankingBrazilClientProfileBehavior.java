@@ -9,8 +9,12 @@ import net.openid.conformance.condition.as.dynregistration.FAPIBrazilExtractSSAF
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilExtractSoftwareStatement;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilFetchDirectorySSAJwks;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateClientAuthenticationMethods;
+import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateIdTokenSignedResponseAlg;
+import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateRequestObjectSigningAlg;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateSSASignature;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateSoftwareStatementIat;
+import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateTokenEndpointAuthSigningAlg;
+import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateUserinfoSignedResponseAlg;
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
@@ -142,6 +146,31 @@ public class OpenBankingBrazilClientProfileBehavior extends FAPI2ClientProfileBe
 				//BrazilOBDCR- 7.1-12 if supporting tls_client_auth client authentication mechanism as defined in RFC8705 shall
 				// only accept tls_client_auth_subject_dn as an indication of the certificate subject value as defined in clause 2.1.2 RFC8705;
 				callAndContinueOnFailure(FAPIBrazilEnsureTlsClientAuthSubjectDnOnly.class, ConditionResult.FAILURE, "BrazilOBDCR-7.1-7");
+			}
+		};
+	}
+
+	@Override
+	public ConditionSequence validateDynamicRegistrationSigningAlgs() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(condition(FAPIBrazilValidateIdTokenSignedResponseAlg.class)
+					.skipIfElementMissing("client", "id_token_signed_response_alg")
+					.onSkip(ConditionResult.INFO).onFail(ConditionResult.FAILURE).dontStopOnFailure()
+					.requirement("BrazilOB-6.1"));
+				call(condition(FAPIBrazilValidateUserinfoSignedResponseAlg.class)
+					.skipIfElementMissing("client", "userinfo_signed_response_alg")
+					.onSkip(ConditionResult.INFO).onFail(ConditionResult.FAILURE).dontStopOnFailure()
+					.requirement("BrazilOB-6.1"));
+				call(condition(FAPIBrazilValidateRequestObjectSigningAlg.class)
+					.skipIfElementMissing("client", "request_object_signing_alg")
+					.onSkip(ConditionResult.INFO).onFail(ConditionResult.FAILURE).dontStopOnFailure()
+					.requirement("OIDCR-2"));
+				call(condition(FAPIBrazilValidateTokenEndpointAuthSigningAlg.class)
+					.skipIfElementMissing("client", "token_endpoint_auth_signing_alg")
+					.onSkip(ConditionResult.INFO).onFail(ConditionResult.FAILURE).dontStopOnFailure()
+					.requirement("OIDCR-2"));
 			}
 		};
 	}

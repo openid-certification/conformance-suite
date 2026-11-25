@@ -11,11 +11,7 @@ import net.openid.conformance.condition.as.dynregistration.EnsureRequestObjectEn
 import net.openid.conformance.condition.as.dynregistration.EnsureUserinfoEncryptedResponseAlgIsSetIfEncIsSet;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilRegisterClient;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateDefaultAcrValues;
-import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateIdTokenSignedResponseAlg;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateRegistrationClientUriQueryParams;
-import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateRequestObjectSigningAlg;
-import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateTokenEndpointAuthSigningAlg;
-import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateUserinfoSignedResponseAlg;
 import net.openid.conformance.condition.as.dynregistration.OIDCCExtractDynamicRegistrationRequest;
 import net.openid.conformance.condition.as.dynregistration.OIDCCValidateClientRedirectUris;
 import net.openid.conformance.condition.as.dynregistration.ValidateClientGrantTypes;
@@ -245,28 +241,18 @@ public class FAPI2SPFinalBrazilClientDCRHappyPathTest extends AbstractFAPI2SPFin
 
 		callAndContinueOnFailure(ValidateClientSubjectType.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
 
-		skipIfElementMissing("client", "id_token_signed_response_alg", Condition.ConditionResult.INFO,
-			FAPIBrazilValidateIdTokenSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-
 		callAndContinueOnFailure(EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
 
 		//userinfo
 		skipIfElementMissing("client", "userinfo_signed_response_alg", Condition.ConditionResult.INFO,
 			ValidateUserinfoSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
-		skipIfElementMissing("client", "userinfo_signed_response_alg", Condition.ConditionResult.INFO,
-			FAPIBrazilValidateUserinfoSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 
 		callAndContinueOnFailure(EnsureUserinfoEncryptedResponseAlgIsSetIfEncIsSet.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
 
 		//request object
-		skipIfElementMissing("client", "request_object_signing_alg", Condition.ConditionResult.INFO,
-			FAPIBrazilValidateRequestObjectSigningAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
-
 		callAndContinueOnFailure(EnsureRequestObjectEncryptionAlgIsSetIfEncIsSet.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
 
-
-		skipIfElementMissing("client", "token_endpoint_auth_signing_alg", Condition.ConditionResult.INFO,
-			FAPIBrazilValidateTokenEndpointAuthSigningAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
+		call(profileBehavior.validateDynamicRegistrationSigningAlgs());
 
 		callAndContinueOnFailure(ValidateDefaultMaxAge.class, Condition.ConditionResult.WARNING,"OIDCR-2");
 

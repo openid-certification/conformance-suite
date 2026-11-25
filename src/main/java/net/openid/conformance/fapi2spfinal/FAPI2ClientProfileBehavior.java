@@ -212,6 +212,14 @@ public class FAPI2ClientProfileBehavior {
 	}
 
 	/**
+	 * Dynamic client registration: profile-specific checks of the signing algorithms in the
+	 * registration request. Runs with {@code client} mapped to {@code dynamic_registration_request}.
+	 */
+	public ConditionSequence validateDynamicRegistrationSigningAlgs() {
+		return null;
+	}
+
+	/**
 	 * Dynamic client registration: why a registration request received without mutual TLS fails.
 	 */
 	public String dynamicRegistrationRequiresMtlsMessage() {
