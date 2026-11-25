@@ -778,18 +778,49 @@ export const GUIDED_WIZARD_TREE = {
             {
               id: "rp",
               label: "RP (Client)",
-              result: {
-                plan_name: "fapi2-message-signing-final-client-test-plan",
-                variants: {
-                  client_auth_type: "mtls",
-                  fapi_profile: "openbanking_chile",
-                  fapi_request_method: "signed_non_repudiation",
-                  authorization_request_type: "rar",
-                  sender_constrain: "mtls",
-                  fapi_response_mode: "plain_response",
-                  fapi_client_type: "oidc",
-                  grant_management: "enabled",
-                },
+              next: {
+                id: "plan",
+                question: "Which certification plan are you creating?",
+                choices: [
+                  {
+                    id: "fapi2_ms_chile_rp",
+                    label: "FAPI2 Message Signing",
+                    description:
+                      "Client-side FAPI2 tests for Finanzas Abiertas Chile. Certification also requires the Dynamic Client Registration plan.",
+                    result: {
+                      plan_name: "fapi2-message-signing-final-client-test-plan",
+                      variants: {
+                        client_auth_type: "mtls",
+                        fapi_profile: "openbanking_chile",
+                        fapi_request_method: "signed_non_repudiation",
+                        authorization_request_type: "rar",
+                        sender_constrain: "mtls",
+                        fapi_response_mode: "plain_response",
+                        fapi_client_type: "oidc",
+                        grant_management: "enabled",
+                      },
+                    },
+                  },
+                  {
+                    id: "dcr_chile_rp",
+                    label: "Dynamic Client Registration",
+                    description:
+                      "DCR tests for Finanzas Abiertas Chile. Certification also requires the FAPI2 Message Signing client plan.",
+                    result: {
+                      plan_name: "fapi2-message-signing-final-chile-dcr-client-test-plan",
+                      variants: {
+                        client_auth_type: "mtls",
+                        fapi_profile: "openbanking_chile",
+                        fapi_request_method: "signed_non_repudiation",
+                        authorization_request_type: "rar",
+                        sender_constrain: "mtls",
+                        fapi_response_mode: "plain_response",
+                        fapi_client_type: "oidc",
+                        grant_management: "enabled",
+                      },
+                    },
+                  },
+                ],
               },
             },
             {

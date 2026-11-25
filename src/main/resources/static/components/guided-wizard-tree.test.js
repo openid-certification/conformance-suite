@@ -163,6 +163,51 @@ describe("Finanzas Abiertas Chile guided paths", () => {
       variants: CHILE_OP_VARIANTS,
     });
   });
+
+  const CHILE_RP_VARIANTS = {
+    client_auth_type: "mtls",
+    fapi_profile: "openbanking_chile",
+    fapi_request_method: "signed_non_repudiation",
+    authorization_request_type: "rar",
+    sender_constrain: "mtls",
+    fapi_response_mode: "plain_response",
+    fapi_client_type: "oidc",
+    grant_management: "enabled",
+  };
+
+  function chileRpPlanStep() {
+    const ecosystem = GUIDED_WIZARD_TREE.ecosystems.find(
+      (item) => item.id === "open_finance_chile",
+    );
+    expect(ecosystem).toBeTruthy();
+    const rp = choiceById(
+      /** @type {import("./guided-wizard-tree.js").WizardStep} */ (ecosystem?.steps[0]),
+      "rp",
+    );
+    expect(rp.result).toBeUndefined();
+    return /** @type {import("./guided-wizard-tree.js").WizardStep} */ (rp.next);
+  }
+
+  it("offers the FAPI2 Message Signing and DCR client plans under the RP choice", () => {
+    expect(chileRpPlanStep().choices.map((choice) => choice.id)).toEqual([
+      "fapi2_ms_chile_rp",
+      "dcr_chile_rp",
+    ]);
+  });
+
+  it("resolves the RP FAPI2 Message Signing choice with the profile's mandated variants", () => {
+    expect(choiceById(chileRpPlanStep(), "fapi2_ms_chile_rp").result).toEqual({
+      plan_name: "fapi2-message-signing-final-client-test-plan",
+      variants: CHILE_RP_VARIANTS,
+    });
+  });
+
+  it("resolves the RP DCR choice to the Chile DCR client plan with the profile's mandated variants", () => {
+    expect(choiceById(chileRpPlanStep(), "dcr_chile_rp").result).toEqual({
+      plan_name: "fapi2-message-signing-final-chile-dcr-client-test-plan",
+      variants: CHILE_RP_VARIANTS,
+    });
+  });
 });
 
 describe("Openbanking UK guided paths", () => {
