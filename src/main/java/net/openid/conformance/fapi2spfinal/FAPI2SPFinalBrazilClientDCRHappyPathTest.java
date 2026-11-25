@@ -9,22 +9,11 @@ import net.openid.conformance.condition.as.ValidateRedirectUriForTokenEndpointRe
 import net.openid.conformance.condition.as.dynregistration.EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet;
 import net.openid.conformance.condition.as.dynregistration.EnsureRequestObjectEncryptionAlgIsSetIfEncIsSet;
 import net.openid.conformance.condition.as.dynregistration.EnsureUserinfoEncryptedResponseAlgIsSetIfEncIsSet;
-import net.openid.conformance.condition.as.dynregistration.FAPIBrazilEnsureClientMetadataMatchSoftwareStatement;
-import net.openid.conformance.condition.as.dynregistration.FAPIBrazilEnsureJwksUriMatchesSoftwareJwksUri;
-import net.openid.conformance.condition.as.dynregistration.FAPIBrazilEnsureRedirectUrisMatchSoftwareRedirectUris;
-import net.openid.conformance.condition.as.dynregistration.FAPIBrazilEnsureRegistrationRequestDoesNotIncludeJwks;
-import net.openid.conformance.condition.as.dynregistration.FAPIBrazilEnsureTlsClientAuthSubjectDnOnly;
-import net.openid.conformance.condition.as.dynregistration.FAPIBrazilExtractSSAFromDynamicRegistrationRequest;
-import net.openid.conformance.condition.as.dynregistration.FAPIBrazilExtractSoftwareStatement;
-import net.openid.conformance.condition.as.dynregistration.FAPIBrazilFetchDirectorySSAJwks;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilRegisterClient;
-import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateClientAuthenticationMethods;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateDefaultAcrValues;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateIdTokenSignedResponseAlg;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateRegistrationClientUriQueryParams;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateRequestObjectSigningAlg;
-import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateSSASignature;
-import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateSoftwareStatementIat;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateTokenEndpointAuthSigningAlg;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateUserinfoSignedResponseAlg;
 import net.openid.conformance.condition.as.dynregistration.OIDCCExtractDynamicRegistrationRequest;
@@ -44,6 +33,7 @@ import net.openid.conformance.condition.common.EnsureIncomingTls12WithBCP195Secu
 import net.openid.conformance.condition.common.EnsureIncomingTls13;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
 import net.openid.conformance.condition.rs.RequireBearerRegistrationAccessToken;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -143,9 +133,7 @@ public class FAPI2SPFinalBrazilClientDCRHappyPathTest extends AbstractFAPI2SPFin
 
 		if(path.equals("register")) {
 			setStatus(Status.RUNNING);
-			throw new TestFailureException(getId(), "As per https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-dynamic-client-registration-1_ID1.html#name-authorization-server-2, " +
-				" dynamic client registration requests must be performed over a connection secured with " +
-				"mutual tls using certificates issued by Brazil ICP (production) or the Directory of Participants (sandbox)");
+			throw new TestFailureException(getId(), profileBehavior.dynamicRegistrationRequiresMtlsMessage());
 		} else {
 			return super.handleHttp(path, req, res, session, requestParts);
 		}
@@ -210,16 +198,17 @@ public class FAPI2SPFinalBrazilClientDCRHappyPathTest extends AbstractFAPI2SPFin
 		env.removeObject("client");
 		call(exec().unmapKey("token_endpoint_request"));
 
-		callAndStopOnFailure(FAPIBrazilExtractSSAFromDynamicRegistrationRequest.class);
-		callAndStopOnFailure(FAPIBrazilFetchDirectorySSAJwks.class);
-		callAndStopOnFailure(FAPIBrazilValidateSSASignature.class);
-		callAndStopOnFailure(FAPIBrazilExtractSoftwareStatement.class);
+		ConditionSequence softwareStatementValidation = profileBehavior.validateSoftwareStatement();
+		if (softwareStatementValidation == null) {
+			throw new TestFailureException(getId(), "Dynamic client registration is not supported for the selected FAPI profile");
+		}
+		call(softwareStatementValidation);
 
 		env.mapKey("client", "dynamic_registration_request");
 		validateClientRegistrationMetadata();
 		env.unmapKey("client");
 
-		validateClientRegistrationBrazilSpecificChecks();
+		call(profileBehavior.validateDynamicRegistrationRequest());
 
 		JsonObject registeredClient = registerClient().deepCopy();
 
@@ -231,33 +220,6 @@ public class FAPI2SPFinalBrazilClientDCRHappyPathTest extends AbstractFAPI2SPFin
 
 		setStatus(Status.WAITING);
 		return new ResponseEntity<Object>(registeredClient, HttpStatus.CREATED);
-	}
-
-	protected void validateClientRegistrationBrazilSpecificChecks() {
-		//BrazilOBDCR- 7.1-3 shall validate that the software_statement was issued (iat) not more than 5 minutes prior to the request being received
-		callAndContinueOnFailure(FAPIBrazilValidateSoftwareStatementIat.class, Condition.ConditionResult.FAILURE,"BrazilOBDCR-7.1-3");
-		//BrazilOBDCR- 7.1-4 shall validate that a jwks (key set by value) was not included;
-		callAndContinueOnFailure(FAPIBrazilEnsureRegistrationRequestDoesNotIncludeJwks.class, Condition.ConditionResult.FAILURE,"BrazilOBDCR-7.1-4");
-		//BrazilOBDCR- 7.1-5 shall require and validate that the jwks_uri matches the software_jwks_uri provided in the software statement;
-		callAndContinueOnFailure(FAPIBrazilEnsureJwksUriMatchesSoftwareJwksUri.class, Condition.ConditionResult.FAILURE,"BrazilOBDCR-7.1-5");
-		//BrazilOBDCR- 7.1-6 shall require and validate that redirect_uris match or contain a sub set of softwareredirecturis provided in the software statement;
-		callAndContinueOnFailure(FAPIBrazilEnsureRedirectUrisMatchSoftwareRedirectUris.class, Condition.ConditionResult.FAILURE,"BrazilOBDCR-7.1-6");
-		//BrazilOBDCR- 7.1-7 shall require and validate that all client authentication mechanism adhere to the requirements defined in Financial-grade API Security Profile 1.0 - Part 1: Advanced;
-		callAndContinueOnFailure(FAPIBrazilValidateClientAuthenticationMethods.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-7");
-
-		//TODO how do you validate this during registration? registration request does not contain scopes?
-		//BrazilOBDCR- 7.1-9 shall shall validate that requested scopes are appropriate for the softwares authorized regulatory roles
-		//software_statement_roles -> "role": "DADOS",
-
-		//BrazilOBDCR- 7.1-10 should where possible validate client asserted metadata against metadata provided in the software_statement;
-		callAndContinueOnFailure(FAPIBrazilEnsureClientMetadataMatchSoftwareStatement.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-10");
-
-		//BrazilOBDCR- 7.1-11 shall accept all x.500 AttributeType name strings defined in the Distinguished Name of the
-		// x.509 Certificate Profiles defined in Open Banking Brasil x.509 Certificate Standards;
-
-		//BrazilOBDCR- 7.1-12 if supporting tls_client_auth client authentication mechanism as defined in RFC8705 shall
-		// only accept tls_client_auth_subject_dn as an indication of the certificate subject value as defined in clause 2.1.2 RFC8705;
-		callAndContinueOnFailure(FAPIBrazilEnsureTlsClientAuthSubjectDnOnly.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-7");
 	}
 
 	protected void validateClientRegistrationMetadata(){

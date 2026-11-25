@@ -191,6 +191,33 @@ public class FAPI2ClientProfileBehavior {
 		return null;
 	}
 
+	// --- Dynamic client registration ---
+
+	/**
+	 * Dynamic client registration: extract the software statement from the registration request
+	 * ({@code dynamic_registration_request}), validate it against the ecosystem directory and
+	 * store its claims in {@code software_statement_assertion}. A profile that returns null has
+	 * no directory and cannot run the client DCR module.
+	 */
+	public ConditionSequence validateSoftwareStatement() {
+		return null;
+	}
+
+	/**
+	 * Dynamic client registration: profile-specific checks of the registration request against
+	 * the software statement.
+	 */
+	public ConditionSequence validateDynamicRegistrationRequest() {
+		return null;
+	}
+
+	/**
+	 * Dynamic client registration: why a registration request received without mutual TLS fails.
+	 */
+	public String dynamicRegistrationRequiresMtlsMessage() {
+		return "Dynamic client registration requests must be performed over a connection secured with mutual TLS";
+	}
+
 	// --- HTTP request routing ---
 
 	/**
