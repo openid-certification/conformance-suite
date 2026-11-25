@@ -118,6 +118,53 @@ describe("ConnectID CIBA guided paths", () => {
   });
 });
 
+describe("Finanzas Abiertas Chile guided paths", () => {
+  const CHILE_OP_VARIANTS = {
+    client_auth_type: "mtls",
+    fapi_profile: "openbanking_chile",
+    fapi_request_method: "signed_non_repudiation",
+    authorization_request_type: "rar",
+    sender_constrain: "mtls",
+    fapi_response_mode: "plain_response",
+    openid: "openid_connect",
+    grant_management: "enabled",
+  };
+
+  function chileOpPlanStep() {
+    const ecosystem = GUIDED_WIZARD_TREE.ecosystems.find(
+      (item) => item.id === "open_finance_chile",
+    );
+    expect(ecosystem).toBeTruthy();
+    const op = choiceById(
+      /** @type {import("./guided-wizard-tree.js").WizardStep} */ (ecosystem?.steps[0]),
+      "op",
+    );
+    expect(op.result).toBeUndefined();
+    return /** @type {import("./guided-wizard-tree.js").WizardStep} */ (op.next);
+  }
+
+  it("offers the FAPI2 Message Signing and DCR plans under the OP choice", () => {
+    expect(chileOpPlanStep().choices.map((choice) => choice.id)).toEqual([
+      "fapi2_ms_chile_op",
+      "dcr_chile_op",
+    ]);
+  });
+
+  it("resolves the OP FAPI2 Message Signing choice with the profile's mandated variants", () => {
+    expect(choiceById(chileOpPlanStep(), "fapi2_ms_chile_op").result).toEqual({
+      plan_name: "fapi2-message-signing-final-test-plan",
+      variants: CHILE_OP_VARIANTS,
+    });
+  });
+
+  it("resolves the OP DCR choice to the Chile DCR plan with the profile's mandated variants", () => {
+    expect(choiceById(chileOpPlanStep(), "dcr_chile_op").result).toEqual({
+      plan_name: "fapi2-message-signing-final-chile-dcr-test-plan",
+      variants: CHILE_OP_VARIANTS,
+    });
+  });
+});
+
 describe("Openbanking UK guided paths", () => {
   it("sets the client type on both RP choices, which the client plan has no default for", () => {
     const ecosystem = GUIDED_WIZARD_TREE.ecosystems.find((item) => item.id === "open_banking_uk");
@@ -190,23 +237,38 @@ describe("EU guided paths", () => {
       const formatLeaves = [
         [
           ["wallet", "issuance", choice, "wallet_initiated"],
-          { plan_name: vciWallet, variants: vci(format, "wallet_initiated") },
+          {
+            plan_name: vciWallet,
+            variants: vci(format, "wallet_initiated"),
+          },
         ],
         [
           ["wallet", "issuance", choice, "issuer_initiated", "by_value"],
-          { plan_name: vciWallet, variants: vci(format, "issuer_initiated", "by_value") },
+          {
+            plan_name: vciWallet,
+            variants: vci(format, "issuer_initiated", "by_value"),
+          },
         ],
         [
           ["wallet", "issuance", choice, "issuer_initiated", "by_reference"],
-          { plan_name: vciWallet, variants: vci(format, "issuer_initiated", "by_reference") },
+          {
+            plan_name: vciWallet,
+            variants: vci(format, "issuer_initiated", "by_reference"),
+          },
         ],
         [
           ["issuer", choice, "wallet_initiated"],
-          { plan_name: vciIssuer, variants: vci(format, "wallet_initiated") },
+          {
+            plan_name: vciIssuer,
+            variants: vci(format, "wallet_initiated"),
+          },
         ],
         [
           ["issuer", choice, "issuer_initiated"],
-          { plan_name: vciIssuer, variants: vci(format, "issuer_initiated") },
+          {
+            plan_name: vciIssuer,
+            variants: vci(format, "issuer_initiated"),
+          },
         ],
       ];
       return formatLeaves;
@@ -259,14 +321,20 @@ describe("EU guided paths", () => {
       ["verifier", "sd_jwt"],
       {
         plan_name: vpVerifier,
-        variants: { credential_format: "sd_jwt_vc", response_mode: "direct_post.jwt" },
+        variants: {
+          credential_format: "sd_jwt_vc",
+          response_mode: "direct_post.jwt",
+        },
       },
     ],
     [
       ["verifier", "mdoc"],
       {
         plan_name: vpVerifier,
-        variants: { credential_format: "iso_mdl", response_mode: "direct_post.jwt" },
+        variants: {
+          credential_format: "iso_mdl",
+          response_mode: "direct_post.jwt",
+        },
       },
     ],
   ];

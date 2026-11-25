@@ -2,6 +2,7 @@ package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantSelection;
 
@@ -19,35 +20,39 @@ import java.util.List;
 )
 public class FAPI2SPFinalBrazilDCRTestPlan implements TestPlan {
 
+	/**
+	 * The FAPI2 DCR modules. The Chile DCR plan runs the same modules under openbanking_chile.
+	 */
+	public static final List<Class<? extends TestModule>> DCR_TEST_MODULES = List.of(
+		FAPI2SPFinalBrazilDCRHappyFlow.class,
+		FAPI2SPFinalBrazilDCRHappyFlowVariant.class,
+		FAPI2SPFinalBrazilDCRHappyFlowVariant2.class,
+		FAPI2SPFinalBrazilDCRClientDeletion.class,
+		FAPI2SPFinalBrazilDCRInvalidRegistrationAccessToken.class,
+		FAPI2SPFinalBrazilDCRInvalidSoftwareStatementSignature.class,
+		FAPI2SPFinalBrazilDCRNoSoftwareStatement.class,
+		FAPI2SPFinalBrazilDCRNoMTLS.class,
+		FAPI2SPFinalBrazilDCRBadMTLS.class,
+		FAPI2SPFinalBrazilDCRUpdateClientConfig.class,
+		FAPI2SPFinalBrazilDCRUpdateClientConfigBadJwksUri.class,
+		FAPI2SPFinalBrazilDCRUpdateClientConfigInvalidJwksByValue.class,
+		FAPI2SPFinalBrazilDCRUpdateClientConfigInvalidRedirectUri.class,
+		FAPI2SPFinalBrazilDCRNoRedirectUri.class,
+		FAPI2SPFinalBrazilDCRInvalidRedirectUri.class,
+		FAPI2SPFinalBrazilDCRInvalidJwksUri.class,
+		FAPI2SPFinalBrazilDCRInvalidJwksByValue.class
+	);
+
 	@Override
 	public List<ModuleListEntry> testModulesWithVariants() {
-
 		return List.of(
 			new ModuleListEntry(
-				List.of(
-					FAPI2SPFinalBrazilDCRHappyFlow.class,
-					FAPI2SPFinalBrazilDCRHappyFlowVariant.class,
-					FAPI2SPFinalBrazilDCRHappyFlowVariant2.class,
-					FAPI2SPFinalBrazilDCRClientDeletion.class,
-					FAPI2SPFinalBrazilDCRInvalidRegistrationAccessToken.class,
-					FAPI2SPFinalBrazilDCRInvalidSoftwareStatementSignature.class,
-					FAPI2SPFinalBrazilDCRNoSoftwareStatement.class,
-					FAPI2SPFinalBrazilDCRNoMTLS.class,
-					FAPI2SPFinalBrazilDCRBadMTLS.class,
-					FAPI2SPFinalBrazilDCRUpdateClientConfig.class,
-					FAPI2SPFinalBrazilDCRUpdateClientConfigBadJwksUri.class,
-					FAPI2SPFinalBrazilDCRUpdateClientConfigInvalidJwksByValue.class,
-					FAPI2SPFinalBrazilDCRUpdateClientConfigInvalidRedirectUri.class,
-					FAPI2SPFinalBrazilDCRNoRedirectUri.class,
-					FAPI2SPFinalBrazilDCRInvalidRedirectUri.class,
-					FAPI2SPFinalBrazilDCRInvalidJwksUri.class,
-					FAPI2SPFinalBrazilDCRInvalidJwksByValue.class
-				),
+				DCR_TEST_MODULES,
 				List.of(new Variant(FAPI2FinalOPProfile.class, "openbanking_brazil"))
 			)
 		);
-
 	}
+
 	@Override
 	public List<Variant> variantsNotApplicable() {
 		return FAPI2SPFinalTestPlan.FAPI2_VARIANTS_NOT_APPLICABLE;

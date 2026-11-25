@@ -156,7 +156,7 @@ test.describe("schedule-test.html — guided journey", () => {
     expect(consoleErrors).toEqual([]);
   });
 
-  test("Chile → OP resolves to FAPI2 message signing with Grant Management enabled", async ({
+  test("Chile → OP → FAPI2 Message Signing resolves to FAPI2 message signing with Grant Management enabled", async ({
     page,
   }) => {
     await setupScheduleTestRoutes(page);
@@ -165,6 +165,10 @@ test.describe("schedule-test.html — guided journey", () => {
     await pickChoice(page, "open_finance_chile");
     await expect(page.locator("#guidedStage h1")).toHaveText("What is your role?");
     await pickChoice(page, "op");
+    await expect(page.locator("#guidedStage h1")).toHaveText(
+      "Which certification plan are you creating?",
+    );
+    await pickChoice(page, "fapi2_ms_chile_op");
     await expect(page.locator("#guidedStage h1")).toHaveText("Here's the plan we resolved");
 
     await expect(page.locator("#guidedStage .plan-name-code").first()).toHaveText(

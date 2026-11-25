@@ -56,10 +56,10 @@ import java.util.function.Supplier;
 	"directory.client_id",
 	"directory.apibase"
 })
-// Brazil DCR overrides configureClient() to call ExtractDirectoryConfiguration instead of
-// GetStaticClientConfiguration, and does not use a second client. Hide the inherited
+// The DCR modules override configureClient() to call ExtractDirectoryConfiguration instead of
+// GetStaticClientConfiguration, and do not use a second client. Hide the inherited
 // AbstractFAPI2SPFinalServerTestModule fields that this flow never consumes so they
-// don't appear in the form for the Brazil DCR test plan.
+// don't appear in the form for the Brazil and Chile DCR test plans.
 @VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.client_id",
 	"client2.client_id",
@@ -78,7 +78,16 @@ import java.util.function.Supplier;
 	"directory.software_statement_endpoint"
 })
 @VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_chile", configurationFields = {
-	"directory.apibase"
+	"directory.apibase",
+	"client.client_id",
+	"client2.client_id",
+	"client2.scope",
+	"client2.jwks",
+	"client2.org_jwks",
+	"client2.dpop_signing_alg",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca"
 })
 public abstract class AbstractFAPI2SPFinalBrazilDCR extends AbstractFAPI2SPFinalServerTestModule {
 	protected void getSsa() {
