@@ -59,7 +59,7 @@ import jakarta.servlet.http.HttpSession;
 		stores the registration_client_uri and registration_access_token so that future changes may be \
 		made to the configuration of the client.
 
-		If you do not have access to the directory you can use the keys in this configuration: https://gitlab.com/openid/conformance-suite/-/blob/master/scripts/test-configs-rp-against-op/fapi-brazil-rp-test-config-payments.json\
+		For Open Banking Brazil, if you do not have access to the directory you can use the keys in this configuration: https://gitlab.com/openid/conformance-suite/-/blob/master/scripts/test-configs-rp-against-op/fapi-brazil-rp-test-config-payments.json\
 		""",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
