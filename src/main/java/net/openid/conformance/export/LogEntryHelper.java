@@ -142,6 +142,7 @@ public class LogEntryHelper {
 		specLinks.put("CBUAE", "https://openfinanceuae.atlassian.net/wiki/spaces/standardsv1final/pages/151846988/Security+Profile+-+FAPI");
 		specLinks.put("AUTHZEN-", "https://openid.net/specs/authorization-api-1_0-final.html#section-");
 		specLinks.put("FAPI-ISSUES-", "https://bitbucket.org/openid/fapi/issues/");
+		specLinks.put("CMF-DCR-", "https://openfinancechile.atlassian.net/wiki/spaces/OFAC/pages/435749475/v1.0.1+-+Dynamic+Client+Registration#");
 
 		// Confluence heading fragments include the heading text, not only its section number. Keep
 		// the requirement label separate from the published heading fragment so logs retain precise
