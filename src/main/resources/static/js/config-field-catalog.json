@@ -860,6 +860,12 @@
           "tooltip": "URL the software statement (SSA) is retrieved from with a GET, using the directory access token. Used by the Chile CMF Directorio."
         },
         {
+          "key": "directory.ssa_jwks_uri",
+          "label": "Directory software statement JWKS URI",
+          "type": "string",
+          "tooltip": "URL of the JWK set the directory signs software statements with. The suite fetches it to validate the software statement in the client's registration request. Used by the Chile CMF Directorio."
+        },
+        {
           "key": "directory.apibase",
           "label": "Directory API base",
           "type": "string",

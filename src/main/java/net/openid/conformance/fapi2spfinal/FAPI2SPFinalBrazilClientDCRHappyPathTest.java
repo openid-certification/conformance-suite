@@ -37,6 +37,8 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
+import net.openid.conformance.variant.VariantConfigurationFields;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -68,6 +70,10 @@ import jakarta.servlet.http.HttpSession;
 		"waitTimeoutSeconds"
 	}
 )
+// The CMF Directorio publishes its software statement signing keys at a single JWKS URI
+@VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_chile", configurationFields = {
+	"directory.ssa_jwks_uri"
+})
 
 public class FAPI2SPFinalBrazilClientDCRHappyPathTest extends AbstractFAPI2SPFinalClientTest {
 	boolean resourceEndpointCalled = false;

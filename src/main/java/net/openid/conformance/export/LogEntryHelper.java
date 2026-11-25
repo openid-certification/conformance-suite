@@ -157,6 +157,10 @@ public class LogEntryHelper {
 		specSectionLinks.put("BrazilOBDCR-9.3.2",
 			brazilDcr + "9.3.2.-Client-Maintenance---GET-%2Fregister---PUT-%2Fregister---DELETE-%2Fregister");
 
+		String cmfDcr = specLinks.get("CMF-DCR-");
+		specSectionLinks.put("CMF-DCR-5",
+			cmfDcr + "v1.0.1-DynamicClientRegistration-Validaci%C3%B3ndelSoftwareStatementAssertion(SSA)");
+
 		String brazilCiba = specLinks.get("BrazilCIBA-");
 		specSectionLinks.put("BrazilCIBA-6.2.2", brazilCiba + "6.2.2.-CIBA-delivery-modes");
 		specSectionLinks.put("BrazilCIBA-6.2.3",
