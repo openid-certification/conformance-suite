@@ -12,7 +12,9 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.jwk.gen.OctetSequenceKeyGenerator;
+import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jose.util.Base64URL;
+import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.Condition;
@@ -20,8 +22,18 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.math.BigInteger;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -121,6 +133,109 @@ class AbstractVerifyJwsSignature_UnitTest {
 		ECKey otherKey = new ECKeyGenerator(Curve.P_256).generate();
 
 		assertThrows(ConditionError.class, () -> cond.verify(jwt.serialize(), jwkSet(otherKey.toPublicJWK())));
+	}
+
+	private static SignedJWT es256WithThumbprint(ECKey key, String kid, Base64URL x5tS256) throws Exception {
+		SignedJWT jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(kid).x509CertSHA256Thumbprint(x5tS256).build(),
+			new JWTClaimsSet.Builder().issuer("https://example.com").build());
+		jwt.sign(new ECDSASigner(key));
+		return jwt;
+	}
+
+	@Test
+	public void headerThumbprintWithKeyWithoutThumbprint_verifies() throws Exception {
+		// A key without x5t#S256 cannot be ruled out by the header's thumbprint; this used to
+		// dereference the key's missing thumbprint and fail with an internal NullPointerException.
+		ECKey key = new ECKeyGenerator(Curve.P_256).generate();
+		SignedJWT jwt = es256WithThumbprint(key, null, Base64URL.encode("thumbprint"));
+
+		cond.verify(jwt.serialize(), jwkSet(key.toPublicJWK()));
+	}
+
+	@Test
+	public void headerThumbprintWithKidAndKeyWithoutThumbprint_verifies() throws Exception {
+		ECKey key = new ECKeyGenerator(Curve.P_256).keyID("k1").generate();
+		SignedJWT jwt = es256WithThumbprint(key, "k1", Base64URL.encode("thumbprint"));
+
+		cond.verify(jwt.serialize(), jwkSet(key.toPublicJWK()));
+	}
+
+	@Test
+	public void headerThumbprintMatchingKeyThumbprint_verifies() throws Exception {
+		Base64URL thumbprint = Base64URL.encode("thumbprint");
+		ECKey key = new ECKeyGenerator(Curve.P_256).generate();
+		SignedJWT jwt = es256WithThumbprint(key, null, thumbprint);
+		ECKey publicKey = new ECKey.Builder(key.toPublicJWK()).x509CertSHA256Thumbprint(thumbprint).build();
+
+		cond.verify(jwt.serialize(), jwkSet(publicKey));
+	}
+
+	@Test
+	public void headerThumbprintDifferentFromKeyThumbprint_failsTheCondition() throws Exception {
+		ECKey key = new ECKeyGenerator(Curve.P_256).generate();
+		SignedJWT jwt = es256WithThumbprint(key, null, Base64URL.encode("thumbprint"));
+		ECKey publicKey = new ECKey.Builder(key.toPublicJWK()).x509CertSHA256Thumbprint(Base64URL.encode("other")).build();
+
+		assertThrows(ConditionError.class, () -> cond.verify(jwt.serialize(), jwkSet(publicKey)));
+	}
+
+	/** The public key with a self-signed certificate for it as its only 'x5c' entry, and no 'x5t#S256'. */
+	private static ECKey publicKeyWithCertificate(ECKey key) throws Exception {
+		X500Name name = new X500Name("CN=test");
+		Instant now = Instant.now();
+		X509CertificateHolder holder = new JcaX509v3CertificateBuilder(name, BigInteger.ONE,
+			Date.from(now.minus(1, ChronoUnit.DAYS)), Date.from(now.plus(1, ChronoUnit.DAYS)), name, key.toECPublicKey())
+			.build(new JcaContentSignerBuilder("SHA256withECDSA").build(key.toECPrivateKey()));
+		return new ECKey.Builder(key.toPublicJWK()).x509CertChain(List.of(Base64.encode(holder.getEncoded()))).build();
+	}
+
+	private static Base64URL certificateThumbprint(ECKey keyWithCertificate) {
+		return X509CertUtils.computeSHA256Thumbprint(keyWithCertificate.getParsedX509CertChain().get(0));
+	}
+
+	@Test
+	public void headerThumbprintMatchingKeyCertificate_verifies() throws Exception {
+		ECKey key = new ECKeyGenerator(Curve.P_256).generate();
+		ECKey publicKey = publicKeyWithCertificate(key);
+		SignedJWT jwt = es256WithThumbprint(key, null, certificateThumbprint(publicKey));
+
+		cond.verify(jwt.serialize(), jwkSet(publicKey));
+	}
+
+	@Test
+	public void headerThumbprintWithKidMatchingKeyCertificate_verifies() throws Exception {
+		ECKey key = new ECKeyGenerator(Curve.P_256).keyID("k1").generate();
+		ECKey publicKey = publicKeyWithCertificate(key);
+		SignedJWT jwt = es256WithThumbprint(key, "k1", certificateThumbprint(publicKey));
+
+		cond.verify(jwt.serialize(), jwkSet(publicKey));
+	}
+
+	@Test
+	public void headerThumbprintDifferentFromKeyCertificate_failsTheCondition() throws Exception {
+		// The key has no x5t#S256 of its own, but its certificate does not have the header's thumbprint.
+		ECKey key = new ECKeyGenerator(Curve.P_256).generate();
+		SignedJWT jwt = es256WithThumbprint(key, null, Base64URL.encode(new byte[32]));
+
+		assertThrows(ConditionError.class, () -> cond.verify(jwt.serialize(), jwkSet(publicKeyWithCertificate(key))));
+	}
+
+	@Test
+	public void headerThumbprintWithKidDifferentFromKeyCertificate_failsTheCondition() throws Exception {
+		ECKey key = new ECKeyGenerator(Curve.P_256).keyID("k1").generate();
+		SignedJWT jwt = es256WithThumbprint(key, "k1", Base64URL.encode(new byte[32]));
+
+		assertThrows(ConditionError.class, () -> cond.verify(jwt.serialize(), jwkSet(publicKeyWithCertificate(key))));
+	}
+
+	@Test
+	public void headerThumbprintMatchingKeyCertificateButNotKeyThumbprint_failsTheCondition() throws Exception {
+		ECKey key = new ECKeyGenerator(Curve.P_256).generate();
+		ECKey withCertificate = publicKeyWithCertificate(key);
+		SignedJWT jwt = es256WithThumbprint(key, null, certificateThumbprint(withCertificate));
+		ECKey publicKey = new ECKey.Builder(withCertificate).x509CertSHA256Thumbprint(Base64URL.encode("other")).build();
+
+		assertThrows(ConditionError.class, () -> cond.verify(jwt.serialize(), jwkSet(publicKey)));
 	}
 
 	/**
