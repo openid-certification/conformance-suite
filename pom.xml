@@ -216,17 +216,23 @@
 		<dependency>
 			<groupId>org.multipaz</groupId>
 			<artifactId>multipaz-jvm</artifactId>
-			<version>0.101.0</version>
+			<version>0.102.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.android.keyattestation</groupId>
+					<artifactId>keyattestation</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.multipaz</groupId>
 			<artifactId>multipaz-doctypes-jvm</artifactId>
-			<version>0.101.0</version>
+			<version>0.102.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.multipaz</groupId>
 			<artifactId>multipaz-utopia-jvm</artifactId>
-			<version>0.101.0</version>
+			<version>0.102.0</version>
 		</dependency>
 
 		<dependency>
@@ -539,7 +545,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<jvmTarget>17</jvmTarget>
+					<jvmTarget>21</jvmTarget>
 					<args>
 						<arg>-opt-in=kotlin.time.ExperimentalTime</arg>
 					</args>
