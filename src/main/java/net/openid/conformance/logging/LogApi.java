@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import net.openid.conformance.CollapsingGsonHttpMessageConverter;
 import net.openid.conformance.SwaggerConfig;
 import net.openid.conformance.apidoc.CertificationPackageErrorResponse;
+import net.openid.conformance.apidoc.ErrorResponse;
 import net.openid.conformance.export.HtmlExportRenderer;
 import net.openid.conformance.export.PlanExportInfo;
 import net.openid.conformance.export.TestExportInfo;
@@ -136,11 +137,19 @@ public class LogApi {
 	@Operation(operationId = "listTestLogs", summary = "Get all test logs with paging", description = "Return all published logs when public data is requested, otherwise all test logs if user is admin, or only the user's test logs")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully; note 'data' contains per-test information documents (as GET /api/info/{id}), not log entries",
-			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PaginationResponse.class)))
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PaginationResponse.class))),
+		@ApiResponse(responseCode = "400", description = "The pagination offset could not be used",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	public ResponseEntity<Object> getAllTests(
 		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly,
 		@ParameterObject PaginationRequest page) {
+
+		try {
+			page.validateStart();
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.BAD_REQUEST);
+		}
 
 		PaginationResponse<?> response;
 

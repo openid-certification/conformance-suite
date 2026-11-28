@@ -247,7 +247,7 @@ public class TestPlanApi implements DataUtils {
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully; 'data' contains test plan documents (the public projection when public=true)",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PaginationResponse.class))),
-		@ApiResponse(responseCode = "400", description = "A filter parameter could not be used",
+		@ApiResponse(responseCode = "400", description = "A filter parameter or pagination offset could not be used",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	public ResponseEntity<Object> getTestPlansForCurrentUser(
@@ -260,6 +260,7 @@ public class TestPlanApi implements DataUtils {
 		PlanListFilter filter;
 		PlanOwner owner;
 		try {
+			page.validateStart();
 			filter = PlanListFilter.parse(request.getParameterMap(), specFamilyResolver);
 			// not part of the filter: owner is what scopes a listing, which a filter may never
 			// touch, so DBTestPlanService applies it to the scope instead
