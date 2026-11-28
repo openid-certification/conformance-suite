@@ -53,7 +53,7 @@ public class OpenIDFederationListAndFetchTest extends OpenIDFederationAutomaticC
 		JsonArray listEndpointResponse;
 		if (listEndpoint != null) {
 			eventLog.startBlock(String.format("Retrieving entities from federation_list_endpoint %s", listEndpoint));
-			callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+			callAndStopOnFailure(ValidateFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
 			callAndStopOnFailure(CallListEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.2.1");
 			validateListResponse();
 			eventLog.endBlock();
@@ -91,7 +91,7 @@ public class OpenIDFederationListAndFetchTest extends OpenIDFederationAutomaticC
 
 			env.putString("federation_endpoint_url", fetchEndpoint);
 			env.putString("expected_sub", entityIdentifier);
-			callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+			callAndStopOnFailure(ValidateFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
 			callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 
 			eventLog.startBlock(String.format("Fetching subordinate statement from %s", env.getString("federation_endpoint_url")));

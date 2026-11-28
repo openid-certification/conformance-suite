@@ -36,7 +36,7 @@ public class OpenIDFederationEnsureFetchWithInvalidSubFailsTest extends OpenIDFe
 
 		env.putString("federation_endpoint_url", fetchEndpoint);
 		env.putString("expected_sub", "https://%s".formatted(UUID.randomUUID().toString()));
-		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+		callAndStopOnFailure(ValidateFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
 		callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 
 		eventLog.startBlock(String.format("Fetching subordinate statement from %s", env.getString("federation_endpoint_url")));

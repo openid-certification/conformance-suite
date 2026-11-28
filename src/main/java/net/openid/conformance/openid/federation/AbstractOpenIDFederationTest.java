@@ -441,7 +441,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 
 				// Verify that the primary entity is present in the list endpoint result
 				callAndStopOnFailure(ExtractFederationListEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
-				callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+				callAndStopOnFailure(ValidateFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
 				callAndStopOnFailure(CallListEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.2.1");
 				validateListResponse();
 				callAndContinueOnFailure(VerifyPrimaryEntityPresenceInSubordinateListing.class, Condition.ConditionResult.FAILURE, "OIDFED-8.2");
@@ -449,7 +449,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 				// Get the entity statement from the Superior's fetch endpoint
 				env.putString("expected_sub", env.getString("primary_entity_statement_iss"));
 				callAndStopOnFailure(ExtractFederationFetchEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
-				callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+				callAndStopOnFailure(ValidateFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
 
 				callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 				callAndStopOnFailure(CallFetchEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
@@ -563,7 +563,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 			env.putString("federation_endpoint_url", fetchEndpoint);
 			String sub = path.get(i - 1);
 			env.putString("expected_sub", sub);
-			callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+			callAndStopOnFailure(ValidateFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
 			callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 			callAndStopOnFailure(CallFetchEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 			validateFetchResponse();
